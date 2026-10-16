@@ -2,8 +2,7 @@
 import Link from "next/link";
 
 export default function Footer() {
-  const year = typeof window === "undefined" ? 2025 : new Date().getFullYear();
-
+const year = new Date().getFullYear();
   return (
     <footer className="footer">
       <div className="container footer-inner">
