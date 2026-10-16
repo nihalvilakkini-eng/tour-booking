@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
-import cloudinary from "@/lib/cloudinary";
+import cloudinary, {
+  configureCloudinary,
+  getMissingCloudinaryCredentials,
+} from "@/lib/cloudinary";
 export const dynamic = "force-dynamic";
 
 function getJwtSecret(): string {
@@ -16,8 +20,8 @@ function getJwtSecret(): string {
   return secret;
 }
 
-function getUserFromToken(token: string) {
-  const decoded = jwt.verify(token, getJwtSecret());
+function getUserFromToken(token: string, secret: string) {
+  const decoded = jwt.verify(token, secret);
 
   if (typeof decoded === "string") {
     throw new Error("Invalid token");
@@ -37,6 +41,8 @@ function getUserFromToken(token: string) {
 }
 
 async function uploadImage(file: File): Promise<string> {
+  configureCloudinary();
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -72,80 +78,147 @@ async function uploadImage(file: File): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    await connectDB();
+  const token = request.cookies.get("token")?.value;
 
-    // Get JWT token
-    const token = request.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Verify JWT
-    const { userId, role } = getUserFromToken(token);
-
-    // Only operator can create tours
-    if (role !== "operator") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Only operators can create tours",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Read form data
-    const formData = await request.formData();
-
-    const title = formData.get("title")?.toString().trim();
-    const description = formData.get("description")?.toString().trim();
-    const destination = formData.get("destination")?.toString().trim();
-    const activityType = formData.get("activityType")?.toString().trim();
-
-    const duration = Number(formData.get("duration"));
-    const durationUnit = formData.get("durationUnit")?.toString();
-
-    const price = Number(formData.get("price"));
-    const currency =
-      formData.get("currency")?.toString().trim() || "INR";
-
-    const maxParticipants = Number(
-      formData.get("maxParticipants")
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Authentication required",
+      },
+      { status: 401 }
     );
+  }
 
-    const meetingPoint = formData
-      .get("meetingPoint")
-      ?.toString()
-      .trim();
+  let jwtSecret: string;
+
+  try {
+    jwtSecret = getJwtSecret();
+  } catch (error) {
+    console.error("POST /api/tours authentication configuration error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Server authentication is not configured",
+      },
+      { status: 500 }
+    );
+  }
+
+  let user: ReturnType<typeof getUserFromToken>;
+
+  try {
+    user = getUserFromToken(token, jwtSecret);
+  } catch (error) {
+    console.warn("POST /api/tours rejected an invalid operator token:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid or expired authentication token",
+      },
+      { status: 401 }
+    );
+  }
+
+  const { userId, role } = user;
+
+  if (role !== "operator") {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Only operators can create tours",
+      },
+      { status: 403 }
+    );
+  }
+
+  if (!mongoose.isValidObjectId(userId)) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "The operator account in this session is invalid",
+      },
+      { status: 401 }
+    );
+  }
+
+  if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Tour details and images must be submitted as multipart form data",
+      },
+      { status: 415 }
+    );
+  }
+
+  let formData: FormData;
+
+  try {
+    formData = await request.formData();
+  } catch (error) {
+    console.error("POST /api/tours could not parse the request body:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "The tour request body is malformed",
+      },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const getText = (field: string) => {
+      const value = formData.get(field);
+      return typeof value === "string" ? value.trim() : "";
+    };
+
+    const title = getText("title");
+    const description = getText("description");
+    const destination = getText("destination");
+    const activityType = getText("activityType");
+    const durationValue = getText("duration");
+    const durationUnit = getText("durationUnit");
+    const priceValue = getText("price");
+    const priceCurrency = getText("currency");
+    const maxParticipantsValue = getText("maxParticipants");
+    const meetingPoint = getText("meetingPoint");
+
+    const duration = Number(durationValue);
+    const price = Number(priceValue);
+    const maxParticipants = Number(maxParticipantsValue);
+    const currency = priceCurrency || "INR";
 
     // Convert comma-separated values into arrays
-    const itinerary = formData
-      .getAll("itinerary")
-      .map((item) => item.toString().trim())
-      .filter(Boolean);
+    const getTextList = (field: string): string[] | null => {
+      const items = formData.getAll(field);
 
-    const highlights = formData
-      .getAll("highlights")
-      .map((item) => item.toString().trim())
-      .filter(Boolean);
+      if (!items.every((item): item is string => typeof item === "string")) {
+        return null;
+      }
 
-    const inclusions = formData
-      .getAll("inclusions")
-      .map((item) => item.toString().trim())
-      .filter(Boolean);
+      return items.map((item) => item.trim()).filter(Boolean);
+    };
 
-    const exclusions = formData
-      .getAll("exclusions")
-      .map((item) => item.toString().trim())
-      .filter(Boolean);
+    const itinerary = getTextList("itinerary");
+    const highlights = getTextList("highlights");
+    const inclusions = getTextList("inclusions");
+    const exclusions = getTextList("exclusions");
+
+    if (
+      itinerary === null ||
+      highlights === null ||
+      inclusions === null ||
+      exclusions === null
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Itinerary, highlights, inclusions and exclusions must be text values",
+        },
+        { status: 400 }
+      );
+    }
 
     // Validation
     if (!title) {
@@ -188,7 +261,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!duration || duration < 1) {
+    if (!Number.isFinite(duration) || duration < 1) {
       return NextResponse.json(
         {
           success: false,
@@ -208,7 +281,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (Number.isNaN(price) || price < 0) {
+    if (!priceValue || !Number.isFinite(price) || price < 0) {
       return NextResponse.json(
         {
           success: false,
@@ -218,7 +291,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!maxParticipants || maxParticipants < 1) {
+    if (!Number.isInteger(maxParticipants) || maxParticipants < 1) {
       return NextResponse.json(
         {
           success: false,
@@ -239,9 +312,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Get uploaded images
-    const imageFiles = formData
-      .getAll("images")
-      .filter((item): item is File => item instanceof File);
+    const imageEntries = formData.getAll("images");
+    if (imageEntries.some((item) => typeof item === "string")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Tour images must be uploaded as image files",
+        },
+        { status: 400 }
+      );
+    }
+
+    const imageFiles = imageEntries.filter(
+      (item): item is File => item instanceof File
+    );
 
     // At least one image required
     if (imageFiles.length === 0) {
@@ -267,6 +351,16 @@ export async function POST(request: NextRequest) {
 
     // Validate images
     for (const file of imageFiles) {
+      if (file.size === 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Tour image files cannot be empty",
+          },
+          { status: 400 }
+        );
+      }
+
       if (!file.type.startsWith("image/")) {
         return NextResponse.json(
           {
@@ -288,36 +382,158 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error("POST /api/tours MongoDB connection error:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Could not connect to MongoDB. Check the database URI and network access.",
+        },
+        { status: 503 }
+      );
+    }
+
     // Upload images to Cloudinary
     const imageUrls: string[] = [];
 
     for (const file of imageFiles) {
-      const imageUrl = await uploadImage(file);
-      imageUrls.push(imageUrl);
+      try {
+        const imageUrl = await uploadImage(file);
+        imageUrls.push(imageUrl);
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith("Cloudinary is not configured.")) {
+          console.error("POST /api/tours Cloudinary configuration error:", error.message);
+          const missingCredentials = getMissingCloudinaryCredentials();
+
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to .env.local and restart the server.`,
+            },
+            { status: 503 }
+          );
+        }
+
+        const uploadError =
+          error !== null && typeof error === "object"
+            ? (error as {
+                message?: unknown;
+                name?: unknown;
+                http_code?: unknown;
+                request_id?: unknown;
+              })
+            : {};
+
+        const providerMessage =
+          typeof uploadError.message === "string"
+            ? uploadError.message
+            : "Unknown Cloudinary error";
+        const safeProviderMessage = providerMessage.slice(0, 250);
+
+        console.error("POST /api/tours Cloudinary upload error:", {
+          name: uploadError.name,
+          httpCode: uploadError.http_code,
+          requestId: uploadError.request_id,
+          message: safeProviderMessage,
+        });
+
+        const invalidCredentials =
+          uploadError.http_code === 401 ||
+          /invalid api[_ ]?key|api[_ ]?secret|invalid signature|must supply cloud_name|must supply api_key/i.test(
+            providerMessage
+          );
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: invalidCredentials
+              ? "Cloudinary rejected the configured credentials. Verify CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in .env.local, then restart the server."
+              : `Cloudinary image upload failed: ${safeProviderMessage}`,
+          },
+          { status: invalidCredentials ? 503 : 502 }
+        );
+      }
     }
 
     // Create tour
-    const tour = await Tour.create({
-      title,
-      description,
-      destination,
-      activityType,
-      duration,
-      durationUnit,
-      price,
-      currency,
-      maxParticipants,
-      itinerary,
-      highlights,
-      meetingPoint,
-      inclusions,
-      exclusions,
-      images: imageUrls,
-      operator: userId,
-      rating: 0,
-      reviewCount: 0,
-      isActive: true,
-    });
+    let tour;
+
+    try {
+      tour = await Tour.create({
+        title,
+        description,
+        destination,
+        activityType,
+        duration,
+        durationUnit,
+        price,
+        currency,
+        maxParticipants,
+        itinerary,
+        highlights,
+        meetingPoint,
+        inclusions,
+        exclusions,
+        images: imageUrls,
+        operator: userId,
+        rating: 0,
+        reviewCount: 0,
+        isActive: true,
+      });
+    } catch (error) {
+      console.error("POST /api/tours MongoDB save error:", error);
+
+      if (error instanceof mongoose.Error.ValidationError) {
+        const details = Object.values(error.errors)
+          .map((validationError) => validationError.message)
+          .join("; ");
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Tour validation failed: ${details}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (error instanceof mongoose.Error.CastError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Invalid value for tour field "${error.path}"`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        error !== null &&
+        typeof error === "object" &&
+        "name" in error &&
+        "code" in error &&
+        error.name === "MongoServerError" &&
+        error.code === 11000
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "The tour conflicts with an existing database record",
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "MongoDB could not save the tour. Check the database logs and try again.",
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -328,12 +544,12 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Create tour error:", error);
+    console.error("POST /api/tours unexpected error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to create tour",
+        message: "An unexpected server error occurred while creating the tour",
       },
       { status: 500 }
     );
@@ -371,7 +587,7 @@ export async function GET(request: NextRequest) {
       let user: { userId: string; role: string };
 
       try {
-        user = getUserFromToken(token);
+        user = getUserFromToken(token, getJwtSecret());
       } catch {
         return NextResponse.json(
           { success: false, message: "Invalid or expired token" },
