@@ -6,9 +6,11 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Compass, CircleUserRound } from "lucide-react";
 
+type AuthRole = "admin" | "operator" | "user";
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [role, setRole] = useState<AuthRole | null | undefined>(undefined);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -28,11 +30,15 @@ export default function Navbar() {
         if (!mounted || requestId !== latestRequest) return;
 
         if (response.status === 401 || response.status === 404) {
-          setIsLoggedIn(false);
+          setRole(null);
           return;
         }
 
-        const result: { success?: boolean; message?: string } =
+        const result: {
+          success?: boolean;
+          message?: string;
+          data?: { role?: string };
+        } =
           await response.json();
 
         if (!response.ok || !result.success) {
@@ -41,16 +47,24 @@ export default function Navbar() {
           );
         }
 
-        setIsLoggedIn(true);
+        if (
+          result.data?.role !== "admin" &&
+          result.data?.role !== "operator" &&
+          result.data?.role !== "user"
+        ) {
+          throw new Error("Profile response did not include a valid account role.");
+        }
+
+        setRole(result.data.role);
       } catch (error) {
         if (!mounted || requestId !== latestRequest) return;
 
         console.error("Unable to verify Navbar authentication:", error);
-        setIsLoggedIn(false);
       }
     }
 
     function handleAuthenticationChange() {
+      setRole(undefined);
       void checkAuthentication();
     }
 
@@ -82,7 +96,7 @@ export default function Navbar() {
         throw new Error(result.message || "Logout failed");
       }
 
-      setIsLoggedIn(false);
+      setRole(null);
       setMenuOpen(false);
       window.dispatchEvent(new Event("wayora-auth-change"));
       router.replace("/login");
@@ -124,8 +138,21 @@ export default function Navbar() {
           <Link href="/bookings" onClick={() => setMenuOpen(false)}>
             My Bookings
           </Link>
-          {isLoggedIn === true ? (
+          {role ? (
             <>
+              {(role === "admin" || role === "operator") && (
+                <Link
+                  href={
+                    role === "admin"
+                      ? "/admin/dashboard"
+                      : "/operator/dashboard"
+                  }
+                  className="nav-register"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link
                 href="/profile"
                 aria-label="My Profile"
@@ -143,7 +170,7 @@ export default function Navbar() {
                 Logout
               </button>
             </>
-          ) : isLoggedIn === false ? (
+          ) : role === null ? (
             <>
               <Link href="/login" onClick={() => setMenuOpen(false)}>
                 Login

@@ -357,7 +357,7 @@ export default function OperatorDashboardPage() {
                       </Link>
 
                       <Link
-                        href={`/operator/availability?tourId=${tour._id}`}
+                        href={`/operator/dashboard/availability?tourId=${encodeURIComponent(tour._id)}`}
                         className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
                       >
                         Manage Availability
@@ -382,7 +382,7 @@ export default function OperatorDashboardPage() {
             </div>
 
             <Link
-              href="/operator/bookings"
+              href="/operator/dashboard/bookings"
               className="font-semibold text-emerald-800 hover:underline"
             >
               View all bookings →

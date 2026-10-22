@@ -173,6 +173,7 @@ export default function ProfilePage() {
         credentials: "include",
       });
     } finally {
+      window.dispatchEvent(new Event("wayora-auth-change"));
       router.replace("/login");
       router.refresh();
     }

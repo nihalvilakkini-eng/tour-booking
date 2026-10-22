@@ -29,19 +29,42 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const result = await response.json();
+      const result: {
+        success?: boolean;
+        message?: string;
+        data?: { role?: string };
+      } = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Login failed");
       }
 
+      const role = result.data?.role;
+      const roleRedirect =
+        role === "admin"
+          ? "/admin/dashboard"
+          : role === "operator"
+            ? "/operator/dashboard"
+            : role === "user"
+              ? "/tours"
+              : null;
+
+      if (!roleRedirect) {
+        throw new Error("Login response did not include a valid account role.");
+      }
+
       window.dispatchEvent(new Event("wayora-auth-change"));
 
       const redirect = searchParams.get("redirect");
-      const defaultRedirect =
-        result.data?.role === "operator" ? "/operator/dashboard" : "/tours";
+      const safeUserRedirect =
+        role === "user" &&
+        redirect?.startsWith("/") &&
+        !redirect.startsWith("//") &&
+        !redirect.startsWith("/\\")
+          ? redirect
+          : null;
 
-      router.push(redirect || defaultRedirect);
+      router.push(safeUserRedirect ?? roleRedirect);
       router.refresh();
     } catch (err) {
       setError(

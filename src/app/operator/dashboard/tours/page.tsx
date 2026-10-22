@@ -1,10 +1,19 @@
-export default function OperatorDashboardToursPage() {
+
+import OperatorResourcePage from "@/components/operator/OperatorResourcePage";
+
+export default function OperatorToursPage() {
   return (
-    <main className="flex min-h-[40vh] items-center justify-center px-6 text-center">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">OperatorDashboardToursPage</h1>
-        <p className="mt-2 text-slate-600">This page is currently under construction.</p>
-      </div>
-    </main>
+    <OperatorResourcePage
+      title="My Tours"
+      description="View your tour listings and monitor their details."
+      endpoint="/api/operator/tours"
+      fields={[
+        { key: "title", label: "Tour" },
+        { key: "destination", label: "Destination" },
+        { key: "price", label: "Price" },
+        { key: "duration", label: "Duration" },
+        { key: "status", label: "Status" },
+      ]}
+    />
   );
 }

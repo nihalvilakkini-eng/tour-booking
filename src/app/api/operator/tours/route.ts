@@ -7,44 +7,80 @@ export const dynamic = "force-dynamic";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function getOperatorId(request: NextRequest) {
+type OperatorAuthResult =
+  | { operatorId: string }
+  | { response: NextResponse };
+
+function getOperatorId(request: NextRequest): OperatorAuthResult {
   if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
+    console.error("Operator tours authentication error: JWT_SECRET is not configured");
+    return {
+      response: NextResponse.json(
+        { success: false, message: "Server authentication is not configured" },
+        { status: 500 }
+      ),
+    };
   }
 
   const token = request.cookies.get("token")?.value;
 
   if (!token) {
-    return null;
+    return {
+      response: NextResponse.json(
+        { success: false, message: "Authentication required. Please sign in." },
+        { status: 401 }
+      ),
+    };
   }
 
-  const decoded = jwt.verify(token, JWT_SECRET) as {
-    userId: string;
-    role: string;
-  };
+  let decoded: string | jwt.JwtPayload;
+
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    console.warn("Operator tours rejected an invalid authentication token:", error);
+    return {
+      response: NextResponse.json(
+        { success: false, message: "Invalid or expired authentication token. Please sign in again." },
+        { status: 401 }
+      ),
+    };
+  }
+
+  if (
+    typeof decoded !== "object" ||
+    typeof decoded.userId !== "string" ||
+    typeof decoded.role !== "string"
+  ) {
+    return {
+      response: NextResponse.json(
+        { success: false, message: "Invalid authentication token. Please sign in again." },
+        { status: 401 }
+      ),
+    };
+  }
 
   if (decoded.role !== "operator") {
-    return null;
+    return {
+      response: NextResponse.json(
+        { success: false, message: "This account does not have the operator role." },
+        { status: 403 }
+      ),
+    };
   }
 
-  return decoded.userId;
+  return { operatorId: decoded.userId };
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const operatorId = getOperatorId(request);
-
-    if (!operatorId) {
-      return NextResponse.json(
-        { success: false, message: "Operator authentication required" },
-        { status: 401 }
-      );
-    }
+    const auth = getOperatorId(request);
+    if ("response" in auth) return auth.response;
 
     await connectDB();
 
     const tours = await Tour.find({
-      operator: operatorId,
+      operator: auth.operatorId,
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -68,14 +104,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const operatorId = getOperatorId(request);
-
-    if (!operatorId) {
-      return NextResponse.json(
-        { success: false, message: "Operator authentication required" },
-        { status: 401 }
-      );
-    }
+    const auth = getOperatorId(request);
+    if ("response" in auth) return auth.response;
 
     await connectDB();
 
@@ -244,7 +274,7 @@ export async function POST(request: NextRequest) {
       inclusions,
       exclusions,
       images: imageUrls,
-      operator: operatorId,
+      operator: auth.operatorId,
       rating: 0,
       reviewCount: 0,
       isActive: true,

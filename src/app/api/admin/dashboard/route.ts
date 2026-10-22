@@ -4,6 +4,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Tour from "@/models/Tour";
 import Booking from "@/models/Booking";
+import Review from "@/models/Review";
 export const dynamic = "force-dynamic";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
       totalTours,
       activeTours,
       totalBookings,
+      totalReviews,
       pendingBookings,
       confirmedBookings,
       completedBookings,
@@ -75,6 +77,8 @@ export async function GET(request: NextRequest) {
       }),
 
       Booking.countDocuments(),
+
+      Review.countDocuments(),
 
       Booking.countDocuments({
         status: "pending",
@@ -104,6 +108,7 @@ export async function GET(request: NextRequest) {
         totalTours,
         activeTours,
         totalBookings,
+        totalReviews,
         pendingBookings,
         confirmedBookings,
         completedBookings,

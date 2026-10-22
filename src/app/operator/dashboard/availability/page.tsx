@@ -1,10 +1,19 @@
-export default function OperatorDashboardAvailabilityPage() {
+
+import OperatorResourcePage from "@/components/operator/OperatorResourcePage";
+
+export default function OperatorAvailabilityPage() {
   return (
-    <main className="flex min-h-[40vh] items-center justify-center px-6 text-center">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">OperatorDashboardAvailabilityPage</h1>
-        <p className="mt-2 text-slate-600">This page is currently under construction.</p>
-      </div>
-    </main>
+    <OperatorResourcePage
+      title="Availability"
+      description="Review tour dates, time slots and available capacity."
+      endpoint="/api/operator/availability"
+      fields={[
+        { key: "tourName", label: "Tour" },
+        { key: "date", label: "Date" },
+        { key: "startTime", label: "Start time" },
+        { key: "availableSlots", label: "Available slots" },
+        { key: "status", label: "Status" },
+      ]}
+    />
   );
 }

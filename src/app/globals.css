@@ -1817,3 +1817,150 @@ button {
     padding: 0 9px;
   }
 }
+
+.operator-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e5eeeb;
+  box-shadow: 0 3px 12px rgba(23, 43, 39, 0.04);
+}
+
+.operator-header-inner {
+  max-width: 1440px;
+  min-height: 78px;
+  margin: 0 auto;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.operator-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #172b27;
+  flex-shrink: 0;
+}
+
+.operator-brand-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #087f6e;
+  color: white;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.operator-brand strong,
+.operator-brand small {
+  display: block;
+}
+
+.operator-brand strong {
+  font-size: 19px;
+  letter-spacing: 1px;
+}
+
+.operator-brand small {
+  margin-top: 3px;
+  color: #71817c;
+  font-size: 12px;
+}
+
+.operator-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.operator-nav-link {
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #43534e;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.operator-nav-link:hover,
+.operator-nav-active {
+  background: #e9f6f2;
+  color: #087f6e;
+}
+
+.operator-logout {
+  padding: 10px 16px;
+  border: 1px solid #087f6e;
+  border-radius: 8px;
+  background: #087f6e;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.operator-logout:hover {
+  background: #066354;
+}
+
+.operator-logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.operator-main {
+  min-height: calc(100vh - 78px);
+  background: #f6f9f8;
+}
+
+.operator-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  .operator-header-inner {
+    padding: 12px 18px;
+    flex-wrap: wrap;
+  }
+
+  .operator-menu-toggle {
+    display: block;
+    padding: 8px 12px;
+    border: 1px solid #dce8e4;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #172b27;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .operator-nav {
+    display: none;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .operator-nav.operator-nav-open {
+    display: flex;
+  }
+
+  .operator-nav-link,
+  .operator-logout {
+    width: 100%;
+    text-align: left;
+  }
+}
