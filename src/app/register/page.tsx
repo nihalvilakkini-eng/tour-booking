@@ -12,7 +12,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,7 +51,6 @@ export default function RegisterPage() {
       formData.append("email", email.trim());
       formData.append("phone", phone);
       formData.append("password", password);
-      formData.append("role", role);
 
       if (profileImage) {
         formData.append("profileImage", profileImage);
@@ -202,14 +200,10 @@ export default function RegisterPage() {
             </div>
 
             <label htmlFor="role">Account type</label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
+            <select id="role" value="user" disabled>
               <option value="user">Traveller</option>
-              <option value="operator">Tour Operator</option>
             </select>
+            <small>Operator access is granted by an administrator.</small>
 
             <label htmlFor="profileImage">Profile image (optional)</label>
             <input

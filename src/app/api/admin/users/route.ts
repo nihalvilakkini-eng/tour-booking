@@ -1,33 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User, { type IUser } from "@/models/User";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function getAdminId(request: NextRequest) {
-  if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  const token = request.cookies.get("token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  const decoded = jwt.verify(token, JWT_SECRET) as {
-    userId: string;
-    role: string;
-  };
-
-  if (decoded.role !== "admin") {
-    return null;
-  }
-
-  return decoded.userId;
-}
 
 function isUserRole(role: string): role is IUser["role"] {
   return role === "user" || role === "operator" || role === "admin";
@@ -35,9 +10,19 @@ function isUserRole(role: string): role is IUser["role"] {
 
 export async function GET(request: NextRequest) {
   try {
-    const adminId = await getAdminId(request);
+    const admin = await getRequestUser(request.cookies.get("token")?.value);
 
-    if (!adminId) {
+    if (!admin) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (admin.role !== "admin") {
       return NextResponse.json(
         {
           success: false,
@@ -91,13 +76,14 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await User.find(query)
-      .select("-password")
+      .select("name lastName email role createdAt")
       .sort({ createdAt: -1 })
       .lean();
 
     return NextResponse.json({
       success: true,
       count: users.length,
+      users,
       data: users,
     });
   } catch (error) {

@@ -55,6 +55,10 @@ function parseList(value: string): string[] {
     .filter(Boolean);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export default function AddTourPage() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -209,9 +213,25 @@ export default function AddTourPage() {
         body: data,
       });
 
-      const result = await response.json();
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("json")) {
+        throw new Error(
+          `The tour service returned an unexpected response (HTTP ${response.status}). Please try again, and contact support if the problem continues.`
+        );
+      }
 
-      if (!response.ok || result.success !== true) {
+      let responseBody: unknown;
+      try {
+        responseBody = await response.json();
+      } catch {
+        throw new Error("The tour service returned invalid JSON. Please try again.");
+      }
+
+      if (!isRecord(responseBody)) {
+        throw new Error("The tour service returned an invalid response. Please try again.");
+      }
+
+      if (!response.ok || responseBody.success !== true) {
         if (response.status === 401) {
           throw new Error("Please log in to create a tour.");
         }
@@ -222,13 +242,22 @@ export default function AddTourPage() {
           );
         }
 
-        throw new Error(result.message || "Could not create tour.");
+        throw new Error(
+          typeof responseBody.message === "string"
+            ? responseBody.message
+            : "Could not create tour."
+        );
       }
 
       setSuccess("Tour created successfully!");
 
-      if (result.data?._id) {
-        router.push(`/operator/dashboard/tours/${result.data._id}`);
+      const tourId =
+        isRecord(responseBody.data) && typeof responseBody.data._id === "string"
+          ? responseBody.data._id
+          : null;
+
+      if (tourId) {
+        router.push(`/operator/dashboard/tours/${tourId}`);
       } else {
         router.push("/operator/dashboard/tours");
       }

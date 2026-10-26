@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+import TourImage from "@/components/tours/TourImage";
 
 type Tour = {
   _id?: string;
@@ -36,9 +37,6 @@ function getTours(result: TourResponse): Tour[] {
   }
   return [];
 }
-
-const fallbackImage =
-  "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80";
 
 export default function FeaturedTours() {
   const [tours, setTours] = useState<Tour[]>([]);
@@ -115,17 +113,20 @@ export default function FeaturedTours() {
             {tours.map((tour, index) => {
               const id = tour._id ?? tour.id ?? "";
               const title = tour.title ?? tour.name ?? "Explore this tour";
-              const image =
-                tour.image ?? tour.images?.[0] ?? fallbackImage;
 
               return (
                 <article className="tour-card" key={id || index}>
                   <Link
                     href={id ? `/tours/${id}` : "/tours"}
                     className="tour-image"
-                    style={{ backgroundImage: `url("${image}")` }}
                     aria-label={`View ${title}`}
                   >
+                    <TourImage
+                      image={tour.image}
+                      images={tour.images}
+                      alt={title}
+                      className="h-full w-full object-cover"
+                    />
                     <span className="category-tag">
                       {tour.category ?? "Adventure"}
                     </span>
@@ -223,8 +224,7 @@ export default function FeaturedTours() {
           position: relative;
           display: block;
           height: 225px;
-          background-size: cover;
-          background-position: center;
+          overflow: hidden;
         }
 
         .category-tag {

@@ -1,39 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  return secret;
-}
-
-function getUserFromToken(token: string) {
-  const decoded = jwt.verify(token, getJwtSecret());
-
-  if (typeof decoded === "string") {
-    throw new Error("Invalid token");
-  }
-
-  if (
-    typeof decoded.userId !== "string" ||
-    typeof decoded.role !== "string"
-  ) {
-    throw new Error("Invalid token payload");
-  }
-
-  return {
-    userId: decoded.userId,
-    role: decoded.role,
-  };
-}
 
 // GET SINGLE TOUR
 export async function GET(
@@ -100,7 +69,15 @@ export async function PATCH(
       );
     }
 
-    const { userId, role } = getUserFromToken(token);
+    const user = await getRequestUser(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Invalid or expired login session" },
+        { status: 401 }
+      );
+    }
+
+    const { userId, role } = user;
 
     if (role !== "operator" && role !== "admin") {
       return NextResponse.json(
@@ -210,7 +187,15 @@ export async function DELETE(
       );
     }
 
-    const { userId, role } = getUserFromToken(token);
+    const user = await getRequestUser(token);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Invalid or expired login session" },
+        { status: 401 }
+      );
+    }
+
+    const { userId, role } = user;
 
     if (role !== "operator" && role !== "admin") {
       return NextResponse.json(

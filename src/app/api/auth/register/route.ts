@@ -120,10 +120,7 @@ export async function POST(request: NextRequest) {
     const email = String(data.email ?? "").trim().toLowerCase();
     const password = typeof data.password === "string" ? data.password : "";
     const phone = String(data.phone ?? "").trim();
-    const role =
-      data.role === undefined || data.role === null || data.role === ""
-        ? "user"
-        : String(data.role);
+    const role = "user";
 
     if (!name || !lastName || !email || !password || !phone) {
       return NextResponse.json(
@@ -152,13 +149,6 @@ export async function POST(request: NextRequest) {
     if (password.length < 8) {
       return NextResponse.json(
         { success: false, message: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
-
-    if (role !== "user" && role !== "operator") {
-      return NextResponse.json(
-        { success: false, message: "Role must be user or operator" },
         { status: 400 }
       );
     }

@@ -1,35 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import dbConnect from "@/lib/mongodb";
 import Tour from "@/models/Tour";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
 
-type JwtPayload = {
-  userId: string;
-  role: "user" | "operator" | "admin";
-};
-
 async function checkAdmin(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayload;
-
-    if (decoded.role !== "admin") {
-      return null;
-    }
-
-    return decoded;
-  } catch {
-    return null;
-  }
+  const user = await getRequestUser(request.cookies.get("token")?.value);
+  return user?.role === "admin" ? user : null;
 }
 
 export async function GET(request: NextRequest) {

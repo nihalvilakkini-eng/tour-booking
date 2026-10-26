@@ -1,70 +1,47 @@
+
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import connectDB from "@/lib/mongodb";
 import Availability from "@/models/Availability";
 import Tour from "@/models/Tour";
+import { getRequestUser, type RequestUser } from "@/lib/request-user";
+
 export const dynamic = "force-dynamic";
 
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  return secret;
-}
-
-function getUserFromToken(token: string) {
-  const decoded = jwt.verify(token, getJwtSecret());
-
-  if (typeof decoded === "string") {
-    throw new Error("Invalid token");
-  }
-
-  if (
-    typeof decoded.userId !== "string" ||
-    typeof decoded.role !== "string"
-  ) {
-    throw new Error("Invalid token payload");
-  }
-
-  return {
-    userId: decoded.userId,
-    role: decoded.role,
-  };
+function jsonError(message: string, status: number) {
+  return NextResponse.json(
+    { success: false, message },
+    { status }
+  );
 }
 
 // CREATE AVAILABILITY
-// Only operator can create availability
+// Admin: any tour
+// Operator: own tours only
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
-
     const token = request.cookies.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required",
-        },
-        { status: 401 }
+      return jsonError("Authentication required", 401);
+    }
+
+    const user: RequestUser | null = await getRequestUser(token);
+    if (!user) {
+      return jsonError("Invalid or expired login session", 401);
+    }
+
+    const { userId, role } = user;
+
+    if (role !== "admin" && role !== "operator") {
+      return jsonError(
+        "Only admins and operators can create availability",
+        403
       );
     }
 
-    const { userId, role } = getUserFromToken(token);
-
-    if (role !== "operator") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Only operators can create availability",
-        },
-        { status: 403 }
-      );
-    }
+    await connectDB();
 
     const body = await request.json();
 
@@ -76,100 +53,117 @@ export async function POST(request: NextRequest) {
       totalSeats,
     } = body;
 
-    // Validation
+    if (
+      typeof tourId !== "string" ||
+      !mongoose.isValidObjectId(tourId)
+    ) {
+      return jsonError("A valid Tour ID is required", 400);
+    }
 
-    if (!tourId) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Tour ID is required",
-        },
-        { status: 400 }
+    if (
+      typeof date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(date)
+    ) {
+      return jsonError(
+        "Date is required in YYYY-MM-DD format",
+        400
       );
     }
 
-    if (!date) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Date is required",
-        },
-        { status: 400 }
+    const selectedDate = new Date(`${date}T00:00:00.000Z`);
+
+    if (
+      Number.isNaN(selectedDate.getTime()) ||
+      selectedDate.toISOString().slice(0, 10) !== date
+    ) {
+      return jsonError("Please provide a valid date", 400);
+    }
+
+    // Prevent creating availability for a past date.
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return jsonError("Availability date cannot be in the past", 400);
+    }
+
+    const validTime = (value: unknown) =>
+      typeof value === "string" &&
+      /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+    if (!validTime(startTime)) {
+      return jsonError(
+        "Start time is required in HH:MM format",
+        400
       );
     }
 
-    if (!startTime) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Start time is required",
-        },
-        { status: 400 }
+    if (endTime !== undefined && endTime !== "" && !validTime(endTime)) {
+      return jsonError(
+        "End time must be in HH:MM format",
+        400
       );
     }
 
-    if (!totalSeats || totalSeats < 1) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Total seats must be at least 1",
-        },
-        { status: 400 }
-      );
+    if (
+      endTime &&
+      validTime(startTime) &&
+      endTime <= startTime
+    ) {
+      return jsonError("End time must be after start time", 400);
     }
 
-    // Check tour
+    if (
+      !Number.isInteger(totalSeats) ||
+      totalSeats < 1
+    ) {
+      return jsonError(
+        "Total seats must be a whole number greater than zero",
+        400
+      );
+    }
 
     const tour = await Tour.findById(tourId);
 
     if (!tour) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Tour not found",
-        },
-        { status: 404 }
+      return jsonError("Tour not found", 404);
+    }
+
+    // Operators can manage only their own tours.
+    // Admins can manage availability for any tour.
+    if (
+      role === "operator" &&
+      String(tour.operator) !== userId
+    ) {
+      return jsonError(
+        "You can only add availability for your own tours",
+        403
       );
     }
 
-    // Operator can add availability only to own tour
-
-    if (tour.operator.toString() !== userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "You can only add availability for your own tours",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Check duplicate availability
+    // Check for an existing slot on the same date and start time.
+    const nextDate = new Date(selectedDate);
+    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
 
     const existingAvailability = await Availability.findOne({
       tour: tourId,
-      date: new Date(date),
+      date: {
+        $gte: selectedDate,
+        $lt: nextDate,
+      },
       startTime,
-      isAvailable: true,
     });
 
     if (existingAvailability) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Availability already exists for this date and time",
-        },
-        { status: 409 }
+      return jsonError(
+        "Availability already exists for this date and start time",
+        409
       );
     }
 
-    // Create availability
-
     const availability = await Availability.create({
       tour: tourId,
-      date: new Date(date),
+      date: selectedDate,
       startTime,
       endTime: endTime || "",
       totalSeats,
@@ -188,24 +182,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create availability error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to create availability",
-      },
-      { status: 500 }
-    );
+    return jsonError("Failed to create availability", 500);
   }
 }
 
 // GET AVAILABILITY
-// Users can check available slots
+// Customers can see bookable slots.
+// Optional query parameters: tourId and date.
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-
     const tourId = searchParams.get("tourId");
     const date = searchParams.get("date");
 
@@ -215,14 +203,32 @@ export async function GET(request: NextRequest) {
     };
 
     if (tourId) {
+      if (!mongoose.isValidObjectId(tourId)) {
+        return jsonError("Invalid Tour ID", 400);
+      }
+
       filter.tour = tourId;
     }
 
     if (date) {
-      const selectedDate = new Date(date);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return jsonError(
+          "Date must be in YYYY-MM-DD format",
+          400
+        );
+      }
+
+      const selectedDate = new Date(`${date}T00:00:00.000Z`);
+
+      if (
+        Number.isNaN(selectedDate.getTime()) ||
+        selectedDate.toISOString().slice(0, 10) !== date
+      ) {
+        return jsonError("Please provide a valid date", 400);
+      }
 
       const nextDate = new Date(selectedDate);
-      nextDate.setDate(nextDate.getDate() + 1);
+      nextDate.setUTCDate(nextDate.getUTCDate() + 1);
 
       filter.date = {
         $gte: selectedDate,
@@ -235,10 +241,7 @@ export async function GET(request: NextRequest) {
         "tour",
         "title destination activityType price duration durationUnit"
       )
-      .sort({
-        date: 1,
-        startTime: 1,
-      });
+      .sort({ date: 1, startTime: 1 });
 
     return NextResponse.json(
       {
@@ -251,12 +254,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Get availability error:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to fetch availability",
-      },
-      { status: 500 }
-    );
+    return jsonError("Failed to fetch availability", 500);
   }
 }

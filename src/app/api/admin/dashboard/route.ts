@@ -1,49 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Tour from "@/models/Tour";
 import Booking from "@/models/Booking";
 import Review from "@/models/Review";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function GET(request: NextRequest) {
   try {
-    if (!JWT_SECRET) {
+    const user = await getRequestUser(request.cookies.get("token")?.value);
+    if (!user) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "JWT_SECRET is not configured",
-        },
-        { status: 500 }
-      );
-    }
-
-    const token = request.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required",
-        },
+        { success: false, message: "Authentication required" },
         { status: 401 }
       );
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
-      role: string;
-    };
-
-    if (decoded.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Only admins can access this dashboard",
-        },
+        { success: false, message: "Only admins can access this dashboard" },
         { status: 403 }
       );
     }

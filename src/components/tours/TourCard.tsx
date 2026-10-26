@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import TourImage from "@/components/tours/TourImage";
 
 export interface Tour {
   _id?: string;
@@ -22,17 +23,13 @@ export interface Tour {
 export default function TourCard({ tour }: { tour: Tour }) {
   const tourId = tour._id || tour.id;
   const title = tour.title || tour.name || "Untitled Tour";
-  const image =
-    tour.image ||
-    tour.images?.[0] ||
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900";
-
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <Link href={tourId ? `/tours/${tourId}` : "/tours"}>
         <div className="relative h-56 overflow-hidden bg-gray-100">
-          <img
-            src={image}
+          <TourImage
+            image={tour.image}
+            images={tour.images}
             alt={title}
             className="h-full w-full object-cover transition duration-500 hover:scale-105"
           />

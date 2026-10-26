@@ -1,39 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
 import Availability from "@/models/Availability";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-function getOperatorId(request: NextRequest) {
-  if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  const token = request.cookies.get("token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  const decoded = jwt.verify(token, JWT_SECRET) as {
-    userId: string;
-    role: string;
-  };
-
-  if (decoded.role !== "operator") {
-    return null;
-  }
-
-  return decoded.userId;
+async function getOperatorId(request: NextRequest) {
+  const user = await getRequestUser(request.cookies.get("token")?.value);
+  return user?.role === "operator" ? user.userId : null;
 }
 
 // GET - Operator's availability
 export async function GET(request: NextRequest) {
   try {
-    const operatorId = getOperatorId(request);
+    const operatorId = await getOperatorId(request);
 
     if (!operatorId) {
       return NextResponse.json(
@@ -80,7 +60,7 @@ export async function GET(request: NextRequest) {
 // POST - Add availability
 export async function POST(request: NextRequest) {
   try {
-    const operatorId = getOperatorId(request);
+    const operatorId = await getOperatorId(request);
 
     if (!operatorId) {
       return NextResponse.json(

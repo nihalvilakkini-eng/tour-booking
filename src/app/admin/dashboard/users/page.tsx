@@ -5,9 +5,26 @@ import { useEffect, useState } from "react";
 type User = {
   _id: string;
   name: string;
+  lastName?: string;
   email: string;
   role: "user" | "operator" | "admin";
 };
+
+async function fetchUsers(): Promise<User[]> {
+  const response = await fetch("/api/admin/users", {
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to load users.");
+  }
+
+  if (Array.isArray(data.users)) return data.users;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -22,18 +39,7 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("/api/admin/users", {
-        credentials: "include",
-        cache: "no-store",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to load users.");
-      }
-
-      setUsers(Array.isArray(data.users) ? data.users : []);
+      setUsers(await fetchUsers());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load users.");
     } finally {
@@ -42,7 +48,26 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    void loadUsers();
+    let active = true;
+
+    fetchUsers()
+      .then((list) => {
+        if (active) setUsers(list);
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setError(
+            err instanceof Error ? err.message : "Unable to load users."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function changeRole(user: User, role: "user" | "operator") {
@@ -153,7 +178,9 @@ export default function AdminUsersPage() {
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user._id} className="border-b border-gray-50">
-                      <td className="px-4 py-5 font-semibold">{user.name}</td>
+                      <td className="px-4 py-5 font-semibold">
+                        {[user.name, user.lastName].filter(Boolean).join(" ")}
+                      </td>
                       <td className="px-4 py-5 text-gray-600">{user.email}</td>
                       <td className="px-4 py-5">
                         <span
@@ -178,7 +205,7 @@ export default function AdminUsersPage() {
                           >
                             {updatingId === user._id
                               ? "Updating..."
-                              : "Promote to Operator"}
+                              : "Make Operator"}
                           </button>
                         )}
 
@@ -189,7 +216,9 @@ export default function AdminUsersPage() {
                             onClick={() => changeRole(user, "user")}
                             className="rounded-lg border border-red-200 px-4 py-2 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
                           >
-                            Remove Operator
+                            {updatingId === user._id
+                              ? "Updating..."
+                              : "Remove Operator Access"}
                           </button>
                         )}
 

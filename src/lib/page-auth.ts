@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import jwt from "jsonwebtoken";
-
-type Role = "admin" | "operator" | "user";
+import { getRequestUser } from "@/lib/request-user";
 
 export async function requireRole(requiredRole: "admin" | "operator") {
   const token = (await cookies()).get("token")?.value;
@@ -11,37 +9,18 @@ export async function requireRole(requiredRole: "admin" | "operator") {
     redirect("/login");
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  let decoded: string | jwt.JwtPayload;
-  try {
-    decoded = jwt.verify(token, secret);
-  } catch {
+  const user = await getRequestUser(token);
+  if (!user) {
     redirect("/login");
   }
 
-  if (
-    typeof decoded === "string" ||
-    typeof decoded.userId !== "string" ||
-    !isRole(decoded.role)
-  ) {
-    redirect("/login");
-  }
-
-  if (decoded.role !== requiredRole) {
-    if (decoded.role === "admin") {
+  if (user.role !== requiredRole) {
+    if (user.role === "admin") {
       redirect("/admin/dashboard");
     }
-    if (decoded.role === "operator") {
+    if (user.role === "operator") {
       redirect("/operator/dashboard");
     }
     redirect("/");
   }
-}
-
-function isRole(role: unknown): role is Role {
-  return role === "admin" || role === "operator" || role === "user";
 }

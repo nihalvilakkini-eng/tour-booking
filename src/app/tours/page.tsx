@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import TourImage from "@/components/tours/TourImage";
 
 type Tour = {
   _id: string;
@@ -13,6 +14,7 @@ type Tour = {
   currency?: string;
   duration: number;
   durationUnit: "hours" | "days";
+  image?: string;
   images?: string[];
   rating?: number;
   reviewCount?: number;
@@ -297,11 +299,9 @@ export default function ToursPage() {
                   aria-label={`View ${tour.title}`}
                 >
                   <div className="tour-card-image">
-                    <img
-                      src={
-                        tour.images?.[0] ||
-                        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80"
-                      }
+                    <TourImage
+                      image={tour.image}
+                      images={tour.images}
                       alt={tour.title}
                     />
 

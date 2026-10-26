@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 import connectDB from "@/lib/mongodb";
@@ -8,37 +7,8 @@ import cloudinary, {
   configureCloudinary,
   getMissingCloudinaryCredentials,
 } from "@/lib/cloudinary";
+import { getRequestUser, type RequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  return secret;
-}
-
-function getUserFromToken(token: string, secret: string) {
-  const decoded = jwt.verify(token, secret);
-
-  if (typeof decoded === "string") {
-    throw new Error("Invalid token");
-  }
-
-  if (
-    typeof decoded.userId !== "string" ||
-    typeof decoded.role !== "string"
-  ) {
-    throw new Error("Invalid token payload");
-  }
-
-  return {
-    userId: decoded.userId,
-    role: decoded.role,
-  };
-}
 
 async function uploadImage(file: File): Promise<string> {
   configureCloudinary();
@@ -90,27 +60,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let jwtSecret: string;
-
+  let user: RequestUser | null;
   try {
-    jwtSecret = getJwtSecret();
+    user = await getRequestUser(token);
   } catch (error) {
-    console.error("POST /api/tours authentication configuration error:", error);
+    console.error("POST /api/tours authentication error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Server authentication is not configured",
-      },
+      { success: false, message: "Unable to verify account permissions" },
       { status: 500 }
     );
   }
 
-  let user: ReturnType<typeof getUserFromToken>;
-
-  try {
-    user = getUserFromToken(token, jwtSecret);
-  } catch (error) {
-    console.warn("POST /api/tours rejected an invalid operator token:", error);
+  if (!user) {
     return NextResponse.json(
       {
         success: false,
@@ -119,14 +80,13 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
-
   const { userId, role } = user;
 
-  if (role !== "operator") {
+  if (role !== "operator" && role !== "admin") {
     return NextResponse.json(
       {
         success: false,
-        message: "Only operators can create tours",
+        message: "Only operators and admins can create tours",
       },
       { status: 403 }
     );
@@ -327,8 +287,9 @@ export async function POST(request: NextRequest) {
       (item): item is File => item instanceof File
     );
 
-    // At least one image required
-    if (imageFiles.length === 0) {
+    // Production keeps the existing image requirement; development can create
+    // tours without configuring an external image service.
+    if (process.env.NODE_ENV === "production" && imageFiles.length === 0) {
       return NextResponse.json(
         {
           success: false,
@@ -410,7 +371,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               success: false,
-              message: `Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to .env.local and restart the server.`,
+              message: `Image upload is unavailable because Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to .env.local and restart the server, or remove the images and submit the tour without them during development.`,
             },
             { status: 503 }
           );
@@ -584,11 +545,9 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      let user: { userId: string; role: string };
+      const user = await getRequestUser(token);
 
-      try {
-        user = getUserFromToken(token, getJwtSecret());
-      } catch {
+      if (!user) {
         return NextResponse.json(
           { success: false, message: "Invalid or expired token" },
           { status: 401 }

@@ -1,30 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
 import cloudinary from "@/lib/cloudinary";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 type OperatorAuthResult =
   | { operatorId: string }
   | { response: NextResponse };
 
-function getOperatorId(request: NextRequest): OperatorAuthResult {
-  if (!JWT_SECRET) {
-    console.error("Operator tours authentication error: JWT_SECRET is not configured");
-    return {
-      response: NextResponse.json(
-        { success: false, message: "Server authentication is not configured" },
-        { status: 500 }
-      ),
-    };
-  }
-
+async function getOperatorId(request: NextRequest): Promise<OperatorAuthResult> {
   const token = request.cookies.get("token")?.value;
 
-  if (!token) {
+  const user = await getRequestUser(token);
+  if (!user) {
     return {
       response: NextResponse.json(
         { success: false, message: "Authentication required. Please sign in." },
@@ -33,34 +22,7 @@ function getOperatorId(request: NextRequest): OperatorAuthResult {
     };
   }
 
-  let decoded: string | jwt.JwtPayload;
-
-  try {
-    decoded = jwt.verify(token, JWT_SECRET);
-  } catch (error) {
-    console.warn("Operator tours rejected an invalid authentication token:", error);
-    return {
-      response: NextResponse.json(
-        { success: false, message: "Invalid or expired authentication token. Please sign in again." },
-        { status: 401 }
-      ),
-    };
-  }
-
-  if (
-    typeof decoded !== "object" ||
-    typeof decoded.userId !== "string" ||
-    typeof decoded.role !== "string"
-  ) {
-    return {
-      response: NextResponse.json(
-        { success: false, message: "Invalid authentication token. Please sign in again." },
-        { status: 401 }
-      ),
-    };
-  }
-
-  if (decoded.role !== "operator") {
+  if (user.role !== "operator") {
     return {
       response: NextResponse.json(
         { success: false, message: "This account does not have the operator role." },
@@ -69,12 +31,12 @@ function getOperatorId(request: NextRequest): OperatorAuthResult {
     };
   }
 
-  return { operatorId: decoded.userId };
+  return { operatorId: user.userId };
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = getOperatorId(request);
+    const auth = await getOperatorId(request);
     if ("response" in auth) return auth.response;
 
     await connectDB();
@@ -104,7 +66,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = getOperatorId(request);
+    const auth = await getOperatorId(request);
     if ("response" in auth) return auth.response;
 
     await connectDB();
