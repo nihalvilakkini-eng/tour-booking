@@ -1,7 +1,13 @@
+
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IBooking extends Document {
   user: mongoose.Types.ObjectId;
+
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+
   tour: mongoose.Types.ObjectId;
   availability: mongoose.Types.ObjectId;
 
@@ -21,6 +27,16 @@ export interface IBooking extends Document {
     | "cancelled"
     | "completed";
 
+  paymentStatus:
+    | "unpaid"
+    | "pending"
+    | "paid"
+    | "failed"
+    | "refunded";
+
+  rejectionReason?: string;
+  paidAt?: Date | null;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,36 +46,55 @@ const BookingSchema = new Schema<IBooking>(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "User is required"],
+      required: true,
+    },
+
+    customerName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    customerEmail: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+
+    customerPhone: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
     tour: {
       type: Schema.Types.ObjectId,
       ref: "Tour",
-      required: [true, "Tour is required"],
+      required: true,
     },
 
     availability: {
       type: Schema.Types.ObjectId,
       ref: "Availability",
-      required: [true, "Availability is required"],
+      required: true,
     },
 
     bookingDate: {
       type: Date,
-      required: [true, "Booking date is required"],
+      required: true,
     },
 
     startTime: {
       type: String,
-      required: [true, "Start time is required"],
+      required: true,
       trim: true,
     },
 
     participants: {
       type: Number,
-      required: [true, "Number of participants is required"],
-      min: [1, "At least 1 participant is required"],
+      required: true,
+      min: 1,
     },
 
     specialRequirements: {
@@ -70,8 +105,8 @@ const BookingSchema = new Schema<IBooking>(
 
     totalAmount: {
       type: Number,
-      required: [true, "Total amount is required"],
-      min: [0, "Total amount cannot be negative"],
+      required: true,
+      min: 0,
     },
 
     currency: {
@@ -90,6 +125,29 @@ const BookingSchema = new Schema<IBooking>(
         "completed",
       ],
       default: "pending",
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: [
+        "unpaid",
+        "pending",
+        "paid",
+        "failed",
+        "refunded",
+      ],
+      default: "unpaid",
+    },
+
+    rejectionReason: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    paidAt: {
+      type: Date,
+      default: null,
     },
   },
   {

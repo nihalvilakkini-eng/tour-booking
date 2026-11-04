@@ -42,6 +42,7 @@ export default function AdminToursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadTours = useCallback(async () => {
     setLoading(true);
@@ -74,6 +75,42 @@ export default function AdminToursPage() {
     void loadTours();
   }, [loadTours]);
 
+  const handleDelete = async (tour: Tour) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to deactivate "${tour.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(tour._id);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/tours/${tour._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to delete tour.");
+      }
+
+      setTours((previousTours) =>
+        previousTours.filter((item) => item._id !== tour._id)
+      );
+
+      window.alert("Tour deactivated successfully.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete tour."
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredTours = tours.filter((tour) => {
     const searchText = search.trim().toLowerCase();
 
@@ -102,9 +139,11 @@ export default function AdminToursPage() {
             <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#087f6e]">
               WAYORA Admin
             </p>
+
             <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
               Manage Tours
             </h1>
+
             <p className="mt-2 text-gray-600">
               View and manage tours available on your platform.
             </p>
@@ -145,6 +184,7 @@ export default function AdminToursPage() {
           >
             Search tours
           </label>
+
           <input
             id="tour-search"
             type="search"
@@ -161,6 +201,7 @@ export default function AdminToursPage() {
             className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
           >
             {error}
+
             <button
               type="button"
               onClick={() => void loadTours()}
@@ -180,14 +221,17 @@ export default function AdminToursPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-2xl">
               🧭
             </div>
+
             <h2 className="text-xl font-bold text-gray-900">
               {search ? "No matching tours found" : "No tours available yet"}
             </h2>
+
             <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
               {search
                 ? "Try a different search term."
                 : "Create your first tour to get started with WAYORA."}
             </p>
+
             {!search && (
               <Link
                 href="/admin/dashboard/tours/create"
@@ -234,6 +278,7 @@ export default function AdminToursPage() {
                       <h2 className="line-clamp-2 text-lg font-bold text-gray-900">
                         {tour.title}
                       </h2>
+
                       <p className="mt-1 text-sm text-gray-500">
                         📍 {tour.destination}
                       </p>
@@ -246,18 +291,23 @@ export default function AdminToursPage() {
                           {formatPrice(tour.price, tour.currency)}
                         </p>
                       </div>
+
                       <div>
                         <p className="text-xs text-gray-500">Duration</p>
                         <p className="mt-1 text-sm font-semibold text-gray-800">
                           {tour.duration} {tour.durationUnit}
                         </p>
                       </div>
+
                       <div>
-                        <p className="text-xs text-gray-500">Max participants</p>
+                        <p className="text-xs text-gray-500">
+                          Max participants
+                        </p>
                         <p className="mt-1 text-sm font-semibold text-gray-800">
                           {tour.maxParticipants}
                         </p>
                       </div>
+
                       <div>
                         <p className="text-xs text-gray-500">Owner</p>
                         <p className="mt-1 truncate text-sm font-semibold text-gray-800">
@@ -274,18 +324,16 @@ export default function AdminToursPage() {
                       <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
                         Active
                       </span>
+
                       <button
                         type="button"
-                        onClick={() =>
-                          window.alert(
-                            "Tour ID: " +
-                              tour._id +
-                              "\n\nEdit and deactivate actions need a protected Admin API, which we will add next."
-                          )
-                        }
-                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        disabled={deletingId === tour._id}
+                        onClick={() => void handleDelete(tour)}
+                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        View ID
+                        {deletingId === tour._id
+                          ? "Deleting..."
+                          : "Delete"}
                       </button>
                     </div>
                   </div>

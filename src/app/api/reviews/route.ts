@@ -127,17 +127,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Review only after completed tour
-    if (booking.status !== "completed") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "You can review only after completing the tour",
-        },
-        { status: 400 }
-      );
-    }
-
+   if (
+  booking.status !== "confirmed" ||
+  booking.paymentStatus !== "paid"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "You can review only after booking confirmation and successful payment.",
+    },
+    { status: 403 }
+  );
+}
     // Check existing review
     const existingReview = await Review.findOne({
       user: user.userId,

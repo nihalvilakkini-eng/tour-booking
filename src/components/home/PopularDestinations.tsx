@@ -69,26 +69,28 @@ export default function PopularDestinations() {
           color: #087f6e;
           font-size: 11px;
           font-weight: 800;
-          letter-spacing: 1.8px;
+          letter-spacing: 1.4px;
         }
 
         .destination-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 18px;
+          gap: 16px;
           margin-top: 32px;
         }
 
         .destination-card {
           position: relative;
           display: flex;
-          min-height: 310px;
+          min-height: 320px;
           align-items: end;
           overflow: hidden;
-          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
           background-position: center;
           background-size: cover;
-          transition: transform 0.25s;
+          box-shadow: 0 10px 24px rgba(20, 43, 35, 0.1);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         .destination-card::before {
@@ -98,13 +100,14 @@ export default function PopularDestinations() {
           background: linear-gradient(
             180deg,
             transparent 25%,
-            rgba(9, 30, 26, 0.82) 100%
+            rgba(8, 29, 24, 0.82) 100%
           );
           transition: background 0.25s;
         }
 
         .destination-card:hover {
-          transform: translateY(-5px);
+          transform: translateY(-3px);
+          box-shadow: 0 16px 30px rgba(20, 43, 35, 0.17);
         }
 
         .destination-info {
@@ -112,7 +115,7 @@ export default function PopularDestinations() {
           display: flex;
           flex-direction: column;
           gap: 7px;
-          padding: 20px;
+          padding: 22px;
           color: white;
         }
 
@@ -140,7 +143,7 @@ export default function PopularDestinations() {
           }
 
           .destination-card {
-            min-height: 230px;
+            min-height: 220px;
           }
 
           .destination-info {

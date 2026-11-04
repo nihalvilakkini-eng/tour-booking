@@ -29,9 +29,9 @@ const year = new Date().getFullYear();
 
       <style jsx>{`
         .footer {
-          background: #142923;
+          background: #132a24;
           color: white;
-          padding: 42px 0;
+          padding: 50px 0 34px;
         }
 
         .footer-inner {
@@ -43,8 +43,9 @@ const year = new Date().getFullYear();
         }
 
         .footer-brand {
-          font-size: 25px;
+          font-size: 24px;
           font-weight: 800;
+          letter-spacing: 0;
         }
 
         .footer-brand span {
@@ -53,6 +54,7 @@ const year = new Date().getFullYear();
 
         p {
           max-width: 300px;
+          margin: 10px 0 0;
           color: #b8c9c2;
           font-size: 14px;
           line-height: 1.7;
@@ -61,20 +63,37 @@ const year = new Date().getFullYear();
         .footer-links {
           display: flex;
           flex-wrap: wrap;
-          gap: 20px;
-          font-size: 14px;
+          gap: 22px;
+          font-size: 13px;
+          font-weight: 600;
         }
 
         .footer-links a:hover {
-          color: #61d8b7;
+          color: #9ee2c9;
         }
 
         .copyright {
           width: 100%;
           padding-top: 22px;
-          border-top: 1px solid #345047;
+          border-top: 1px solid rgba(255, 255, 255, 0.14);
           color: #b8c9c2;
           font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
+          .footer {
+            padding: 38px 0 26px;
+          }
+
+          .footer-inner {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 22px;
+          }
+
+          .footer-links {
+            gap: 14px 20px;
+          }
         }
       `}</style>
     </footer>

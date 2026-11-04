@@ -54,26 +54,29 @@ export default function SearchBar() {
           display: grid;
           grid-template-columns: 1fr 1fr auto;
           align-items: center;
-          gap: 18px;
+          gap: 14px;
           max-width: 880px;
-          margin-top: 45px;
-          padding: 16px;
-          border-radius: 16px;
+          margin-top: 40px;
+          padding: 13px;
+          border: 1px solid rgba(255, 255, 255, 0.72);
+          border-radius: 12px;
           background: white;
-          box-shadow: 0 18px 55px rgba(0, 0, 0, 0.18);
+          box-shadow: 0 18px 42px rgba(9, 29, 24, 0.2);
           color: #172b27;
         }
 
         .search-field {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 7px;
           min-width: 0;
-          padding: 5px 10px;
+          padding: 7px 12px;
+          border-right: 1px solid #e8ede9;
         }
 
         .search-field span {
-          font-size: 12px;
+          color: #43574f;
+          font-size: 11px;
           font-weight: 700;
         }
 
@@ -87,31 +90,39 @@ export default function SearchBar() {
           font-size: 13px;
         }
 
+        .search-field:focus-within span {
+          color: #087f6e;
+        }
+
         .search-button {
-          min-height: 52px;
-          padding: 0 23px;
+          min-height: 50px;
+          padding: 0 21px;
           border: 0;
-          border-radius: 10px;
+          border-radius: 8px;
           background: #087f6e;
           color: white;
           font-weight: 700;
+          transition: background 0.18s ease, transform 0.18s ease;
         }
 
         .search-button:hover {
           background: #066354;
+          transform: translateY(-1px);
         }
 
         @media (max-width: 640px) {
           .search-box {
             grid-template-columns: 1fr;
-            gap: 10px;
-            margin-top: 30px;
-            padding: 13px;
+            gap: 5px;
+            margin-top: 28px;
+            padding: 10px;
+            border-radius: 10px;
           }
 
           .search-field {
-            padding: 10px;
+            padding: 11px 9px;
             border-bottom: 1px solid #e5ebe7;
+            border-right: 0;
           }
         }
       `}</style>

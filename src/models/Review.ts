@@ -24,12 +24,13 @@ const ReviewSchema = new Schema<IReview>(
       required: [true, "Tour is required"],
     },
 
-    booking: {
-      type: Schema.Types.ObjectId,
-      ref: "Booking",
-      required: [true, "Booking is required"],
+   booking: {
+     type: Schema.Types.ObjectId,
+     ref: "Booking",
+     required: true,
+     unique: true,
     },
-
+    
     rating: {
       type: Number,
       required: [true, "Rating is required"],

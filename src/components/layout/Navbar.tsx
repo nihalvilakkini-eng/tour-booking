@@ -193,13 +193,14 @@ export default function Navbar() {
           position: sticky;
           top: 0;
           z-index: 50;
-          background: rgba(255, 255, 255, 0.96);
-          border-bottom: 1px solid #e5ebe7;
-          backdrop-filter: blur(12px);
+          background: rgba(251, 252, 250, 0.94);
+          border-bottom: 1px solid #e1e8e3;
+          box-shadow: 0 4px 18px rgba(23, 45, 37, 0.045);
+          backdrop-filter: blur(16px);
         }
 
         .nav-inner {
-          min-height: 76px;
+          min-height: 78px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -211,7 +212,7 @@ export default function Navbar() {
           align-items: center;
           font-size: 25px;
           font-weight: 800;
-          letter-spacing: -1px;
+          letter-spacing: 0;
         }
 
         .brand-icon {
@@ -232,9 +233,13 @@ export default function Navbar() {
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 28px;
-          font-size: 14px;
+          gap: 25px;
+          font-size: 13px;
           font-weight: 600;
+        }
+
+        .nav-links a {
+          transition: color 0.18s ease, background 0.18s ease;
         }
 
         .nav-links a:hover {
@@ -242,22 +247,31 @@ export default function Navbar() {
         }
 
         .nav-register {
-          padding: 12px 18px;
-          border-radius: 9px;
+          padding: 11px 17px;
+          border-radius: 8px;
           background: #087f6e;
           color: white !important;
+          transition: background 0.18s ease, transform 0.18s ease;
+        }
+
+        .nav-register:hover {
+          background: #066354;
+          transform: translateY(-1px);
         }
 
         .menu-toggle {
           display: none;
-          border: 0;
+          padding: 8px 10px;
+          border: 1px solid #e1e8e3;
+          border-radius: 8px;
           background: transparent;
-          font-size: 25px;
+          color: #1c2d27;
+          font-size: 22px;
         }
 
         @media (max-width: 760px) {
           .nav-inner {
-            min-height: 68px;
+            min-height: 66px;
           }
 
           .menu-toggle {
@@ -267,15 +281,16 @@ export default function Navbar() {
           .nav-links {
             display: none;
             position: absolute;
-            top: 68px;
+            top: 66px;
             left: 0;
             right: 0;
-            padding: 20px;
-            background: white;
-            border-bottom: 1px solid #e5ebe7;
+            padding: 16px 24px 20px;
+            background: #fbfcfa;
+            border-bottom: 1px solid #e1e8e3;
+            box-shadow: 0 16px 24px rgba(23, 45, 37, 0.08);
             flex-direction: column;
             align-items: stretch;
-            gap: 20px;
+            gap: 14px;
           }
 
           .nav-links.nav-open {

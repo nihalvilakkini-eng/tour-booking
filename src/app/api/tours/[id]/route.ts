@@ -103,19 +103,19 @@ export async function PATCH(
       );
     }
 
-    // Operator can update only their own tour
-    if (
-      role === "operator" &&
-      tour.operator.toString() !== userId
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "You can only update your own tours",
-        },
-        { status: 403 }
-      );
-    }
+    // // Operator can update only their own tour
+    // if (
+    //   role === "operator" &&
+    //   tour.operator.toString() !== userId
+    // ) {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       message: "You can only update your own tours",
+    //     },
+    //     { status: 403 }
+    //   );
+    // }
 
     const body = (await request.json()) as Partial<Record<string, unknown>>;
 
@@ -197,15 +197,15 @@ export async function DELETE(
 
     const { userId, role } = user;
 
-    if (role !== "operator" && role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Only operators or admins can delete tours",
-        },
-        { status: 403 }
-      );
-    }
+  if (role !== "admin") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Only admins can delete tours",
+    },
+    { status: 403 }
+  );
+}
 
     const { id } = await context.params;
 
@@ -221,19 +221,7 @@ export async function DELETE(
       );
     }
 
-    // Operator can delete only their own tour
-    if (
-      role === "operator" &&
-      tour.operator.toString() !== userId
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "You can only delete your own tours",
-        },
-        { status: 403 }
-      );
-    }
+   
 
     // Soft delete
     tour.isActive = false;

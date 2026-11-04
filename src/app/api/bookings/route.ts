@@ -5,6 +5,7 @@ import Booking from "@/models/Booking";
 import Availability from "@/models/Availability";
 import Tour from "@/models/Tour";
 import { createNotification } from "@/lib/notifications";
+import User from "@/models/User";
 export const dynamic = "force-dynamic";
 
 type JwtPayload = {
@@ -53,7 +54,26 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+const customer = await User.findById(user.userId).select(
+  "name lastName email phone"
+);
 
+if (!customer) {
+  return NextResponse.json(
+    { success: false, message: "User not found" },
+    { status: 404 }
+  );
+}
+
+if (!customer.name || !customer.email || !customer.phone) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Please complete your name, email and phone in your profile before booking.",
+    },
+    { status: 400 }
+  );
+}
     const body = await request.json();
 
     const {
@@ -190,6 +210,9 @@ export async function POST(request: NextRequest) {
         startTime: availability.startTime,
         participants: participantCount,
         specialRequirements: String(specialRequirements).trim(),
+        customerName: `${customer.name} ${customer.lastName || ""}`.trim(),
+        customerEmail: customer.email,
+        customerPhone: customer.phone,
         totalAmount,
         currency: tour.currency,
         status: "pending",

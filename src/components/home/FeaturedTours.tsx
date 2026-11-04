@@ -173,7 +173,7 @@ export default function FeaturedTours() {
 
       <style jsx>{`
         .featured {
-          background: #f7f9f7;
+          background: #f2f6f3;
         }
 
         .section-top {
@@ -190,7 +190,7 @@ export default function FeaturedTours() {
           color: #087f6e;
           font-size: 11px;
           font-weight: 800;
-          letter-spacing: 1.8px;
+          letter-spacing: 1.4px;
         }
 
         .view-all {
@@ -203,27 +203,28 @@ export default function FeaturedTours() {
         .tour-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 24px;
+          gap: 20px;
         }
 
         .tour-card {
           min-width: 0;
           overflow: hidden;
-          border: 1px solid #e9eeea;
-          border-radius: 16px;
+          border: 1px solid #e1e8e3;
+          border-radius: 8px;
           background: white;
-          transition: transform 0.25s, box-shadow 0.25s;
+          box-shadow: 0 8px 22px rgba(23, 45, 37, 0.045);
+          transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
 
         .tour-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 15px 35px rgba(23, 43, 39, 0.09);
+          transform: translateY(-3px);
+          box-shadow: 0 14px 28px rgba(23, 45, 37, 0.12);
         }
 
         .tour-image {
           position: relative;
           display: block;
-          height: 225px;
+          height: 235px;
           overflow: hidden;
         }
 
@@ -232,15 +233,16 @@ export default function FeaturedTours() {
           top: 14px;
           left: 14px;
           padding: 7px 11px;
-          border-radius: 30px;
+          border-radius: 6px;
           background: white;
           color: #087f6e;
           font-size: 11px;
           font-weight: 700;
+          box-shadow: 0 2px 8px rgba(12, 31, 25, 0.12);
         }
 
         .tour-content {
-          padding: 19px;
+          padding: 20px;
         }
 
         .tour-location {
@@ -252,7 +254,7 @@ export default function FeaturedTours() {
         h3 {
           margin: 0 0 10px;
           font-size: 19px;
-          letter-spacing: -0.4px;
+          letter-spacing: 0;
         }
 
         .tour-description {

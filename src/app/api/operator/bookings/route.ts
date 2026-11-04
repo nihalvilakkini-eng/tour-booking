@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
@@ -5,11 +6,24 @@ import Booking, { type IBooking } from "@/models/Booking";
 import Availability from "@/models/Availability";
 import { createNotification } from "@/lib/notifications";
 import { getRequestUser } from "@/lib/request-user";
+import mongoose from "mongoose";
+
 export const dynamic = "force-dynamic";
 
-async function getOperatorId(request: NextRequest) {
-  const user = await getRequestUser(request.cookies.get("token")?.value);
-  return user?.role === "operator" ? user.userId : null;
+// Allow both operators and admins to manage all bookings
+async function getManager(request: NextRequest) {
+  const user = await getRequestUser(
+    request.cookies.get("token")?.value
+  );
+
+  if (
+    !user ||
+    (user.role !== "operator" && user.role !== "admin")
+  ) {
+    return null;
+  }
+
+  return user;
 }
 
 function isBookingStatus(status: string): status is IBooking["status"] {
@@ -22,18 +36,18 @@ function isBookingStatus(status: string): status is IBooking["status"] {
   );
 }
 
-// GET - Operator's bookings
+// GET - Fetch bookings for ALL tours
 export async function GET(request: NextRequest) {
   try {
-    const operatorId = await getOperatorId(request);
+    const manager = await getManager(request);
 
-    if (!operatorId) {
+    if (!manager) {
       return NextResponse.json(
         {
           success: false,
-          message: "Operator authentication required",
+          message: "Operator or admin authentication required",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
@@ -41,6 +55,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+
     let validatedStatus: IBooking["status"] | undefined;
 
     if (status !== null) {
@@ -58,11 +73,8 @@ export async function GET(request: NextRequest) {
       validatedStatus = status;
     }
 
-    const tours = await Tour.find({
-      operator: operatorId,
-    }).select("_id");
-
-    const tourIds = tours.map((tour) => tour._id);
+    // Get IDs of every tour, regardless of creator
+    const tourIds = await Tour.distinct("_id");
 
     const query: {
       tour: { $in: typeof tourIds };
@@ -76,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     const bookings = await Booking.find(query)
-      .populate("user", "firstName lastName email phone")
+      .populate("user", "name lastName email phone")
       .populate("tour", "title destination price currency")
       .populate(
         "availability",
@@ -90,12 +102,12 @@ export async function GET(request: NextRequest) {
       data: bookings,
     });
   } catch (error) {
-    console.error("Operator bookings GET error:", error);
+    console.error("Bookings GET error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to fetch operator bookings",
+        message: "Failed to fetch bookings",
       },
       { status: 500 }
     );
@@ -105,29 +117,24 @@ export async function GET(request: NextRequest) {
 // PATCH - Confirm / Reject / Complete booking
 export async function PATCH(request: NextRequest) {
   try {
-    const operatorId = await getOperatorId(request);
+    const manager = await getManager(request);
 
-    if (!operatorId) {
+    if (!manager) {
       return NextResponse.json(
         {
           success: false,
-          message: "Operator authentication required",
+          message: "Operator or admin authentication required",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     await connectDB();
 
     const body = await request.json();
+    const { bookingId, status, rejectionReason } = body;
 
-    const { bookingId, status } = body;
-
-    const allowedStatuses = [
-      "confirmed",
-      "rejected",
-      "completed",
-    ];
+    const allowedStatuses = ["confirmed", "rejected", "completed"];
 
     if (!bookingId || !status) {
       return NextResponse.json(
@@ -139,13 +146,26 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid booking ID" },
+        { status: 400 }
+      );
+    }
+
     if (!allowedStatuses.includes(status)) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Status must be confirmed, rejected or completed",
-        },
+        { success: false, message: "Invalid booking status" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      status === "rejected" &&
+      (!rejectionReason || !rejectionReason.trim())
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Rejection reason is required" },
         { status: 400 }
       );
     }
@@ -154,92 +174,90 @@ export async function PATCH(request: NextRequest) {
 
     if (!booking) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Booking not found",
-        },
+        { success: false, message: "Booking not found" },
         { status: 404 }
       );
     }
 
-    const tour = await Tour.findOne({
-      _id: booking.tour,
-      operator: operatorId,
-    });
+    // Both operator and admin can manage bookings for every tour
+    const tour = await Tour.findById(booking.tour);
 
     if (!tour) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "You are not authorized to manage this booking",
-        },
-        { status: 403 }
+        { success: false, message: "Tour not found" },
+        { status: 404 }
       );
     }
 
-    // Confirm only pending bookings
-    if (status === "confirmed") {
-      if (booking.status !== "pending") {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Only pending bookings can be confirmed",
-          },
-          { status: 400 }
-        );
-      }
+    const requiredStatus =
+      status === "completed" ? "confirmed" : "pending";
+
+    if (booking.status !== requiredStatus) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            status === "completed"
+              ? "Only confirmed bookings can be completed"
+              : "Only pending bookings can be processed",
+        },
+        { status: 400 }
+      );
     }
 
-    // Reject only pending bookings
+    // Prevent duplicate processing
+    const updatedBooking = await Booking.findOneAndUpdate(
+      {
+        _id: bookingId,
+        status: requiredStatus,
+      },
+      {
+        $set: {
+          status,
+          ...(status === "rejected"
+            ? { rejectionReason: rejectionReason.trim() }
+            : {}),
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedBooking) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Booking has already been processed",
+        },
+        { status: 409 }
+      );
+    }
+
+    // Restore reserved seats when booking is rejected
     if (status === "rejected") {
-      if (booking.status !== "pending") {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Only pending bookings can be rejected",
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Complete only confirmed bookings
-    if (status === "completed") {
-      if (booking.status !== "confirmed") {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Only confirmed bookings can be completed",
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // If rejected, return reserved seats
-    if (status === "rejected") {
-      await Availability.findByIdAndUpdate(
+      const availability = await Availability.findByIdAndUpdate(
         booking.availability,
         {
           $inc: {
             availableSeats: booking.participants,
           },
-          $set: {
-            isAvailable: true,
-          },
-        }
+        },
+        { new: true }
       );
-    }
 
-    booking.status = status;
-    await booking.save();
+      if (!availability) {
+        console.error(
+          "Availability not found while restoring rejected booking seats:",
+          booking._id
+        );
+      }
+    }
 
     if (status === "confirmed") {
       await createNotification({
         user: booking.user,
         type: "booking_confirmed",
         title: "Booking Confirmed",
-        message: `Your booking for "${tour.title}" has been confirmed.`,
+        message: `Your booking for "${tour.title}" has been confirmed. You can now proceed with payment.`,
         booking: booking._id,
         tour: tour._id,
       });
@@ -250,7 +268,7 @@ export async function PATCH(request: NextRequest) {
         user: booking.user,
         type: "booking_rejected",
         title: "Booking Rejected",
-        message: `Your booking request for "${tour.title}" has been rejected.`,
+        message: `Your booking for "${tour.title}" has been rejected. Reason: ${rejectionReason.trim()}`,
         booking: booking._id,
         tour: tour._id,
       });
@@ -270,10 +288,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Booking ${status} successfully`,
-      data: booking,
+      data: updatedBooking,
     });
   } catch (error) {
-    console.error("Operator bookings PATCH error:", error);
+    console.error("Bookings PATCH error:", error);
 
     return NextResponse.json(
       {
