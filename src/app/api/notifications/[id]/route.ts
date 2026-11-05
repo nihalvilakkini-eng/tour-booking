@@ -1,32 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import Notification from "@/models/Notification";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-type JwtPayload = {
-  userId: string;
-  role: "user" | "operator" | "admin";
-  email: string;
-};
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  return secret;
-}
-
-function getUserFromToken(token: string): JwtPayload {
-  return jwt.verify(token, getJwtSecret()) as JwtPayload;
-}
 
 // =========================
 // GET - Single Notification
@@ -51,11 +31,8 @@ export async function GET(
       );
     }
 
-    let user: JwtPayload;
-
-    try {
-      user = getUserFromToken(token);
-    } catch {
+    const user = await getRequestUser(token);
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -130,11 +107,8 @@ export async function PATCH(
       );
     }
 
-    let user: JwtPayload;
-
-    try {
-      user = getUserFromToken(token);
-    } catch {
+    const user = await getRequestUser(token);
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -229,11 +203,8 @@ export async function DELETE(
       );
     }
 
-    let user: JwtPayload;
-
-    try {
-      user = getUserFromToken(token);
-    } catch {
+    const user = await getRequestUser(token);
+    if (!user) {
       return NextResponse.json(
         {
           success: false,

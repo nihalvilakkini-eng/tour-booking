@@ -13,6 +13,9 @@ interface Booking {
   totalAmount?: number;
   currency?: string;
   status?: string;
+  paymentStatus?: string;
+  reviewSubmitted?: boolean;
+  reviewEligible?: boolean;
   tour?: {
     title?: string;
     destination?: string;
@@ -171,6 +174,18 @@ export default function MyBookingsPage() {
                   >
                     View Details
                   </Link>
+                  {booking.reviewSubmitted ? (
+                    <span className="rounded-xl bg-emerald-50 px-5 py-3 font-semibold text-emerald-800">
+                      Review Submitted
+                    </span>
+                  ) : booking.reviewEligible ? (
+                    <Link
+                      href={`/reviews?bookingId=${booking._id}`}
+                      className="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
+                    >
+                      Write a Review
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             );

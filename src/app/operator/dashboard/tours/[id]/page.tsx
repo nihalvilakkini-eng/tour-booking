@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import TourImage from "@/components/tours/TourImage";
 
 type Tour = {
   _id: string;
@@ -131,8 +132,6 @@ export default function OperatorTourDetailsPage() {
     );
   }
 
-  const image = tour.images?.[0];
-
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -165,17 +164,13 @@ export default function OperatorTourDetailsPage() {
         </div>
 
         <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          {image ? (
-            <img
-              src={image}
+          <div className="relative h-72 w-full sm:h-96">
+            <TourImage
+              images={tour.images}
               alt={tour.title}
-              className="h-72 w-full object-cover sm:h-96"
+              className="object-cover"
             />
-          ) : (
-            <div className="flex h-64 items-center justify-center bg-emerald-50 text-emerald-800">
-              No tour image available
-            </div>
-          )}
+          </div>
 
           <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
             <div>

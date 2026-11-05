@@ -9,9 +9,12 @@ export async function requireRole(requiredRole: "admin" | "operator") {
     redirect("/login");
   }
 
-  const user = await getRequestUser(token);
+  const user = await getRequestUser(token, { includeDeactivated: true });
   if (!user) {
     redirect("/login");
+  }
+  if (!user.isActive) {
+    redirect("/login?reason=account-deactivated");
   }
 
   if (user.role !== requiredRole) {

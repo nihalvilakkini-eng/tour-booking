@@ -41,6 +41,15 @@ export default function Navbar() {
         } =
           await response.json();
 
+        if (
+          response.status === 403 &&
+          result.message?.toLowerCase().includes("deactivated")
+        ) {
+          setRole(null);
+          router.push("/login?reason=account-deactivated");
+          return;
+        }
+
         if (!response.ok || !result.success) {
           throw new Error(
             result.message || `Profile request failed (${response.status})`
@@ -81,7 +90,7 @@ export default function Navbar() {
         handleAuthenticationChange
       );
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   async function handleLogout() {
     try {

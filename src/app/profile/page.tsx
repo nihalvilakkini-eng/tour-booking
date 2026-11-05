@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import TourImage from "@/components/tours/TourImage";
 
 type Profile = {
   id: string;
@@ -446,15 +447,13 @@ export default function ProfilePage() {
               <div className="profile-bookings">
                 {bookings.map((booking) => (
                   <article className="profile-booking-card" key={booking._id}>
-                    {booking.tour?.images?.[0] ? (
-                      <img
-                        className="profile-booking-image"
-                        src={booking.tour.images[0]}
-                        alt={booking.tour.title || "Tour"}
+                    <div className="profile-booking-image">
+                      <TourImage
+                        images={booking.tour?.images}
+                        alt={booking.tour?.title || "Tour"}
+                        className="object-cover"
                       />
-                    ) : (
-                      <div className="profile-booking-placeholder">✦</div>
-                    )}
+                    </div>
 
                     <div className="profile-booking-info">
                       <h3>{booking.tour?.title || "Tour booking"}</h3>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Star } from "lucide-react";
 
 type Tour = {
   _id?: string;
@@ -15,11 +16,20 @@ type Tour = {
   price?: number;
   currency?: string;
   rating?: number;
+  reviewCount?: number;
   duration?: string | number;
   images?: string[];
   image?: string;
   highlights?: string[];
   included?: string[];
+};
+
+type CustomerReview = {
+  _id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  user?: { name?: string; lastName?: string } | null;
 };
 
 type Availability = {
@@ -42,7 +52,7 @@ function getTourImage(tour: Tour, index: number) {
   return (
     images[index] ||
     images[0] ||
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85"
+    "/tour-placeholder.svg"
   );
 }
 
@@ -82,6 +92,9 @@ export default function TourDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
+  const [reviews, setReviews] = useState<CustomerReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState("");
 
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
@@ -151,6 +164,41 @@ export default function TourDetailsPage() {
 
     void fetchTour();
 
+    return () => controller.abort();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+
+    async function fetchReviews() {
+      try {
+        setReviewsLoading(true);
+        setReviewsError("");
+        const response = await fetch(
+          `/api/reviews?tourId=${encodeURIComponent(id)}`,
+          { cache: "no-store", signal: controller.signal }
+        );
+        const result = await response.json();
+
+        if (!response.ok || !result.success || !Array.isArray(result.data)) {
+          throw new Error(result.message || "Unable to load customer reviews.");
+        }
+
+        setReviews(result.data as CustomerReview[]);
+      } catch (reviewError) {
+        if (reviewError instanceof Error && reviewError.name === "AbortError") return;
+        setReviewsError(
+          reviewError instanceof Error
+            ? reviewError.message
+            : "Unable to load customer reviews."
+        );
+      } finally {
+        if (!controller.signal.aborted) setReviewsLoading(false);
+      }
+    }
+
+    void fetchReviews();
     return () => controller.abort();
   }, [id]);
 
@@ -364,15 +412,16 @@ export default function TourDetailsPage() {
             </p>
           </div>
 
-          {typeof tour.rating === "number" && (
-            <div className="flex items-center gap-2 self-start rounded-xl bg-white px-4 py-3 shadow-sm sm:self-auto">
+          <div className="flex items-center gap-2 self-start rounded-xl bg-white px-4 py-3 shadow-sm sm:self-auto">
               <span className="text-xl text-amber-500">★</span>
               <span className="font-bold text-gray-900">
-                {tour.rating.toFixed(1)}
+                {(tour.rating ?? 0).toFixed(1)}
               </span>
-              <span className="text-sm text-gray-500">Rating</span>
-            </div>
-          )}
+              <span className="text-sm text-gray-500">
+                {tour.reviewCount ?? reviews.length}{" "}
+                {(tour.reviewCount ?? reviews.length) === 1 ? "review" : "reviews"}
+              </span>
+          </div>
         </div>
 
         <section className="mt-7 grid gap-3 md:grid-cols-[1.7fr_1fr]">
@@ -381,6 +430,11 @@ export default function TourDetailsPage() {
               src={getTourImage(tour, selectedImage)}
               alt={title}
               className="h-[300px] w-full object-cover sm:h-[440px]"
+              onError={(event) => {
+                if (!event.currentTarget.src.endsWith("/tour-placeholder.svg")) {
+                  event.currentTarget.src = "/tour-placeholder.svg";
+                }
+              }}
             />
           </div>
 
@@ -400,6 +454,11 @@ export default function TourDetailsPage() {
                   src={getTourImage(tour, index + 1)}
                   alt={`${title} view ${index + 2}`}
                   className="h-[145px] w-full object-cover transition duration-300 hover:scale-105 sm:h-[212px]"
+                  onError={(event) => {
+                    if (!event.currentTarget.src.endsWith("/tour-placeholder.svg")) {
+                      event.currentTarget.src = "/tour-placeholder.svg";
+                    }
+                  }}
                 />
               </button>
             ))}
@@ -468,6 +527,97 @@ export default function TourDetailsPage() {
                 </ul>
               </div>
             )}
+
+            <section
+              id="customer-reviews"
+              className="scroll-mt-24 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
+            >
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700">
+                    Guest feedback
+                  </p>
+                  <h2 className="mt-1 text-2xl font-bold text-gray-900">
+                    Traveller reviews
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Star size={18} fill="currentColor" className="text-amber-500" aria-hidden="true" />
+                  <span className="font-bold text-gray-900">
+                    {(tour.rating ?? 0).toFixed(1)}
+                  </span>
+                  <span>·</span>
+                  <span>{tour.reviewCount ?? reviews.length} total</span>
+                </div>
+              </div>
+
+              {reviewsLoading ? (
+                <p className="mt-6 text-sm text-gray-500">
+                  Loading customer reviews...
+                </p>
+              ) : reviewsError ? (
+                <p role="alert" className="mt-6 text-sm text-red-700">
+                  {reviewsError}
+                </p>
+              ) : reviews.length === 0 ? (
+                <p className="mt-6 rounded-xl bg-emerald-50 px-5 py-6 text-center text-sm text-gray-600">
+                  No reviews yet. Be the first to share your experience after
+                  completing this tour.
+                </p>
+              ) : (
+                <div className="mt-6 divide-y divide-gray-100">
+                  {reviews.map((review) => {
+                    const customerName = [
+                      review.user?.name,
+                      review.user?.lastName,
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+
+                    return (
+                      <article key={review._id} className="py-5 first:pt-0 last:pb-0">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {customerName || "Wayora traveller"}
+                            </h3>
+                            <time
+                              className="mt-1 block text-xs text-gray-500"
+                              dateTime={review.createdAt}
+                            >
+                              {new Date(review.createdAt).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                }
+                              )}
+                            </time>
+                          </div>
+                          <div
+                            className="flex gap-0.5 text-amber-500"
+                            aria-label={`${review.rating} out of 5 stars`}
+                          >
+                            {Array.from({ length: 5 }, (_, index) => (
+                              <Star
+                                key={index}
+                                size={16}
+                                fill={index < review.rating ? "currentColor" : "none"}
+                                aria-hidden="true"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+                          {review.comment}
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </section>
 
           <aside className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-6 shadow-lg">

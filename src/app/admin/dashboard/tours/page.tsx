@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import TourImage from "@/components/tours/TourImage";
 
 type Tour = {
   _id: string;
@@ -255,18 +256,11 @@ export default function AdminToursPage() {
                   className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="relative h-48 bg-gray-100">
-                    {tour.images?.[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={tour.images[0]}
-                        alt={tour.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-4xl">
-                        🌄
-                      </div>
-                    )}
+                    <TourImage
+                      images={tour.images}
+                      alt={tour.title}
+                      className="object-cover"
+                    />
 
                     <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-[#087f6e]">
                       {tour.activityType}

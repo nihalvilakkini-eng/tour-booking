@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import TourImage from "@/components/tours/TourImage";
 import { useRouter } from "next/navigation";
 
 type Tour = {
@@ -252,17 +253,11 @@ export default function OperatorToursPage() {
                   className="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
                 >
                   <div className="relative h-52 bg-emerald-50">
-                    {tour.images?.[0] ? (
-                      <img
-                        src={tour.images[0]}
-                        alt={tour.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                        No tour image
-                      </div>
-                    )}
+                    <TourImage
+                      images={tour.images}
+                      alt={tour.title}
+                      className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                    />
 
                     {tour.activityType && (
                       <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#087f6e] shadow-sm">

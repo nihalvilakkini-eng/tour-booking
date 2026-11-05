@@ -61,7 +61,7 @@ export default function OperatorDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 md:flex">
+    <div className="operator-dashboard-shell min-h-screen bg-slate-50 text-slate-800 md:flex">
       <aside className="border-b border-slate-200 bg-white p-4 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r md:p-5">
         <Link href="/operator/dashboard" className="flex items-center gap-3 px-2 py-3">
           <span className="rounded-xl bg-teal-600 p-2.5 text-white">

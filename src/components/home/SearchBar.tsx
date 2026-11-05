@@ -55,7 +55,8 @@ export default function SearchBar() {
           grid-template-columns: 1fr 1fr auto;
           align-items: center;
           gap: 14px;
-          max-width: 880px;
+          width: 100%;
+          max-width: var(--site-content-max);
           margin-top: 40px;
           padding: 13px;
           border: 1px solid rgba(255, 255, 255, 0.72);

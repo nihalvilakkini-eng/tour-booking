@@ -12,7 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() =>
+    searchParams.get("reason") === "account-deactivated"
+      ? "This account has been deactivated. Please contact Wayora support for help."
+      : ""
+  );
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -1,32 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import Availability from "@/models/Availability";
 import Tour from "@/models/Tour";
+import Review from "@/models/Review";
 import { createNotification } from "@/lib/notifications";
 import User from "@/models/User";
+import { isBookingCompleted } from "@/lib/booking-status";
+import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
-
-type JwtPayload = {
-  userId: string;
-  role: "user" | "operator" | "admin";
-  email: string;
-};
-
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-
-  return secret;
-}
-
-function getUserFromToken(token: string): JwtPayload {
-  return jwt.verify(token, getJwtSecret()) as JwtPayload;
-}
 
 // =========================
 // POST - Create Booking
@@ -44,11 +26,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let user: JwtPayload;
-
-    try {
-      user = getUserFromToken(token);
-    } catch {
+    const user = await getRequestUser(token);
+    if (!user) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired token" },
         { status: 401 }
@@ -296,11 +275,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let user: JwtPayload;
-
-    try {
-      user = getUserFromToken(token);
-    } catch {
+    const user = await getRequestUser(token);
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -362,11 +338,30 @@ export async function GET(request: NextRequest) {
       )
       .sort({ createdAt: -1 });
 
+    const reviewedBookings = bookings.length
+      ? new Set(
+          (
+            await Review.find({
+              booking: { $in: bookings.map((booking) => booking._id) },
+            })
+              .select("booking")
+              .lean()
+          ).map((review) => String(review.booking))
+        )
+      : new Set<string>();
+
+    const bookingsWithReviewStatus = bookings.map((booking) => ({
+      ...booking.toObject(),
+      reviewSubmitted: reviewedBookings.has(String(booking._id)),
+      reviewEligible:
+        user.role === "user" && isBookingCompleted(booking.status),
+    }));
+
     return NextResponse.json(
       {
         success: true,
         count: bookings.length,
-        data: bookings,
+        data: bookingsWithReviewStatus,
       },
       { status: 200 }
     );

@@ -15,6 +15,7 @@ type Tour = {
   destination?: string;
   location?: string;
   category?: string;
+  activityType?: string;
   price?: number;
   image?: string;
   images?: string[];
@@ -40,6 +41,7 @@ function getTours(result: TourResponse): Tour[] {
 
 export default function FeaturedTours() {
   const [tours, setTours] = useState<Tour[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -49,7 +51,19 @@ export default function FeaturedTours() {
     async function loadTours() {
       try {
         const result = await apiRequest<TourResponse>("/api/tours");
-        if (active) setTours(getTours(result).slice(0, 6));
+        const allTours = getTours(result);
+        const activityTypes = Array.from(
+          new Set(
+            allTours
+              .map((tour) => tour.activityType?.trim())
+              .filter((activityType): activityType is string => Boolean(activityType))
+          )
+        );
+
+        if (active) {
+          setTours(allTours.slice(0, 6));
+          setCategories(activityTypes.slice(0, 6));
+        }
       } catch (err) {
         if (active) {
           setError(
@@ -108,6 +122,23 @@ export default function FeaturedTours() {
           </p>
         )}
 
+        {!loading && !error && categories.length > 0 && (
+          <nav className="experience-categories" aria-label="Browse by activity">
+            <span>Browse by experience</span>
+            <div>
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  href="/tours#tour-results"
+                >
+                  {category}
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        )}
+
         {!loading && !error && tours.length > 0 && (
           <div className="tour-grid">
             {tours.map((tour, index) => {
@@ -118,18 +149,21 @@ export default function FeaturedTours() {
                 <article className="tour-card" key={id || index}>
                   <Link
                     href={id ? `/tours/${id}` : "/tours"}
-                    className="tour-image"
+                    className="tour-image-link"
                     aria-label={`View ${title}`}
                   >
-                    <TourImage
-                      image={tour.image}
-                      images={tour.images}
-                      alt={title}
-                      className="h-full w-full object-cover"
-                    />
-                    <span className="category-tag">
-                      {tour.category ?? "Adventure"}
-                    </span>
+                    <div className="tour-image">
+                      <TourImage
+                        image={tour.image}
+                        images={tour.images}
+                        alt={title}
+                        className="h-full w-full object-cover"
+                        loading="eager"
+                      />
+                      <span className="category-tag">
+                        {tour.activityType ?? tour.category ?? "Experience"}
+                      </span>
+                    </div>
                   </Link>
 
                   <div className="tour-content">
@@ -200,6 +234,48 @@ export default function FeaturedTours() {
           font-size: 14px;
         }
 
+        .experience-categories {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 12px 20px;
+          margin: 0 0 24px;
+        }
+
+        .experience-categories > span {
+          color: #64746b;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .experience-categories > div {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .experience-categories a {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 36px;
+          padding: 0 12px;
+          border: 1px solid #dfe8e2;
+          border-radius: 6px;
+          background: #fff;
+          color: #34574b;
+          font-size: 12px;
+          font-weight: 600;
+          transition: border-color 0.18s ease, color 0.18s ease,
+            background-color 0.18s ease;
+        }
+
+        .experience-categories a:hover {
+          border-color: #9dc8b6;
+          background: #f0f7f2;
+          color: #095443;
+        }
+
         .tour-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -224,6 +300,7 @@ export default function FeaturedTours() {
         .tour-image {
           position: relative;
           display: block;
+          width: 100%;
           height: 235px;
           overflow: hidden;
         }
@@ -333,6 +410,12 @@ export default function FeaturedTours() {
 
           .tour-grid {
             grid-template-columns: 1fr;
+          }
+
+          .experience-categories {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 10px;
           }
 
           .tour-image {

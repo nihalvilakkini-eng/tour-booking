@@ -4,16 +4,18 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #087f6e;
-  --primary-dark: #066354;
-  --text: #172b27;
-  --muted: #718079;
-  --background: #fbfcfa;
+  --primary: #0e715d;
+  --primary-dark: #095443;
+  --text: #1a2e27;
+  --muted: #68786f;
+  --background: #fcfdfb;
   --soft-bg: #f2f6f3;
-  --border: #e1e8e3;
-  --accent: #c49357;
+  --border: #e0e8e2;
+  --accent: #bd8751;
   --surface: #ffffff;
-  --shadow-card: 0 12px 32px rgba(23, 45, 37, 0.08);
+  --shadow-card: 0 10px 28px rgba(23, 45, 37, 0.075);
+  --site-content-max: 1500px;
+  --site-gutter: 64px;
 }
 
 * {
@@ -22,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
@@ -31,6 +34,7 @@ body {
   font-family: "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  line-height: 1.55;
 }
 
 h1,
@@ -44,6 +48,11 @@ h4 {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
 }
 
 button,
@@ -62,7 +71,8 @@ button {
 }
 
 .container {
-  width: min(1220px, calc(100% - 48px));
+  width: min(var(--site-content-max), calc(100% - var(--site-gutter)));
+  max-width: var(--site-content-max);
   margin-inline: auto;
 }
 
@@ -74,7 +84,7 @@ button {
   padding: 82px 0 96px;
   overflow: hidden;
   background-color: #173c35;
-  background-image: none;
+  background-image: url("/images/wayora-hero.jpg");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -225,7 +235,10 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 90px 7%;
+  padding: 90px max(
+    calc(var(--site-gutter) / 2),
+    calc((100% - var(--site-content-max)) / 2)
+  );
   overflow: hidden;
   background: #071b18;
   color: #fff;
@@ -251,7 +264,10 @@ button {
 .auth-logo {
   position: absolute;
   top: 30px;
-  left: 7%;
+  left: max(
+    calc(var(--site-gutter) / 2),
+    calc((100% - var(--site-content-max)) / 2)
+  );
   z-index: 2;
   color: white;
   font-size: 30px;
@@ -267,7 +283,10 @@ button {
 .back-home {
   position: absolute;
   top: 40px;
-  right: 7%;
+  right: max(
+    calc(var(--site-gutter) / 2),
+    calc((100% - var(--site-content-max)) / 2)
+  );
   z-index: 2;
   color: #fff;
   font-size: 14px;
@@ -281,7 +300,7 @@ button {
 
 .auth-layout {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--site-content-max);
   margin: 20px auto 0;
   display: grid;
   grid-template-columns: 1fr 440px;
@@ -617,7 +636,7 @@ button {
 
 @media (max-width: 900px) {
   .auth-page {
-    padding: 100px 5% 45px;
+    padding: 100px calc(var(--site-gutter) / 2) 45px;
   }
 
   .auth-layout,
@@ -658,13 +677,13 @@ button {
 
   .auth-logo {
     top: 23px;
-    left: 18px;
+    left: calc(var(--site-gutter) / 2);
     font-size: 26px;
   }
 
   .back-home {
     top: 32px;
-    right: 18px;
+    right: calc(var(--site-gutter) / 2);
     font-size: 12px;
   }
 
@@ -715,7 +734,10 @@ button {
   min-height: 250px;
   display: flex;
   align-items: center;
-  padding: 45px max(6%, calc((100% - 1200px) / 2));
+  padding: 45px max(
+    calc(var(--site-gutter) / 2),
+    calc((100% - var(--site-content-max)) / 2)
+  );
   color: white;
   background:
     linear-gradient(90deg, rgba(9, 35, 29, .91), rgba(9, 35, 29, .36)),
@@ -724,7 +746,9 @@ button {
 }
 
 .profile-hero-content {
-  max-width: 1200px;
+  width: 100%;
+  max-width: var(--site-content-max);
+  margin-inline: auto;
 }
 
 .profile-eyebrow,
@@ -752,7 +776,7 @@ button {
   display: grid;
   grid-template-columns: 285px minmax(0, 1fr);
   gap: 25px;
-  width: min(1200px, 90%);
+  width: min(var(--site-content-max), calc(100% - var(--site-gutter)));
   margin: -35px auto 0;
   align-items: start;
 }
@@ -1111,6 +1135,12 @@ button {
   object-fit: cover;
 }
 
+.profile-booking-image {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
 .profile-booking-placeholder {
   display: grid;
   place-items: center;
@@ -1229,11 +1259,11 @@ button {
 @media (max-width: 600px) {
   .profile-hero {
     min-height: 220px;
-    padding: 35px 6%;
+    padding: 35px calc(var(--site-gutter) / 2);
   }
 
   .profile-layout {
-    width: 92%;
+    width: calc(100% - var(--site-gutter));
     gap: 16px;
   }
 
@@ -1290,7 +1320,10 @@ button {
   display: flex;
   align-items: center;
   min-height: 490px;
-  padding: 75px 7%;
+  padding: 75px max(
+    calc(var(--site-gutter) / 2),
+    calc((100% - var(--site-content-max)) / 2)
+  );
   overflow: hidden;
   background:
     linear-gradient(
@@ -1364,7 +1397,7 @@ button {
   align-items: center;
   gap: 13px;
   width: 100%;
-  max-width: 620px;
+  max-width: 100%;
   min-height: 66px;
   padding: 8px 9px 8px 20px;
   border: 1px solid rgba(255, 255, 255, 0.55);
@@ -1424,10 +1457,10 @@ button {
 /* Main tours content */
 
 .tours-content {
-  width: 100%;
-  max-width: 1440px;
+  width: min(var(--site-content-max), calc(100% - var(--site-gutter)));
+  max-width: var(--site-content-max);
   margin: 0 auto;
-  padding: 65px 6% 85px;
+  padding: 65px 0 85px;
 }
 
 .tours-heading {
@@ -1814,10 +1847,6 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .tours-content {
-    padding-right: 4%;
-    padding-left: 4%;
-  }
 }
 
 /* Mobile responsive layout */
@@ -1825,7 +1854,7 @@ button {
 @media (max-width: 650px) {
   .tours-hero {
     min-height: 450px;
-    padding: 55px 6%;
+    padding: 55px calc(var(--site-gutter) / 2);
     background-position: center;
   }
 
@@ -1859,7 +1888,7 @@ button {
   }
 
   .tours-content {
-    padding: 43px 5% 60px;
+    padding: 43px 0 60px;
   }
 
   .tours-heading {
@@ -1945,10 +1974,11 @@ button {
 }
 
 .operator-header-inner {
-  max-width: 1440px;
+  width: min(var(--site-content-max), calc(100% - var(--site-gutter)));
+  max-width: var(--site-content-max);
   min-height: 78px;
   margin: 0 auto;
-  padding: 12px 28px;
+  padding: 12px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2047,7 +2077,7 @@ button {
 
 @media (max-width: 1000px) {
   .operator-header-inner {
-    padding: 12px 18px;
+    padding: 12px 0;
     flex-wrap: wrap;
   }
 
@@ -2354,7 +2384,7 @@ textarea::placeholder {
 @media (max-width: 640px) {
   .tours-hero {
     min-height: 470px;
-    background-position: center, 58% center;
+    padding: 55px calc(var(--site-gutter) / 2);
   }
 
   .tours-hero-content h1 {
@@ -2391,4 +2421,294 @@ textarea::placeholder {
 
 .hero-content h1 {
   color: #fff;
+}
+
+/* Consistent horizontal alignment across route-level content. */
+.mx-auto[class*="max-w-"] {
+  width: min(var(--site-content-max), 100%);
+  margin-inline: auto;
+}
+
+.mx-auto[class*="max-w-7xl"] {
+  max-width: var(--site-content-max);
+}
+
+.mx-auto[class*="max-w-6xl"] {
+  max-width: 1400px;
+}
+
+.mx-auto[class*="max-w-5xl"] {
+  max-width: 1320px;
+}
+
+.mx-auto[class*="max-w-4xl"] {
+  max-width: 1152px;
+}
+
+main.min-h-screen {
+  padding-right: calc(var(--site-gutter) / 2);
+  padding-left: calc(var(--site-gutter) / 2);
+}
+
+main.min-h-screen > .mx-auto[class*="max-w-"][class*="px-"] {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.operator-dashboard-shell > main {
+  padding-right: calc(var(--site-gutter) / 2);
+  padding-left: calc(var(--site-gutter) / 2);
+}
+
+@media (max-width: 900px) {
+  :root {
+    --site-gutter: 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --site-gutter: 32px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  :root {
+    --site-gutter: 24px;
+  }
+}
+
+/* Shared application surfaces */
+
+::selection {
+  background: #dceee5;
+  color: #173a30;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(14, 113, 93, 0.3);
+  outline-offset: 3px;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  accent-color: var(--primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #89968e;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead {
+  background-color: #f5f8f5;
+}
+
+thead th {
+  color: #65756c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+tbody tr {
+  transition: background-color 0.16s ease;
+}
+
+tbody tr:hover {
+  background-color: #f7faf7;
+}
+
+main.min-h-screen {
+  color: var(--text);
+}
+
+main.min-h-screen.bg-gray-50,
+main.min-h-screen.bg-slate-50,
+main.min-h-screen[class*="bg-[#f5f8f7]"],
+main.min-h-screen[class*="bg-[#F7FAF8]"] {
+  background-color: var(--soft-bg) !important;
+}
+
+main.min-h-screen > div > section.bg-white.border,
+main.min-h-screen > div > section.rounded-2xl.border.bg-white,
+main.min-h-screen > div > section.rounded-3xl.border.bg-white {
+  border-color: var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-card);
+}
+
+.bg-slate-50,
+.bg-gray-50 {
+  background-color: var(--soft-bg) !important;
+}
+
+.bg-teal-50,
+.bg-emerald-50 {
+  background-color: #e8f3ed !important;
+}
+
+.bg-teal-600,
+.bg-emerald-700 {
+  background-color: var(--primary) !important;
+}
+
+.text-slate-900,
+.text-slate-800,
+.text-gray-900,
+.text-gray-800 {
+  color: var(--text) !important;
+}
+
+.text-slate-600,
+.text-slate-500,
+.text-gray-600,
+.text-gray-500 {
+  color: var(--muted) !important;
+}
+
+.text-teal-700,
+.text-emerald-700 {
+  color: var(--primary) !important;
+}
+
+.border-slate-100,
+.border-slate-200,
+.border-gray-100,
+.border-gray-200 {
+  border-color: var(--border) !important;
+}
+
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+  border-radius: 8px !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 6px 18px rgba(23, 45, 37, 0.055) !important;
+}
+
+.shadow-lg,
+.shadow-xl {
+  box-shadow: 0 18px 36px rgba(23, 45, 37, 0.14) !important;
+}
+
+.auth-page {
+  font-family: "DM Sans", sans-serif;
+}
+
+.auth-card {
+  border-color: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.23);
+}
+
+.auth-card input,
+.auth-card select,
+.profile-fields input {
+  border-color: var(--border);
+  border-radius: 8px;
+}
+
+.auth-submit,
+.profile-save-button,
+.profile-state button,
+.operator-logout {
+  background: var(--primary);
+  transition: background-color 0.18s ease, transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.auth-submit:hover,
+.profile-save-button:hover,
+.profile-state button:hover,
+.operator-logout:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(9, 84, 67, 0.15);
+}
+
+.profile-sidebar,
+.profile-panel,
+.profile-booking-card {
+  border-color: var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+.profile-menu-button:hover,
+.profile-menu-button.active,
+.operator-nav-link:hover,
+.operator-nav-active {
+  background: #e8f3ed;
+  color: var(--primary-dark);
+}
+
+.tour-filter-panel,
+.tour-card,
+.tours-message {
+  border-color: var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+.tour-card:hover {
+  box-shadow: 0 16px 32px rgba(23, 45, 37, 0.13);
+}
+
+.tour-search {
+  border-radius: 10px;
+  box-shadow: 0 16px 38px rgba(5, 23, 18, 0.2);
+}
+
+.tour-search a,
+.tour-view-button,
+.reset-filters {
+  border-radius: 8px;
+}
+
+.operator-header {
+  background: rgba(252, 253, 251, 0.96);
+  border-color: var(--border);
+  box-shadow: 0 4px 18px rgba(23, 45, 37, 0.045);
+  backdrop-filter: blur(14px);
+}
+
+.operator-header .operator-brand-icon,
+.operator-header .operator-logout {
+  background-color: var(--primary);
+}
+
+.operator-header .operator-nav-link:hover,
+.operator-header .operator-nav-active {
+  background: #e8f3ed;
+  color: var(--primary-dark);
+}
+
+.operator-dashboard-shell {
+  background: var(--soft-bg);
+}
+
+.operator-dashboard-shell > aside {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: 4px 0 24px rgba(23, 45, 37, 0.035);
+}
+
+@media (max-width: 640px) {
+  table {
+    font-size: 12px;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
 }

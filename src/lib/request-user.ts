@@ -8,13 +8,17 @@ export type UserRole = "user" | "operator" | "admin";
 export type RequestUser = {
   userId: string;
   role: UserRole;
+  isActive: boolean;
 };
 
 function isUserRole(role: unknown): role is UserRole {
   return role === "user" || role === "operator" || role === "admin";
 }
 
-export async function getRequestUser(token?: string): Promise<RequestUser | null> {
+export async function getRequestUser(
+  token?: string,
+  options: { includeDeactivated?: boolean } = {}
+): Promise<RequestUser | null> {
   if (!token) return null;
 
   const secret = process.env.JWT_SECRET;
@@ -39,11 +43,16 @@ export async function getRequestUser(token?: string): Promise<RequestUser | null
 
   await connectDB();
 
-  const user = await User.findById(decoded.userId).select("role").lean();
+  const user = await User.findById(decoded.userId)
+    .select("role isActive")
+    .lean();
   if (!user || !isUserRole(user.role)) return null;
+  const isActive = user.isActive !== false;
+  if (!isActive && !options.includeDeactivated) return null;
 
   return {
     userId: String(user._id),
     role: user.role,
+    isActive,
   };
 }

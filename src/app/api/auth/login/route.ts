@@ -72,6 +72,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (user.isActive === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This account has been deactivated. Please contact Wayora support for help.",
+        },
+        { status: 403 }
+      );
+    }
+
     const token = jwt.sign(
       {
         userId: user._id.toString(),

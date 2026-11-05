@@ -8,6 +8,7 @@ type TourImageProps = {
   images?: string[];
   alt: string;
   className?: string;
+  loading?: "eager" | "lazy";
 };
 
 const fallbackImage = "/tour-placeholder.svg";
@@ -17,24 +18,27 @@ export default function TourImage({
   images,
   alt,
   className,
+  loading = "lazy",
 }: TourImageProps) {
   const imageSource =
-    [image, ...(images ?? [])].find(
+    [...(images ?? []), image].find(
       (candidate) => typeof candidate === "string" && candidate.trim()
     )?.trim() ?? fallbackImage;
-  const [source, setSource] = useState(imageSource);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const source = failedSource === imageSource ? fallbackImage : imageSource;
 
   return (
     <Image
+      key={imageSource}
       src={source}
       alt={alt}
       className={className}
       fill
-      loading="lazy"
+      loading={loading}
       decoding="async"
       sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
       unoptimized
-      onError={() => setSource(fallbackImage)}
+      onError={() => setFailedSource(imageSource)}
     />
   );
 }

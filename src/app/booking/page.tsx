@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import TourImage from "@/components/tours/TourImage";
 
 interface Tour {
   _id: string;
@@ -392,15 +393,14 @@ const [tourResponse, availabilityResponse, profileResponse] =
           </section>
 
           <aside className="h-fit overflow-hidden rounded-2xl border border-gray-200 bg-white lg:col-span-2">
-            <img
-              src={
-                tour.image ||
-                tour.images?.[0] ||
-                "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900"
-              }
-              alt={tour.title || tour.name || "Selected tour"}
-              className="h-52 w-full object-cover"
-            />
+            <div className="relative h-52 w-full">
+              <TourImage
+                image={tour.image}
+                images={tour.images}
+                alt={tour.title || tour.name || "Selected tour"}
+                className="object-cover"
+              />
+            </div>
 
             <div className="space-y-4 p-6">
               <p className="text-sm text-gray-500">

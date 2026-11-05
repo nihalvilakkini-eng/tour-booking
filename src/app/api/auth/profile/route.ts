@@ -62,6 +62,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (user.isActive === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This account has been deactivated. Please contact Wayora support for help.",
+        },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -179,6 +190,17 @@ export async function PATCH(request: NextRequest) {
           message: "User not found",
         },
         { status: 404 }
+      );
+    }
+
+    if (existingUser.isActive === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This account has been deactivated. Please contact Wayora support for help.",
+        },
+        { status: 403 }
       );
     }
 
