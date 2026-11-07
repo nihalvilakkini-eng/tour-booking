@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
             operator: operatorId,
           }).distinct("_id"),
         },
-        status: "confirmed",
+        status: { $in: ["accepted", "confirmed"] },
       }),
 
       Booking.countDocuments({

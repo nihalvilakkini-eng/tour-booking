@@ -3,6 +3,7 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export interface IAvailability extends Document {
   tour: mongoose.Types.ObjectId;
   date: Date;
+  endDate?: Date;
   startTime: string;
   endTime?: string;
   totalSeats: number;
@@ -23,6 +24,10 @@ const AvailabilitySchema = new Schema<IAvailability>(
     date: {
       type: Date,
       required: [true, "Date is required"],
+    },
+
+    endDate: {
+      type: Date,
     },
 
     startTime: {

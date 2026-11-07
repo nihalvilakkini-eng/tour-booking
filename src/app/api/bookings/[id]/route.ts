@@ -158,6 +158,7 @@ export async function PATCH(
     const { status } = body;
 
     const allowedStatuses = [
+      "accepted",
       "confirmed",
       "rejected",
       "cancelled",
@@ -169,7 +170,7 @@ export async function PATCH(
         {
           success: false,
           message:
-            "Invalid status. Use confirmed, rejected, cancelled or completed",
+            "Invalid status. Use accepted, confirmed, rejected, cancelled or completed",
         },
         { status: 400 }
       );
@@ -262,11 +263,14 @@ export async function PATCH(
         );
       }
 
-      if (status === "confirmed" && booking.status !== "pending") {
+      if (
+        (status === "accepted" || status === "confirmed") &&
+        booking.status !== "pending"
+      ) {
         return NextResponse.json(
           {
             success: false,
-            message: "Only pending bookings can be confirmed",
+            message: "Only pending bookings can be accepted",
           },
           { status: 400 }
         );
@@ -282,11 +286,15 @@ export async function PATCH(
         );
       }
 
-      if (status === "completed" && booking.status !== "confirmed") {
+      if (
+        status === "completed" &&
+        booking.status !== "accepted" &&
+        booking.status !== "confirmed"
+      ) {
         return NextResponse.json(
           {
             success: false,
-            message: "Only confirmed bookings can be completed",
+            message: "Only accepted bookings can be completed",
           },
           { status: 400 }
         );
@@ -308,6 +316,7 @@ export async function PATCH(
     const shouldRestoreSeats =
       (status === "rejected" || status === "cancelled") &&
       (previousStatus === "pending" ||
+        previousStatus === "accepted" ||
         previousStatus === "confirmed");
 
     if (shouldRestoreSeats) {
@@ -331,7 +340,7 @@ export async function PATCH(
 // Create notification
 // =========================
 
-if (status === "confirmed") {
+if (status === "accepted" || status === "confirmed") {
   await createNotification({
     user: booking.user,
     type: "booking_confirmed",
@@ -492,6 +501,7 @@ export async function DELETE(
     // Return seats
     if (
       booking.status === "pending" ||
+      booking.status === "accepted" ||
       booking.status === "confirmed"
     ) {
       await Availability.findByIdAndUpdate(

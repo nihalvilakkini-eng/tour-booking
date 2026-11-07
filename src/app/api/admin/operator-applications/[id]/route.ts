@@ -4,6 +4,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import { getRequestUser } from "@/lib/request-user";
 import { createNotification } from "@/lib/notifications";
+import { sendOperatorStatusEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -161,6 +162,13 @@ export async function PATCH(
         console.error("Failed to send approval notification:", notifErr);
       }
 
+      await sendOperatorStatusEmail({
+        to: user.email,
+        name: user.name,
+        businessName: user.operatorApplication.businessName,
+        status: "approved",
+      });
+
       return NextResponse.json({
         success: true,
         message: "Operator application approved successfully",
@@ -195,6 +203,14 @@ export async function PATCH(
       } catch (notifErr) {
         console.error("Failed to send rejection notification:", notifErr);
       }
+
+      await sendOperatorStatusEmail({
+        to: user.email,
+        name: user.name,
+        businessName: user.operatorApplication.businessName,
+        status: "rejected",
+        rejectionReason,
+      });
 
       return NextResponse.json({
         success: true,

@@ -20,6 +20,7 @@ type Booking = {
 function getStatusClass(status: string) {
   switch (status.toLowerCase()) {
     case "confirmed":
+    case "accepted":
       return "bg-green-100 text-green-700";
     case "cancelled":
     case "rejected":
@@ -123,6 +124,7 @@ export default function AdminBookingsPage() {
               <option value="all">All statuses</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
+              <option value="accepted">Accepted</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
               <option value="rejected">Rejected</option>

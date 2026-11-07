@@ -43,6 +43,10 @@ export async function GET(request: NextRequest) {
       user: user.userId,
     };
 
+    if (user.role === "operator") {
+      filter.type = "booking_created";
+    }
+
     // Example:
     // /api/notifications?read=false
     if (read === "true") {
@@ -54,12 +58,16 @@ export async function GET(request: NextRequest) {
     }
 
     const notifications = await Notification.find(filter)
-      .populate("booking", "bookingDate startTime participants status")
-      .populate("tour", "title destination")
+      .populate(
+        "booking",
+        "customerName customerEmail customerPhone bookingDate startTime participants status"
+      )
+      .populate("tour", "title destination images")
       .sort({ createdAt: -1 });
 
     const unreadCount = await Notification.countDocuments({
       user: user.userId,
+      ...(user.role === "operator" ? { type: "booking_created" } : {}),
       isRead: false,
     });
 

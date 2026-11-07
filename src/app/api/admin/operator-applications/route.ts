@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
     const statusParam = searchParams.get("status")?.trim().toLowerCase();
     const search = searchParams.get("search")?.trim() || "";
 
-    // Base query: only users with an operatorApplication
+    // Base query: only users with an actual operator application (non-empty business name)
     const query: Record<string, unknown> = {
-      operatorApplication: { $exists: true, $ne: null },
-      "operatorApplication.status": { $exists: true },
+      "operatorApplication.businessName": { $exists: true, $ne: "" },
+      "operatorApplication.status": { $in: ["pending", "approved", "rejected"] },
     };
 
     if (
@@ -56,6 +56,10 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const applicationFilter = {
+      "operatorApplication.businessName": { $exists: true, $ne: "" },
+    };
+
     const [applications, pendingCount, approvedCount, rejectedCount, totalCount] =
       await Promise.all([
         User.find(query)
@@ -63,11 +67,21 @@ export async function GET(request: NextRequest) {
           .populate("operatorApplication.reviewedBy", "name lastName email")
           .sort({ "operatorApplication.submittedAt": -1, createdAt: -1 })
           .lean(),
-        User.countDocuments({ "operatorApplication.status": "pending" }),
-        User.countDocuments({ "operatorApplication.status": "approved" }),
-        User.countDocuments({ "operatorApplication.status": "rejected" }),
         User.countDocuments({
-          operatorApplication: { $exists: true, $ne: null },
+          ...applicationFilter,
+          "operatorApplication.status": "pending",
+        }),
+        User.countDocuments({
+          ...applicationFilter,
+          "operatorApplication.status": "approved",
+        }),
+        User.countDocuments({
+          ...applicationFilter,
+          "operatorApplication.status": "rejected",
+        }),
+        User.countDocuments({
+          ...applicationFilter,
+          "operatorApplication.status": { $in: ["pending", "approved", "rejected"] },
         }),
       ]);
 

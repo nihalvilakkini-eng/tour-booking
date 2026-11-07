@@ -248,6 +248,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Phone number is mandatory for BOTH Traveller and Operator
+    if (!phone) {
+      return NextResponse.json(
+        { success: false, message: "Phone number is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      return NextResponse.json(
+        { success: false, message: "Phone number must be exactly 10 digits" },
+        { status: 400 }
+      );
+    }
+
     // Operator specific validation
     let operatorAppPayload: {
       businessName: string;
@@ -425,14 +440,6 @@ export async function POST(request: NextRequest) {
         rejectionReason: "",
         submittedAt: new Date(),
       };
-    } else {
-      // For Traveller: if phone is provided, validate it
-      if (phone && !/^\d{10}$/.test(phone)) {
-        return NextResponse.json(
-          { success: false, message: "Phone number must be exactly 10 digits" },
-          { status: 400 }
-        );
-      }
     }
 
     if (
@@ -472,6 +479,7 @@ export async function POST(request: NextRequest) {
     // IMPORTANT: When Operator registers, initially keep role as "user".
     // Set operatorApplication.status to "pending".
     // Do not grant operator dashboard or operator API permissions yet.
+    // For Traveller, operatorApplication is left undefined.
     const userRole = "user";
 
     const user = await User.create({

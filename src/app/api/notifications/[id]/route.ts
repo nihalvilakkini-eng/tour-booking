@@ -47,6 +47,7 @@ export async function GET(
     const notification = await Notification.findOne({
       _id: id,
       user: user.userId,
+      ...(user.role === "operator" ? { type: "booking_created" } : {}),
     })
       .populate(
         "booking",
@@ -138,6 +139,7 @@ export async function PATCH(
       {
         _id: id,
         user: user.userId,
+        ...(user.role === "operator" ? { type: "booking_created" } : {}),
       },
       {
         isRead,
@@ -219,6 +221,7 @@ export async function DELETE(
     const notification = await Notification.findOneAndDelete({
       _id: id,
       user: user.userId,
+      ...(user.role === "operator" ? { type: "booking_created" } : {}),
     });
 
     if (!notification) {

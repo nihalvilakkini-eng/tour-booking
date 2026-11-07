@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       }),
 
       Booking.countDocuments({
-        status: "confirmed",
+        status: { $in: ["accepted", "confirmed"] },
       }),
 
       Booking.countDocuments({
@@ -78,11 +78,13 @@ export async function GET(request: NextRequest) {
         .lean(),
 
       User.countDocuments({
+        "operatorApplication.businessName": { $exists: true, $ne: "" },
         "operatorApplication.status": "pending",
       }),
 
       User.countDocuments({
-        operatorApplication: { $exists: true, $ne: null },
+        "operatorApplication.businessName": { $exists: true, $ne: "" },
+        "operatorApplication.status": { $in: ["pending", "approved", "rejected"] },
       }),
     ]);
 

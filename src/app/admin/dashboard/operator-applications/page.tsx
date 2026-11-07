@@ -99,6 +99,7 @@ export default function OperatorApplicationsPage() {
     const q = search.trim().toLowerCase();
 
     return applications.filter((app) => {
+      if (!app.operatorApplication?.businessName) return false;
       const appStatus = app.operatorApplication?.status || "pending";
       const matchesFilter = filter === "all" || appStatus === filter;
 

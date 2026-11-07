@@ -23,6 +23,7 @@ export default function RegisterPage() {
   // Common Registration Fields
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -33,7 +34,6 @@ export default function RegisterPage() {
   const [businessDescription, setBusinessDescription] = useState("");
 
   // Operator Application Fields - Contact Info
-  const [operatorPhone, setOperatorPhone] = useState("");
   const [businessEmail, setBusinessEmail] = useState("");
 
   // Operator Application Fields - Location Info
@@ -69,6 +69,18 @@ export default function RegisterPage() {
       return;
     }
 
+    // Phone number is mandatory for all accounts
+    const cleanPhone = phone.trim().replace(/\D/g, "");
+    if (!cleanPhone) {
+      setError("Phone number is required.");
+      return;
+    }
+
+    if (cleanPhone.length !== 10) {
+      setError("Phone number must contain exactly 10 digits.");
+      return;
+    }
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
@@ -93,11 +105,6 @@ export default function RegisterPage() {
 
       if (!businessDescription.trim()) {
         setError("Please provide a business description.");
-        return;
-      }
-
-      if (!/^\d{10}$/.test(operatorPhone.trim())) {
-        setError("Contact phone number must contain exactly 10 digits.");
         return;
       }
 
@@ -150,6 +157,7 @@ export default function RegisterPage() {
       formData.append("accountType", accountType);
       formData.append("fullName", fullName.trim());
       formData.append("email", email.trim().toLowerCase());
+      formData.append("phone", cleanPhone);
       formData.append("password", password);
       formData.append("confirmPassword", confirmPassword);
 
@@ -162,8 +170,7 @@ export default function RegisterPage() {
         formData.append("businessName", businessName.trim());
         formData.append("businessType", businessType);
         formData.append("businessDescription", businessDescription.trim());
-        formData.append("phone", operatorPhone.trim());
-        formData.append("operatorPhone", operatorPhone.trim());
+        formData.append("operatorPhone", cleanPhone);
         formData.append("businessEmail", businessEmail.trim().toLowerCase());
         formData.append("country", country.trim());
         formData.append("state", state.trim());
@@ -362,6 +369,20 @@ export default function RegisterPage() {
                 required
               />
 
+              <label htmlFor="registerPhone">Phone Number</label>
+              <input
+                id="registerPhone"
+                type="tel"
+                inputMode="numeric"
+                placeholder="10-digit mobile number"
+                value={phone}
+                onChange={(e) =>
+                  setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+                autoComplete="tel"
+                required
+              />
+
               <label htmlFor="registerPassword">Password</label>
               <div className="password-box">
                 <input
@@ -452,39 +473,18 @@ export default function RegisterPage() {
                   {/* Contact Information Section */}
                   <fieldset className="operator-fieldset">
                     <legend className="operator-legend">
-                      📞 Contact Information
+                      📞 Business Contact
                     </legend>
 
-                    <div className="form-two-columns">
-                      <div>
-                        <label htmlFor="operatorPhone">Phone Number</label>
-                        <input
-                          id="operatorPhone"
-                          type="tel"
-                          inputMode="numeric"
-                          placeholder="10-digit phone"
-                          value={operatorPhone}
-                          onChange={(e) =>
-                            setOperatorPhone(
-                              e.target.value.replace(/\D/g, "").slice(0, 10)
-                            )
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="businessEmail">Business Email</label>
-                        <input
-                          id="businessEmail"
-                          type="email"
-                          placeholder="contact@company.com"
-                          value={businessEmail}
-                          onChange={(e) => setBusinessEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
+                    <label htmlFor="businessEmail">Business Email</label>
+                    <input
+                      id="businessEmail"
+                      type="email"
+                      placeholder="contact@company.com"
+                      value={businessEmail}
+                      onChange={(e) => setBusinessEmail(e.target.value)}
+                      required
+                    />
                   </fieldset>
 
                   {/* Location Information Section */}

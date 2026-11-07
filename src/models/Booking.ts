@@ -22,6 +22,7 @@ export interface IBooking extends Document {
 
   status:
     | "pending"
+    | "accepted"
     | "confirmed"
     | "rejected"
     | "cancelled"
@@ -119,6 +120,7 @@ const BookingSchema = new Schema<IBooking>(
       type: String,
       enum: [
         "pending",
+        "accepted",
         "confirmed",
         "rejected",
         "cancelled",
