@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
       confirmedBookings,
       completedBookings,
       recentBookings,
+      pendingApplications,
+      totalApplications,
     ] = await Promise.all([
       User.countDocuments({
         role: "user",
@@ -74,6 +76,14 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
+
+      User.countDocuments({
+        "operatorApplication.status": "pending",
+      }),
+
+      User.countDocuments({
+        operatorApplication: { $exists: true, $ne: null },
+      }),
     ]);
 
     return NextResponse.json({
@@ -89,6 +99,8 @@ export async function GET(request: NextRequest) {
         confirmedBookings,
         completedBookings,
         recentBookings,
+        pendingApplications,
+        totalApplications,
       },
     });
   } catch (error) {

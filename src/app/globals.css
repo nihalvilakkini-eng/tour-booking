@@ -594,7 +594,8 @@ button {
 
 .auth-card form > input,
 .auth-card form input,
-.auth-card form select {
+.auth-card form select,
+.auth-card form textarea {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -610,7 +611,8 @@ button {
 }
 
 .auth-card form input:focus,
-.auth-card form select:focus {
+.auth-card form select:focus,
+.auth-card form textarea:focus {
   border-color: #168064;
   box-shadow: 0 0 0 3px rgba(22, 128, 100, 0.1);
 }
@@ -728,7 +730,88 @@ button {
 }
 
 .register-layout {
-  grid-template-columns: 1fr 480px;
+  grid-template-columns: 1fr minmax(480px, 600px);
+}
+
+.account-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.account-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px;
+  border: 2px solid #e1e9e4;
+  border-radius: 14px;
+  background: #fafcfb;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.account-type-btn:hover {
+  border-color: #168064;
+  background: #f5fbf8;
+}
+
+.account-type-btn.active {
+  border-color: #13765b;
+  background: #edf8f3;
+  box-shadow: 0 4px 12px rgba(19, 118, 91, 0.12);
+}
+
+.account-type-badge {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.account-type-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #17332d;
+}
+
+.account-type-desc {
+  font-size: 11px;
+  color: #728279;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.operator-fieldset {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid #d8e6df;
+  border-radius: 16px;
+  background: #f7faf8;
+}
+
+.operator-legend {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #13765b;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-three-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .form-three-columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 .register-card {

@@ -12,6 +12,12 @@ type Operator = {
   phone?: string;
   role: string;
   createdAt?: string;
+  operatorApplication?: {
+    businessName?: string;
+    businessType?: string;
+    city?: string;
+    status?: string;
+  };
 };
 
 export default function OperatorsPage() {
@@ -52,7 +58,9 @@ export default function OperatorsPage() {
   const filtered = operators.filter((operator) =>
     `${operator.name ?? ""} ${operator.firstName ?? ""} ${
       operator.lastName ?? ""
-    } ${operator.email} ${operator.phone ?? ""}`
+    } ${operator.email} ${operator.phone ?? ""} ${
+      operator.operatorApplication?.businessName ?? ""
+    }`
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -74,9 +82,17 @@ export default function OperatorsPage() {
               View and manage registered tour operators.
             </p>
           </div>
-          <div className="rounded-xl bg-white px-5 py-4 shadow-sm">
-            <p className="text-sm text-gray-500">Total operators</p>
-            <p className="text-2xl font-bold text-[#087f6e]">{operators.length}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/dashboard/operator-applications"
+              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-amber-600"
+            >
+              📋 Review Applications →
+            </Link>
+            <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
+              <p className="text-xs text-gray-500">Approved operators</p>
+              <p className="text-2xl font-bold text-[#087f6e]">{operators.length}</p>
+            </div>
           </div>
         </div>
 
@@ -85,7 +101,7 @@ export default function OperatorsPage() {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search name, email or phone..."
+            placeholder="Search name, business name, email or phone..."
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
           />
 
@@ -105,6 +121,7 @@ export default function OperatorsPage() {
                 <thead>
                   <tr className="border-b text-xs uppercase text-gray-500">
                     <th className="px-4 py-4">Operator</th>
+                    <th className="px-4 py-4">Business</th>
                     <th className="px-4 py-4">Email</th>
                     <th className="px-4 py-4">Phone</th>
                     <th className="px-4 py-4">Joined</th>
@@ -121,6 +138,9 @@ export default function OperatorsPage() {
                     return (
                       <tr key={operator._id} className="border-b border-gray-50">
                         <td className="px-4 py-5 font-semibold">{name}</td>
+                        <td className="px-4 py-5 text-gray-700 font-medium">
+                          {operator.operatorApplication?.businessName || "—"}
+                        </td>
                         <td className="px-4 py-5 text-gray-600">{operator.email}</td>
                         <td className="px-4 py-5 text-gray-600">
                           {operator.phone || "—"}
