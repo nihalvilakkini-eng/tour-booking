@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" fill="none">
+  <rect x="8" y="12" width="96" height="96" rx="26" fill="#047857"/>
+  <circle cx="56" cy="60" r="29" stroke="#FFFFFF" stroke-width="4"/>
+  <path d="M56 37L65 60L56 83L47 60L56 37Z" fill="#FFFFFF"/>
+  <circle cx="56" cy="60" r="4" fill="#047857"/>
+  <path d="M56 25V31M56 89V95M21 60H27M85 60H91" stroke="#D1FAE5" stroke-width="3" stroke-linecap="round"/>
+  <text x="126" y="80" fill="#064E3B" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="2">WAYORA</text>
+  <circle cx="453" cy="75" r="5" fill="#10B981"/>
+</svg>

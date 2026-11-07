@@ -11,15 +11,19 @@ import {
   Star,
   Bell,
   Compass,
+  House,
+  UserRound,
 } from "lucide-react";
 
 const links = [
-  { label: "Overview", href: "/operator/dashboard", icon: LayoutDashboard },
+  { label: "Home", href: "/", icon: House },
   { label: "My Tours", href: "/operator/dashboard/tours", icon: Map },
-  { label: "Availability", href: "/operator/dashboard/availability", icon: CalendarDays },
-  { label: "Bookings", href: "/operator/dashboard/bookings", icon: CalendarCheck },
-  { label: "Reviews", href: "/operator/dashboard/reviews", icon: Star },
+  { label: "Booking Management", href: "/operator/dashboard/bookings", icon: CalendarCheck },
+  { label: "Availability Management", href: "/operator/dashboard/availability", icon: CalendarDays },
   { label: "Notifications", href: "/operator/dashboard/notifications", icon: Bell },
+  { label: "Dashboard", href: "/operator/dashboard", icon: LayoutDashboard },
+  { label: "Profile", href: "/profile", icon: UserRound },
+  { label: "Reviews", href: "/operator/dashboard/reviews", icon: Star },
 ];
 
 export default function OperatorDashboardLayout({
@@ -79,7 +83,9 @@ export default function OperatorDashboardLayout({
 
         <nav className="grid grid-cols-2 gap-1 md:block md:space-y-1">
           {links.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href;
+            const active =
+              pathname === href ||
+              (href !== "/" && pathname.startsWith(`${href}/`));
 
             return (
               <Link

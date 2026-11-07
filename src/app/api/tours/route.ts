@@ -1,51 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-
+import User from "@/models/User";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
-import cloudinary, {
-  configureCloudinary,
-  getMissingCloudinaryCredentials,
-} from "@/lib/cloudinary";
+import { getMissingCloudinaryCredentials } from "@/lib/cloudinary";
 import { getRequestUser, type RequestUser } from "@/lib/request-user";
+import {
+  parseItineraryDays,
+  readItineraryImageUploads,
+} from "@/lib/tour-itinerary";
+import { uploadTourImage } from "@/lib/tour-images";
 export const dynamic = "force-dynamic";
-
-async function uploadImage(file: File): Promise<string> {
-  configureCloudinary();
-
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const uploadResult = await new Promise<{ secure_url: string }>(
-    (resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "tour-booking/tours",
-          resource_type: "image",
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-
-          if (!result) {
-            reject(new Error("Cloudinary upload failed"));
-            return;
-          }
-
-          resolve({
-            secure_url: result.secure_url,
-          });
-        }
-      );
-
-      uploadStream.end(buffer);
-    }
-  );
-
-  return uploadResult.secure_url;
-}
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
@@ -81,6 +46,8 @@ export async function POST(request: NextRequest) {
     );
   }
   const { userId, role } = user;
+let assignedOperatorId = userId;
+let createdById = userId;
 
   if (role !== "operator" && role !== "admin") {
     return NextResponse.json(
@@ -132,6 +99,46 @@ export async function POST(request: NextRequest) {
       const value = formData.get(field);
       return typeof value === "string" ? value.trim() : "";
     };
+    const selectedOperatorId = getText("operatorId");
+
+if (role === "admin") {
+  if (!selectedOperatorId) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Please select an operator",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (!mongoose.isValidObjectId(selectedOperatorId)) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid operator selection",
+      },
+      { status: 400 }
+    );
+  }
+
+  const selectedOperator = await User.findOne({
+    _id: selectedOperatorId,
+    role: "operator",
+  }).select("_id");
+
+  if (!selectedOperator) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Selected operator does not exist",
+      },
+      { status: 404 }
+    );
+  }
+
+  assignedOperatorId = selectedOperator._id.toString();
+}
 
     const title = getText("title");
     const description = getText("description");
@@ -164,18 +171,33 @@ export async function POST(request: NextRequest) {
     const highlights = getTextList("highlights");
     const inclusions = getTextList("inclusions");
     const exclusions = getTextList("exclusions");
+    const parsedItinerary = parseItineraryDays(formData.get("itineraryDays"));
 
     if (
       itinerary === null ||
       highlights === null ||
       inclusions === null ||
-      exclusions === null
+      exclusions === null ||
+      "error" in parsedItinerary
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Itinerary, highlights, inclusions and exclusions must be text values",
+          message:
+            "error" in parsedItinerary
+              ? parsedItinerary.error
+              : "Itinerary, highlights, inclusions and exclusions must be text values",
         },
+        { status: 400 }
+      );
+    }
+    const itineraryImageUploads = readItineraryImageUploads(
+      formData,
+      parsedItinerary.itineraryDays
+    );
+    if ("error" in itineraryImageUploads) {
+      return NextResponse.json(
+        { success: false, message: itineraryImageUploads.error },
         { status: 400 }
       );
     }
@@ -361,7 +383,7 @@ export async function POST(request: NextRequest) {
 
     for (const file of imageFiles) {
       try {
-        const imageUrl = await uploadImage(file);
+        const imageUrl = await uploadTourImage(file);
         imageUrls.push(imageUrl);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith("Cloudinary is not configured.")) {
@@ -418,6 +440,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const itineraryDays = parsedItinerary.itineraryDays.map((day) => ({
+      ...day,
+      activities: [...day.activities],
+    }));
+
+    try {
+      for (const upload of itineraryImageUploads.uploads) {
+        itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
+          await uploadTourImage(upload.file);
+      }
+    } catch (error) {
+      console.error("POST /api/tours itinerary image upload error:", error);
+      const unavailable =
+        error instanceof Error &&
+        error.message.startsWith("Cloudinary is not configured.");
+      return NextResponse.json(
+        {
+          success: false,
+          message: unavailable
+            ? `Activity image uploads are unavailable because Cloudinary is not configured. Add valid ${getMissingCloudinaryCredentials().join(", ")} values to .env.local and restart the server.`
+            : "Cloudinary could not upload an itinerary activity image.",
+        },
+        { status: unavailable ? 503 : 502 }
+      );
+    }
+
     // Create tour
     let tour;
 
@@ -433,6 +481,7 @@ export async function POST(request: NextRequest) {
         currency,
         maxParticipants,
         itinerary,
+        itineraryDays,
         highlights,
         meetingPoint,
         inclusions,

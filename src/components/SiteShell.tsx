@@ -15,14 +15,14 @@ export default function SiteShell({
   const isOperatorPage = pathname.startsWith("/operator");
 
   if (isOperatorPage) {
-    return <>{children}</>;
+    return <div className="flex-1">{children}</div>;
   }
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      {children}
+      <div className="flex-1">{children}</div>
       <Footer />
-    </>
+    </div>
   );
 }

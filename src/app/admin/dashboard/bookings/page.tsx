@@ -163,7 +163,7 @@ export default function AdminBookingsPage() {
                       typeof booking.user === "object" ? booking.user : null;
                     const tour =
                       typeof booking.tour === "object" ? booking.tour : null;
-                    const amount = booking.totalPrice ?? booking.totalAmount;
+                    const amaount = booking.totalPrice ?? booking.totalAmount;
                     const date = booking.date ?? booking.bookingDate ?? booking.createdAt;
 
                     return (

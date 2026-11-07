@@ -1,7 +1,11 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 const inputClass =
@@ -26,6 +30,13 @@ const initialForm = {
   exclusions: "",
 };
 
+type Operator = {
+  _id: string;
+  name: string;
+  lastName?: string;
+  email: string;
+};
+
 function splitList(value: string): string[] {
   return value
     .split(/\r?\n|,/)
@@ -38,9 +49,56 @@ export default function AdminCreateTourPage() {
 
   const [form, setForm] = useState(initialForm);
   const [images, setImages] = useState<File[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
+  const [selectedOperator, setSelectedOperator] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [operatorsLoading, setOperatorsLoading] = useState(true);
+  const [operatorLoadError, setOperatorLoadError] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const operatorPlaceholder = operatorsLoading
+    ? "Loading operators..."
+    : operatorLoadError
+      ? "Unable to load operators"
+      : operators.length === 0
+        ? "No operators available"
+        : "Select an operator";
+
+  // Fetch operators
+  useEffect(() => {
+    async function fetchOperators() {
+      try {
+        const response = await fetch("/api/admin/operators", {
+          credentials: "include",
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Unable to load operators."
+          );
+        }
+
+        const operatorList = result.operators ?? result.data;
+        if (!Array.isArray(operatorList)) {
+          throw new Error("Unable to load operators.");
+        }
+
+        setOperators(operatorList);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load operators.";
+        setOperatorLoadError(message);
+        setError(message);
+      } finally {
+        setOperatorsLoading(false);
+      }
+    }
+
+    fetchOperators();
+  }, []);
 
   function updateField(
     field: keyof typeof initialForm,
@@ -52,11 +110,23 @@ export default function AdminCreateTourPage() {
     }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError("");
     setSuccess("");
+
+    if (operatorsLoading) {
+      setError("Please wait while operators are loading.");
+      return;
+    }
+
+    if (!selectedOperator) {
+      setError("Please select an operator.");
+      return;
+    }
 
     if (images.length > 10) {
       setError("You can upload a maximum of 10 images.");
@@ -96,7 +166,10 @@ export default function AdminCreateTourPage() {
       return;
     }
 
-    if (form.durationUnit !== "hours" && form.durationUnit !== "days") {
+    if (
+      form.durationUnit !== "hours" &&
+      form.durationUnit !== "days"
+    ) {
       setError("Choose a valid duration unit.");
       return;
     }
@@ -113,6 +186,9 @@ export default function AdminCreateTourPage() {
     data.append("currency", form.currency);
     data.append("maxParticipants", String(maxParticipants));
     data.append("meetingPoint", form.meetingPoint.trim());
+
+    // Selected operator
+    data.append("operatorId", selectedOperator);
 
     const listFields = [
       "itinerary",
@@ -143,14 +219,17 @@ export default function AdminCreateTourPage() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Could not create the tour.");
+        throw new Error(
+          result.message || "Could not create the tour."
+        );
       }
 
       setSuccess("Tour created successfully!");
+
       setForm(initialForm);
       setImages([]);
+      setSelectedOperator("");
 
-      // Return to the Admin Tours page after a short delay.
       window.setTimeout(() => {
         router.push("/admin/dashboard/tours");
         router.refresh();
@@ -181,11 +260,14 @@ export default function AdminCreateTourPage() {
           <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#087f6e]">
             WAYORA Admin
           </p>
+
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             Create a New Tour
           </h1>
+
           <p className="mt-3 text-gray-600">
-            Add tour information, pricing, activities and images.
+            Add tour information, assign an operator, pricing,
+            activities and images.
           </p>
         </div>
 
@@ -290,6 +372,56 @@ export default function AdminCreateTourPage() {
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              {/* Operator Selection */}
+              <div className="md:col-span-2 rounded-xl border border-teal-100 bg-teal-50/50 p-5">
+                <label
+                  className="mb-2 block text-sm font-bold text-gray-800"
+                  htmlFor="operator"
+                >
+                  Assign Tour to Operator *
+                </label>
+
+                <select
+                  id="operator"
+                  className={inputClass}
+                  value={selectedOperator}
+                  onChange={(e) =>
+                    setSelectedOperator(e.target.value)
+                  }
+                  required
+                  disabled={operatorsLoading || operators.length === 0}
+                >
+                  <option value="">
+                    {operatorPlaceholder}
+                  </option>
+
+                  {operators.map((operator) => (
+                    <option
+                      key={operator._id}
+                      value={operator._id}
+                    >
+                      {[operator.name, operator.lastName]
+                        .filter(Boolean)
+                        .join(" ")}{" "}
+                      ({operator.email})
+                    </option>
+                  ))}
+                </select>
+
+                <p className="mt-2 text-xs text-gray-500">
+                  The selected operator will manage this tour
+                  from their operator dashboard.
+                </p>
+
+                {!operatorsLoading &&
+                  !operatorLoadError &&
+                  operators.length === 0 && (
+                    <p className="mt-2 text-sm text-red-600">
+                      No operators found. Create an operator account first.
+                    </p>
+                  )}
+              </div>
             </div>
           </section>
 
@@ -365,7 +497,9 @@ export default function AdminCreateTourPage() {
                   step="0.01"
                   className={inputClass}
                   value={form.price}
-                  onChange={(e) => updateField("price", e.target.value)}
+                  onChange={(e) =>
+                    updateField("price", e.target.value)
+                  }
                   placeholder="2500"
                   required
                 />
@@ -379,7 +513,9 @@ export default function AdminCreateTourPage() {
                   id="currency"
                   className={inputClass}
                   value={form.currency}
-                  onChange={(e) => updateField("currency", e.target.value)}
+                  onChange={(e) =>
+                    updateField("currency", e.target.value)
+                  }
                 >
                   <option value="INR">INR (₹)</option>
                   <option value="USD">USD ($)</option>
@@ -413,74 +549,39 @@ export default function AdminCreateTourPage() {
             <h2 className="mb-2 text-xl font-bold text-gray-900">
               3. Tour Details
             </h2>
+
             <p className="mb-5 text-sm text-gray-500">
               Enter one item per line, or separate items with commas.
             </p>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <label className={labelClass} htmlFor="itinerary">
-                  Itinerary
-                </label>
-                <textarea
-                  id="itinerary"
-                  className={inputClass}
-                  rows={4}
-                  value={form.itinerary}
-                  onChange={(e) =>
-                    updateField("itinerary", e.target.value)
-                  }
-                  placeholder={"Arrival and welcome\nGuided tour\nReturn journey"}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="highlights">
-                  Highlights
-                </label>
-                <textarea
-                  id="highlights"
-                  className={inputClass}
-                  rows={4}
-                  value={form.highlights}
-                  onChange={(e) =>
-                    updateField("highlights", e.target.value)
-                  }
-                  placeholder={"Scenic views\nLocal guide\nPhotography"}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="inclusions">
-                  Inclusions
-                </label>
-                <textarea
-                  id="inclusions"
-                  className={inputClass}
-                  rows={4}
-                  value={form.inclusions}
-                  onChange={(e) =>
-                    updateField("inclusions", e.target.value)
-                  }
-                  placeholder={"Professional guide\nEntry tickets"}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="exclusions">
-                  Exclusions
-                </label>
-                <textarea
-                  id="exclusions"
-                  className={inputClass}
-                  rows={4}
-                  value={form.exclusions}
-                  onChange={(e) =>
-                    updateField("exclusions", e.target.value)
-                  }
-                  placeholder={"Personal expenses\nAdditional meals"}
-                />
-              </div>
+              {(
+                [
+                  ["itinerary", "Itinerary", "Arrival and welcome\nGuided tour\nReturn journey"],
+                  ["highlights", "Highlights", "Scenic views\nLocal guide\nPhotography"],
+                  ["inclusions", "Inclusions", "Professional guide\nEntry tickets"],
+                  ["exclusions", "Exclusions", "Personal expenses\nAdditional meals"],
+                ] as const
+              ).map(([field, label, placeholder]) => (
+                <div key={field}>
+                  <label
+                    className={labelClass}
+                    htmlFor={field}
+                  >
+                    {label}
+                  </label>
+                  <textarea
+                    id={field}
+                    className={inputClass}
+                    rows={4}
+                    value={form[field]}
+                    onChange={(e) =>
+                      updateField(field, e.target.value)
+                    }
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
             </div>
           </section>
 
@@ -490,14 +591,17 @@ export default function AdminCreateTourPage() {
             <h2 className="mb-2 text-xl font-bold text-gray-900">
               4. Tour Images
             </h2>
+
             <p className="mb-5 text-sm text-gray-500">
-              Upload up to 10 images. Each image must be smaller than 10 MB.
-              Uploading images requires valid Cloudinary configuration.
+              Upload up to 10 images. Each image must be smaller
+              than 10 MB. Uploading images requires valid
+              Cloudinary configuration.
             </p>
 
             <label className={labelClass} htmlFor="images">
               Select Images
             </label>
+
             <input
               id="images"
               type="file"
@@ -530,7 +634,11 @@ export default function AdminCreateTourPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                operatorsLoading ||
+                operators.length === 0
+              }
               className="rounded-xl bg-[#087f6e] px-7 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#066354] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Creating Tour..." : "Create Tour"}

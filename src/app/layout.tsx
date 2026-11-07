@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>
+      <body className="min-h-screen flex flex-col">
         <SiteShell>{children}</SiteShell>
       </body>
     </html>

@@ -1,11 +1,30 @@
+
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import SearchBar from "./SearchBar";
 
-export default function HeroSection() {
+type HeroSectionProps = {
+  onSearch: (destination: string, activity: string) => void;
+  onClear: () => void;
+};
+
+export default function HeroSection({
+  onSearch,
+  onClear,
+}: HeroSectionProps) {
   return (
     <section className="hero">
+      <Image
+        src="/images/wayora-hero.jpg"
+        alt=""
+        fill
+        loading="eager"
+        fetchPriority="high"
+        sizes="100vw"
+        className="hero-image"
+      />
       <div className="hero-overlay" />
 
       <div className="container hero-content">
@@ -14,23 +33,29 @@ export default function HeroSection() {
         </span>
 
         <h1>
-          Discover Your
+          Where will you go
           <br />
-          <span>Next Journey</span>
+          <span>next?</span>
         </h1>
 
         <p>
-          Find unforgettable tours and experiences around the world.
+          From peaceful beaches to breathtaking mountain escapes. Find your
+          perfect destination and experience the extraordinary.
         </p>
 
         <div className="hero-actions">
-          <Link href="/tours" className="primary-btn">
-            Explore Experiences →
+          <Link href="#tour-results" className="primary-btn">
+            Explore Tours <span aria-hidden="true">→</span>
           </Link>
-          <span className="hero-note">Find your next adventure</span>
+          <span className="hero-note">
+            Find your next adventure
+          </span>
         </div>
 
-        <SearchBar />
+        <SearchBar
+          onSearch={onSearch}
+          onClear={onClear}
+        />
       </div>
     </section>
   );

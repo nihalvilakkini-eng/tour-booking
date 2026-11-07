@@ -50,9 +50,8 @@ export default function OperatorTourDetailsPage() {
     setError("");
 
     try {
-      // This endpoint must return the tour belonging to the logged-in operator.
       const [tourResponse, availabilityResponse] = await Promise.all([
-        fetch(`/api/operator/tours/${id}`, {
+        fetch(`/api/tours/${encodeURIComponent(id)}`, {
           credentials: "include",
           cache: "no-store",
         }),
@@ -90,7 +89,11 @@ export default function OperatorTourDetailsPage() {
   }, [id]);
 
   useEffect(() => {
-    void loadTour();
+    const timeoutId = window.setTimeout(() => {
+      void loadTour();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [loadTour]);
 
   if (loading) {
@@ -159,7 +162,7 @@ export default function OperatorTourDetailsPage() {
             }
             className="rounded-xl bg-[#087f6e] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#066354]"
           >
-            Edit Tour
+            Edit itinerary
           </button>
         </div>
 

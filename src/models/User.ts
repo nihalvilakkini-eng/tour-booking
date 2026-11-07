@@ -1,4 +1,9 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+
+import mongoose, {
+  Schema,
+  Document,
+  Model,
+} from "mongoose";
 
 export interface IUser extends Document {
   profileImage?: string;
@@ -11,14 +16,39 @@ export interface IUser extends Document {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  operatorApplication?: IOperatorApplication;
 }
+export type OperatorApplicationStatus =
+  | "pending"
+  | "approved"
+  | "rejected";
 
+export interface IOperatorApplication {
+  businessName: string;
+  businessType: string;
+  businessDescription: string;
+  phone: string;
+  businessEmail: string;
+  country: string;
+  state: string;
+  city: string;
+  businessAddress: string;
+  yearsOfExperience: number;
+  website?: string;
+  registrationNumber?: string;
+  status: OperatorApplicationStatus;
+  rejectionReason?: string;
+  reviewedBy?: mongoose.Types.ObjectId;
+  reviewedAt?: Date;
+  submittedAt: Date;
+}
 const UserSchema = new Schema<IUser>(
   {
     profileImage: {
-    type: String,
-    default: "",
-},
+      type: String,
+      default: "",
+    },
+
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -50,15 +80,52 @@ const UserSchema = new Schema<IUser>(
       trim: true,
     },
 
-   role: {
+    role: {
       type: String,
       enum: ["user", "operator", "admin"],
       default: "user",
     },
+
     isActive: {
       type: Boolean,
       default: true,
     },
+    operatorApplication: {
+  businessName: { type: String, trim: true },
+  businessType: {
+    type: String,
+    enum: [
+      "Travel Agency",
+      "Tour Operator",
+      "Adventure Activity Provider",
+      "Local Tour Guide",
+      "Trekking Organizer",
+      "Resort / Hotel",
+      "Other",
+    ],
+  },
+  businessDescription: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  businessEmail: { type: String, lowercase: true, trim: true },
+  country: { type: String, trim: true },
+  state: { type: String, trim: true },
+  city: { type: String, trim: true },
+  businessAddress: { type: String, trim: true },
+  yearsOfExperience: { type: Number, min: 0 },
+  website: { type: String, trim: true },
+  registrationNumber: { type: String, trim: true },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+  },
+  rejectionReason: { type: String, default: "" },
+  reviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  reviewedAt: Date,
+  submittedAt: Date,
+},
   },
   {
     timestamps: true,
@@ -66,6 +133,7 @@ const UserSchema = new Schema<IUser>(
 );
 
 const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+  mongoose.models.User ||
+  mongoose.model<IUser>("User", UserSchema);
 
 export default User;

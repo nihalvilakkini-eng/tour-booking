@@ -4,42 +4,61 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Compass, CircleUserRound } from "lucide-react";
+
+import {
+  Compass,
+  CircleUserRound,
+  Bell,
+} from "lucide-react";
 
 type AuthRole = "admin" | "operator" | "user";
 
+type NavigationLink = {
+  label: string;
+  href: string;
+  icon?: "profile" | "notification";
+  badge?: number;
+};
+
+const guestLinks: NavigationLink[] = [
+  { label: "Home", href: "/" },
+  { label: "Explore Tours", href: "/tours" },
+  { label: "Login", href: "/login" },
+  { label: "Register", href: "/register" },
+];
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [role, setRole] = useState<AuthRole | null | undefined>(undefined);
+  const [role, setRole] = useState<AuthRole | null | undefined>(
+    undefined
+  );
+
+  const [hasBooking, setHasBooking] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
-    let latestRequest = 0;
 
     async function checkAuthentication() {
-      const requestId = ++latestRequest;
-
       try {
         const response = await fetch("/api/auth/profile", {
           credentials: "include",
           cache: "no-store",
         });
 
-        if (!mounted || requestId !== latestRequest) return;
+        if (!mounted) return;
 
         if (response.status === 401 || response.status === 404) {
           setRole(null);
+          setHasBooking(false);
+          setUnreadNotifications(0);
           return;
         }
 
-        const result: {
-          success?: boolean;
-          message?: string;
-          data?: { role?: string };
-        } =
-          await response.json();
+        const result = await response.json();
 
         if (
           response.status === 403 &&
@@ -51,43 +70,92 @@ export default function Navbar() {
         }
 
         if (!response.ok || !result.success) {
-          throw new Error(
-            result.message || `Profile request failed (${response.status})`
-          );
+          throw new Error(result.message || "Authentication failed");
         }
+
+        const currentRole = result.data?.role;
 
         if (
-          result.data?.role !== "admin" &&
-          result.data?.role !== "operator" &&
-          result.data?.role !== "user"
+          currentRole !== "admin" &&
+          currentRole !== "operator" &&
+          currentRole !== "user"
         ) {
-          throw new Error("Profile response did not include a valid account role.");
+          throw new Error("Invalid user role");
         }
 
-        setRole(result.data.role);
-      } catch (error) {
-        if (!mounted || requestId !== latestRequest) return;
+        setRole(currentRole);
 
-        console.error("Unable to verify Navbar authentication:", error);
+        if (currentRole === "user") {
+          const statusResponse = await fetch(
+            "/api/navbar/status",
+            {
+              credentials: "include",
+              cache: "no-store",
+            }
+          );
+
+          if (!mounted) return;
+
+          if (statusResponse.ok) {
+            const statusResult = await statusResponse.json();
+
+            if (statusResult.success) {
+              setHasBooking(
+                Boolean(statusResult.data?.hasBooking)
+              );
+
+              setUnreadNotifications(
+                Number(statusResult.data?.unreadNotifications) || 0
+              );
+            }
+          }
+        } else {
+          setHasBooking(false);
+          setUnreadNotifications(0);
+        }
+      } catch (error) {
+        if (!mounted) return;
+        console.error("Navbar authentication error:", error);
       }
     }
 
-    function handleAuthenticationChange() {
-      setRole(undefined);
+    void checkAuthentication();
+
+    function handleAuthChange() {
       void checkAuthentication();
     }
 
-    void checkAuthentication();
     window.addEventListener(
       "wayora-auth-change",
-      handleAuthenticationChange
+      handleAuthChange
+    );
+
+    window.addEventListener(
+      "wayora-booking-change",
+      handleAuthChange
+    );
+
+    window.addEventListener(
+      "wayora-notification-change",
+      handleAuthChange
     );
 
     return () => {
       mounted = false;
+
       window.removeEventListener(
         "wayora-auth-change",
-        handleAuthenticationChange
+        handleAuthChange
+      );
+
+      window.removeEventListener(
+        "wayora-booking-change",
+        handleAuthChange
+      );
+
+      window.removeEventListener(
+        "wayora-notification-change",
+        handleAuthChange
       );
     };
   }, [pathname, router]);
@@ -98,34 +166,101 @@ export default function Navbar() {
         method: "POST",
         credentials: "include",
       });
-      const result: { success?: boolean; message?: string } =
-        await response.json();
+
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Logout failed");
       }
 
       setRole(null);
+      setHasBooking(false);
+      setUnreadNotifications(0);
       setMenuOpen(false);
+
       window.dispatchEvent(new Event("wayora-auth-change"));
-      router.replace("/login");
+
+      router.replace("/");
       router.refresh();
     } catch (error) {
-      console.error("Navbar logout failed:", error);
+      console.error("Logout failed:", error);
     }
+  }
+
+  const customerLinks: NavigationLink[] = [
+    { label: "Home", href: "/" },
+    { label: "Explore Tours", href: "/tours" },
+
+    ...(hasBooking
+      ? [
+          { label: "My Bookings", href: "/bookings" },
+          {
+            label: "Notifications",
+            href: "/notifications",
+            icon: "notification" as const,
+            badge: unreadNotifications,
+          },
+        ]
+      : []),
+
+    {
+      label: "Profile",
+      href: "/profile",
+      icon: "profile",
+    },
+  ];
+
+  const operatorLinks: NavigationLink[] = [
+    { label: "Home", href: "/" },
+    { label: "Explore Tours", href: "/tours" },
+    { label: "Dashboard", href: "/operator/dashboard" },
+  ];
+
+  const adminLinks: NavigationLink[] = [
+    { label: "Home", href: "/" },
+    { label: "Explore Tours", href: "/tours" },
+    { label: "Dashboard", href: "/admin/dashboard" },
+  ];
+
+  const links =
+    role === null
+      ? guestLinks
+      : role === "user"
+        ? customerLinks
+        : role === "operator"
+          ? operatorLinks
+          : role === "admin"
+            ? adminLinks
+            : [];
+
+  function renderIcon(icon?: NavigationLink["icon"]) {
+    if (icon === "profile") {
+      return <CircleUserRound size={21} />;
+    }
+
+    if (icon === "notification") {
+      return <Bell size={21} />;
+    }
+
+    return null;
   }
 
   return (
     <header className="navbar">
       <div className="nav-inner container">
-       <Link href="/" className="flex items-center gap-2">
-  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white">
-    <Compass size={24} />
-  </div>
-  <span className="text-2xl font-bold tracking-wide text-emerald-900">
-    WAYORA
-  </span>
-</Link>
+        <Link
+          href="/"
+          className="flex items-center gap-2"
+          onClick={() => setMenuOpen(false)}
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white">
+            <Compass size={24} />
+          </div>
+
+          <span className="text-2xl font-bold tracking-wide text-emerald-900">
+            WAYORA
+          </span>
+        </Link>
 
         <button
           type="button"
@@ -138,62 +273,40 @@ export default function Navbar() {
         </button>
 
         <nav className={`nav-links ${menuOpen ? "nav-open" : ""}`}>
-          <Link href="/" onClick={() => setMenuOpen(false)}>
-            Home
-          </Link>
-          <Link href="/tours" onClick={() => setMenuOpen(false)}>
-            Explore Tours
-          </Link>
-          <Link href="/bookings" onClick={() => setMenuOpen(false)}>
-            My Bookings
-          </Link>
-          {role ? (
-            <>
-              {(role === "admin" || role === "operator") && (
-                <Link
-                  href={
-                    role === "admin"
-                      ? "/admin/dashboard"
-                      : "/operator/dashboard"
-                  }
-                  className="nav-register"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
+          {links.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.icon ? item.label : undefined}
+              title={item.icon ? item.label : undefined}
+              onClick={() => setMenuOpen(false)}
+              className={`nav-item ${
+                item.label === "Register" ? "nav-register" : ""
+              } ${item.icon ? "nav-icon-only" : ""}`}
+            >
+              {item.icon ? (
+                renderIcon(item.icon)
+              ) : (
+                <span>{item.label}</span>
               )}
-              <Link
-                href="/profile"
-                aria-label="My Profile"
-                title="My Profile"
-                onClick={() => setMenuOpen(false)}
-              >
-                <CircleUserRound size={25} />
-              </Link>
 
-              <button
-                type="button"
-                className="nav-register"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </>
-          ) : role === null ? (
-            <>
-              <Link href="/login" onClick={() => setMenuOpen(false)}>
-                Login
-              </Link>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="notification-badge">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
+            </Link>
+          ))}
 
-              <Link
-                href="/register"
-                className="nav-register"
-                onClick={() => setMenuOpen(false)}
-              >
-                Get Started
-              </Link>
-            </>
-          ) : null}
+          {role && (
+            <button
+              type="button"
+              className="nav-register logout-button"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          )}
         </nav>
       </div>
 
@@ -216,43 +329,30 @@ export default function Navbar() {
           gap: 24px;
         }
 
-        .brand {
-          display: flex;
-          align-items: center;
-          font-size: 25px;
-          font-weight: 800;
-          letter-spacing: 0;
-        }
-
-        .brand-icon {
-          display: grid;
-          place-items: center;
-          width: 36px;
-          height: 36px;
-          margin-right: 9px;
-          border-radius: 11px;
-          background: #087f6e;
-          color: white;
-        }
-
-        .brand-dot {
-          color: #087f6e;
-        }
-
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 25px;
+          gap: 23px;
           font-size: 13px;
           font-weight: 600;
         }
 
-        .nav-links a {
-          transition: color 0.18s ease, background 0.18s ease;
+        .nav-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          position: relative;
+          white-space: nowrap;
+          transition: color 0.18s ease;
         }
 
-        .nav-links a:hover {
+        .nav-item:hover {
           color: #087f6e;
+        }
+
+        .nav-icon-only {
+          justify-content: center;
+          padding: 7px;
         }
 
         .nav-register {
@@ -260,12 +360,25 @@ export default function Navbar() {
           border-radius: 8px;
           background: #087f6e;
           color: white !important;
-          transition: background 0.18s ease, transform 0.18s ease;
         }
 
-        .nav-register:hover {
-          background: #066354;
-          transform: translateY(-1px);
+        .logout-button {
+          border: none;
+          cursor: pointer;
+          font: inherit;
+        }
+
+        .notification-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 5px;
+          border-radius: 999px;
+          background: #e11d48;
+          color: white;
+          font-size: 10px;
         }
 
         .menu-toggle {
@@ -274,11 +387,10 @@ export default function Navbar() {
           border: 1px solid #e1e8e3;
           border-radius: 8px;
           background: transparent;
-          color: #1c2d27;
           font-size: 22px;
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 900px) {
           .nav-inner {
             min-height: 66px;
           }
@@ -293,17 +405,24 @@ export default function Navbar() {
             top: 66px;
             left: 0;
             right: 0;
-            padding: 16px 24px 20px;
+            padding: 18px 24px 22px;
             background: #fbfcfa;
             border-bottom: 1px solid #e1e8e3;
-            box-shadow: 0 16px 24px rgba(23, 45, 37, 0.08);
             flex-direction: column;
             align-items: stretch;
-            gap: 14px;
+            gap: 17px;
           }
 
           .nav-links.nav-open {
             display: flex;
+          }
+
+          .nav-item {
+            padding: 5px 0;
+          }
+
+          .nav-icon-only {
+            justify-content: flex-start;
           }
 
           .nav-register {

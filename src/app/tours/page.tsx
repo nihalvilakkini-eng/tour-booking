@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -31,6 +32,17 @@ export default function ToursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Read destination from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const selectedDestination = params.get("destination");
+
+    if (selectedDestination) {
+      setDestination(selectedDestination.trim());
+    }
+  }, []);
+
+  // Load tours
   useEffect(() => {
     async function loadTours() {
       try {
@@ -57,6 +69,7 @@ export default function ToursPage() {
     loadTours();
   }, []);
 
+  // Get available destinations
   const destinations = useMemo(
     () =>
       Array.from(
@@ -65,6 +78,7 @@ export default function ToursPage() {
     [tours]
   );
 
+  // Get available activities
   const activities = useMemo(
     () =>
       Array.from(
@@ -73,6 +87,7 @@ export default function ToursPage() {
     [tours]
   );
 
+  // Filter and sort tours
   const filteredTours = useMemo(() => {
     let result = tours.filter((tour) => {
       const keyword = search.toLowerCase().trim();
@@ -83,8 +98,12 @@ export default function ToursPage() {
         tour.destination?.toLowerCase().includes(keyword) ||
         tour.activityType?.toLowerCase().includes(keyword);
 
+      // Case-insensitive destination matching
       const matchesDestination =
-        destination === "all" || tour.destination === destination;
+        destination === "all" ||
+        tour.destination?.trim().toLowerCase().includes(
+          destination.trim().toLowerCase()
+        );
 
       const matchesActivity =
         activity === "all" || tour.activityType === activity;
@@ -104,6 +123,7 @@ export default function ToursPage() {
       );
     });
 
+    // Sorting
     if (sort === "low") {
       result = [...result].sort((a, b) => a.price - b.price);
     } else if (sort === "high") {
@@ -115,8 +135,17 @@ export default function ToursPage() {
     }
 
     return result;
-  }, [tours, search, destination, activity, minPrice, maxPrice, sort]);
+  }, [
+    tours,
+    search,
+    destination,
+    activity,
+    minPrice,
+    maxPrice,
+    sort,
+  ]);
 
+  // Reset all filters
   function resetFilters() {
     setSearch("");
     setDestination("all");
@@ -124,6 +153,8 @@ export default function ToursPage() {
     setMinPrice("");
     setMaxPrice("");
     setSort("latest");
+
+    window.history.replaceState(null, "", "/tours");
   }
 
   return (
@@ -132,7 +163,9 @@ export default function ToursPage() {
         <div className="tours-hero-overlay" />
 
         <div className="tours-hero-content">
-          <span className="tours-eyebrow">DISCOVER YOUR NEXT JOURNEY</span>
+          <span className="tours-eyebrow">
+            DISCOVER YOUR NEXT JOURNEY
+          </span>
 
           <h1>
             Find your next
@@ -168,25 +201,44 @@ export default function ToursPage() {
       <section className="tours-content" id="tour-results">
         <div className="tours-heading">
           <div>
-            <span className="section-eyebrow">EXPLORE EXPERIENCES</span>
+            <span className="section-eyebrow">
+              EXPLORE EXPERIENCES
+            </span>
+
             <h2>Discover amazing tours</h2>
-            <p>Find the right experience for your next adventure.</p>
+
+            <p>
+              Find the right experience for your next adventure.
+            </p>
           </div>
 
           <span className="tour-count">
-            {loading ? "Loading..." : `${filteredTours.length} experiences`}
+            {loading
+              ? "Loading..."
+              : `${filteredTours.length} experiences`}
           </span>
         </div>
 
+        {/* Filters */}
         <div className="tour-filter-panel">
           <div className="filter-field">
             <label htmlFor="destination">Destination</label>
+
             <select
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             >
               <option value="all">All destinations</option>
+
+              {/* Keep URL destination available in dropdown */}
+              {destination !== "all" &&
+                !destinations.includes(destination) && (
+                  <option value={destination}>
+                    {destination}
+                  </option>
+                )}
+
               {destinations.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -197,12 +249,14 @@ export default function ToursPage() {
 
           <div className="filter-field">
             <label htmlFor="activity">Activity type</label>
+
             <select
               id="activity"
               value={activity}
               onChange={(e) => setActivity(e.target.value)}
             >
               <option value="all">All activities</option>
+
               {activities.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -213,6 +267,7 @@ export default function ToursPage() {
 
           <div className="filter-field">
             <label htmlFor="minPrice">Minimum price (₹)</label>
+
             <input
               id="minPrice"
               type="number"
@@ -225,6 +280,7 @@ export default function ToursPage() {
 
           <div className="filter-field">
             <label htmlFor="maxPrice">Maximum price (₹)</label>
+
             <input
               id="maxPrice"
               type="number"
@@ -237,6 +293,7 @@ export default function ToursPage() {
 
           <div className="filter-field">
             <label htmlFor="sort">Sort by</label>
+
             <select
               id="sort"
               value={sort}
@@ -258,17 +315,22 @@ export default function ToursPage() {
           </button>
         </div>
 
+        {/* Loading */}
         {loading && (
           <div className="tours-message">
             <div className="tour-spinner" />
+
             <p>Finding amazing experiences for you...</p>
           </div>
         )}
 
+        {/* Error */}
         {!loading && error && (
           <div className="tours-message">
             <h3>Unable to load tours</h3>
+
             <p>{error}</p>
+
             <button
               className="reset-filters"
               onClick={() => window.location.reload()}
@@ -278,17 +340,27 @@ export default function ToursPage() {
           </div>
         )}
 
+        {/* No results */}
         {!loading && !error && filteredTours.length === 0 && (
           <div className="tours-message">
             <span className="empty-icon">⌕</span>
+
             <h3>No tours found</h3>
-            <p>Try a different destination or change your filters.</p>
-            <button className="reset-filters" onClick={resetFilters}>
+
+            <p>
+              Try a different destination or change your filters.
+            </p>
+
+            <button
+              className="reset-filters"
+              onClick={resetFilters}
+            >
               Clear all filters
             </button>
           </div>
         )}
 
+        {/* Tour cards */}
         {!loading && !error && filteredTours.length > 0 && (
           <div className="tour-grid">
             {filteredTours.map((tour) => (
@@ -342,12 +414,14 @@ export default function ToursPage() {
                   <div className="tour-card-footer">
                     <div className="tour-price">
                       <small>Starting from</small>
+
                       <strong>
                         {tour.currency === "INR" || !tour.currency
                           ? "₹"
                           : `${tour.currency} `}
                         {tour.price.toLocaleString("en-IN")}
                       </strong>
+
                       <small>/ person</small>
                     </div>
 

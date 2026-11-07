@@ -1,10 +1,16 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
 import TourImage from "@/components/tours/TourImage";
+
+type FeaturedToursProps = {
+  destination: string;
+  activity: string;
+  isSearching: boolean;
+};
 
 type Tour = {
   _id?: string;
@@ -33,45 +39,62 @@ function getTours(result: TourResponse): Tour[] {
   if (Array.isArray(result)) return result;
   if (Array.isArray(result.tours)) return result.tours;
   if (Array.isArray(result.data)) return result.data;
+
   if (result.data && !Array.isArray(result.data)) {
     return result.data.tours ?? [];
   }
+
   return [];
 }
 
-export default function FeaturedTours() {
+export default function FeaturedTours({
+  destination,
+  activity,
+  isSearching,
+}: FeaturedToursProps) {
   const [tours, setTours] = useState<Tour[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch tours from existing API
   useEffect(() => {
     let active = true;
 
     async function loadTours() {
       try {
+        setError("");
+
         const result = await apiRequest<TourResponse>("/api/tours");
         const allTours = getTours(result);
+
         const activityTypes = Array.from(
           new Set(
             allTours
               .map((tour) => tour.activityType?.trim())
-              .filter((activityType): activityType is string => Boolean(activityType))
+              .filter(
+                (activityType): activityType is string =>
+                  Boolean(activityType)
+              )
           )
         );
 
         if (active) {
-          setTours(allTours.slice(0, 6));
+          setTours(allTours);
           setCategories(activityTypes.slice(0, 6));
         }
       } catch (err) {
         if (active) {
           setError(
-            err instanceof Error ? err.message : "Unable to load tours."
+            err instanceof Error
+              ? err.message
+              : "Unable to load tours."
           );
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
@@ -82,31 +105,94 @@ export default function FeaturedTours() {
     };
   }, []);
 
+  // Filter tours based on destination and activity
+  const filteredTours = useMemo(() => {
+    const searchDestination = destination.toLowerCase().trim();
+    const searchActivity = activity.toLowerCase().trim();
+
+    return tours.filter((tour) => {
+      const tourDestination = (
+        tour.destination ?? tour.location ?? ""
+      ).toLowerCase();
+
+      const tourActivity = (
+        tour.activityType ?? tour.category ?? ""
+      ).toLowerCase();
+
+      const tourTitle = (
+        tour.title ?? tour.name ?? ""
+      ).toLowerCase();
+
+      const tourDescription = (
+        tour.description ?? ""
+      ).toLowerCase();
+
+      const matchesDestination =
+        !searchDestination ||
+        tourDestination.includes(searchDestination);
+
+      const matchesActivity =
+        !searchActivity ||
+        tourActivity.includes(searchActivity) ||
+        tourTitle.includes(searchActivity) ||
+        tourDescription.includes(searchActivity);
+
+      return matchesDestination && matchesActivity;
+    });
+  }, [tours, destination, activity]);
+
+  // Show all matching tours during search.
+  // Show only 6 tours on normal homepage.
+  const displayedTours = isSearching
+    ? filteredTours
+    : filteredTours.slice(0, 6);
+
   return (
-    <section className="section featured">
+    <section className="section featured" id="tour-results">
       <div className="container">
+
+        {/* Section Heading */}
         <div className="section-top">
           <div>
-            <span className="eyebrow">HANDPICKED FOR YOU</span>
-            <h2 className="section-heading">Popular experiences</h2>
+            <span className="eyebrow">
+              {isSearching
+                ? "FIND YOUR EXPERIENCE"
+                : "HANDPICKED FOR YOU"}
+            </span>
+
+            <h2 className="section-heading">
+              {isSearching
+                ? "Search Results"
+                : "Popular experiences"}
+            </h2>
+
             <p className="section-description">
-              Find your next unforgettable adventure.
+              {isSearching
+                ? `${filteredTours.length} experiences found`
+                : "Find your next unforgettable adventure."}
             </p>
           </div>
 
-          <Link href="/tours" className="view-all">
-            View all tours →
-          </Link>
+          {!isSearching && (
+            <Link href="/tours" className="view-all">
+              View all tours →
+            </Link>
+          )}
         </div>
 
+        {/* Loading */}
         {loading && (
-          <p className="status">Discovering amazing experiences...</p>
+          <p className="status">
+            Discovering amazing experiences...
+          </p>
         )}
 
+        {/* Error */}
         {!loading && error && (
           <div className="status error">
             <p>We couldn’t load tours from the server.</p>
             <p>{error}</p>
+
             <button
               className="retry"
               onClick={() => window.location.reload()}
@@ -116,98 +202,140 @@ export default function FeaturedTours() {
           </div>
         )}
 
+        {/* No Tours */}
         {!loading && !error && tours.length === 0 && (
           <p className="status">
             No tours available yet. Add a tour using your operator dashboard.
           </p>
         )}
 
-        {!loading && !error && categories.length > 0 && (
-          <nav className="experience-categories" aria-label="Browse by activity">
-            <span>Browse by experience</span>
-            <div>
-              {categories.map((category) => (
-                <Link
-                  key={category}
-                  href="/tours#tour-results"
-                >
-                  {category}
-                  <span aria-hidden="true">↗</span>
-                </Link>
-              ))}
-            </div>
-          </nav>
-        )}
+        {/* Browse Categories */}
+        {!isSearching &&
+          !loading &&
+          !error &&
+          categories.length > 0 && (
+            <nav
+              className="experience-categories"
+              aria-label="Browse by activity"
+            >
+              <span>Browse by experience</span>
 
-        {!loading && !error && tours.length > 0 && (
-          <div className="tour-grid">
-            {tours.map((tour, index) => {
-              const id = tour._id ?? tour.id ?? "";
-              const title = tour.title ?? tour.name ?? "Explore this tour";
-
-              return (
-                <article className="tour-card" key={id || index}>
+              <div>
+                {categories.map((category) => (
                   <Link
-                    href={id ? `/tours/${id}` : "/tours"}
-                    className="tour-image-link"
-                    aria-label={`View ${title}`}
+                    key={category}
+                    href="/tours#tour-results"
                   >
-                    <div className="tour-image">
-                      <TourImage
-                        image={tour.image}
-                        images={tour.images}
-                        alt={title}
-                        className="h-full w-full object-cover"
-                        loading="eager"
-                      />
-                      <span className="category-tag">
-                        {tour.activityType ?? tour.category ?? "Experience"}
-                      </span>
-                    </div>
+                    {category}
+                    <span aria-hidden="true">↗</span>
                   </Link>
+                ))}
+              </div>
+            </nav>
+          )}
 
-                  <div className="tour-content">
-                    <p className="tour-location">
-                      📍 {tour.destination ?? tour.location ?? "Discover more"}
-                    </p>
+        {/* Search Results Empty State */}
+        {!loading &&
+          !error &&
+          tours.length > 0 &&
+          displayedTours.length === 0 && (
+            <div className="status empty-results">
+              <h3>No tours found</h3>
 
-                    <Link href={id ? `/tours/${id}` : "/tours"}>
-                      <h3>{title}</h3>
+              <p>
+                We couldn't find any matching experiences.
+                Try another destination or activity.
+              </p>
+            </div>
+          )}
+
+        {/* Tour Cards */}
+        {!loading &&
+          !error &&
+          displayedTours.length > 0 && (
+            <div className="tour-grid">
+              {displayedTours.map((tour, index) => {
+                const id = tour._id ?? tour.id ?? "";
+                const title =
+                  tour.title ?? tour.name ?? "Explore this tour";
+
+                return (
+                  <article
+                    className="tour-card"
+                    key={id || index}
+                  >
+                    <Link
+                      href={id ? `/tours/${id}` : "/tours"}
+                      className="tour-image-link"
+                      aria-label={`View ${title}`}
+                    >
+                      <div className="tour-image">
+                        <TourImage
+                          image={tour.image}
+                          images={tour.images}
+                          alt={title}
+                          className="h-full w-full object-cover"
+                          loading="eager"
+                        />
+
+                        <span className="category-tag">
+                          {tour.activityType ??
+                            tour.category ??
+                            "Experience"}
+                        </span>
+                      </div>
                     </Link>
 
-                    <p className="tour-description">
-                      {tour.description ||
-                        "Discover a memorable experience at this destination."}
-                    </p>
+                    <div className="tour-content">
+                      <p className="tour-location">
+                        📍{" "}
+                        {tour.destination ??
+                          tour.location ??
+                          "Discover more"}
+                      </p>
 
-                    <div className="tour-bottom">
-                      <div>
-                        <span className="price-label">Starting from</span>
-                        <p className="tour-price">
-                          {typeof tour.price === "number"
-                            ? `₹${tour.price.toLocaleString("en-IN")}`
-                            : "See price"}
-                          <span> / person</span>
-                        </p>
+                      <Link href={id ? `/tours/${id}` : "/tours"}>
+                        <h3>{title}</h3>
+                      </Link>
+
+                      <p className="tour-description">
+                        {tour.description ||
+                          "Discover a memorable experience at this destination."}
+                      </p>
+
+                      <div className="tour-bottom">
+                        <div>
+                          <span className="price-label">
+                            Starting from
+                          </span>
+
+                          <p className="tour-price">
+                            {typeof tour.price === "number"
+                              ? `₹${tour.price.toLocaleString("en-IN")}`
+                              : "See price"}
+
+                            <span> / person</span>
+                          </p>
+                        </div>
+
+                        {typeof tour.rating === "number" && (
+                          <span className="rating">
+                            ★ {tour.rating.toFixed(1)}
+                          </span>
+                        )}
                       </div>
-
-                      {typeof tour.rating === "number" && (
-                        <span className="rating">
-                          ★ {tour.rating.toFixed(1)}
-                        </span>
-                      )}
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
       </div>
 
       <style jsx>{`
         .featured {
           background: #f2f6f3;
+          scroll-margin-top: 30px;
         }
 
         .section-top {
@@ -394,6 +522,25 @@ export default function FeaturedTours() {
           border-radius: 8px;
           background: white;
           color: #087f6e;
+          cursor: pointer;
+        }
+
+        .empty-results {
+          padding: 40px 20px;
+          text-align: center;
+          border: 1px dashed #cbdad0;
+          border-radius: 10px;
+          background: white;
+        }
+
+        .empty-results h3 {
+          color: #172b27;
+          margin-bottom: 8px;
+        }
+
+        .empty-results p {
+          color: #718079;
+          font-size: 14px;
         }
 
         @media (max-width: 900px) {
