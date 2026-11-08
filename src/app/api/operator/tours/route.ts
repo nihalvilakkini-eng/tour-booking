@@ -3,6 +3,11 @@ import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
 import cloudinary from "@/lib/cloudinary";
 import { getRequestUser } from "@/lib/request-user";
+import {
+  parseItineraryDays,
+  readItineraryImageUploads,
+} from "@/lib/tour-itinerary";
+import { uploadTourImage } from "@/lib/tour-images";
 export const dynamic = "force-dynamic";
 
 type OperatorAuthResult =
@@ -118,11 +123,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Number.isFinite(price) || price < 0) {
+    if (!Number.isFinite(price) || price <= 0) {
       return NextResponse.json(
         {
           success: false,
-          message: "Price cannot be negative",
+          message: "Price must be greater than zero",
         },
         { status: 400 }
       );
@@ -159,6 +164,32 @@ export async function POST(request: NextRequest) {
     const highlights = getArray("highlights");
     const inclusions = getArray("inclusions");
     const exclusions = getArray("exclusions");
+    const parsedItinerary = parseItineraryDays(formData.get("itineraryDays"));
+    if ("error" in parsedItinerary) {
+      return NextResponse.json(
+        { success: false, message: parsedItinerary.error },
+        { status: 400 }
+      );
+    }
+    const itineraryImageUploads = readItineraryImageUploads(
+      formData,
+      parsedItinerary.itineraryDays
+    );
+    if ("error" in itineraryImageUploads) {
+      return NextResponse.json(
+        { success: false, message: itineraryImageUploads.error },
+        { status: 400 }
+      );
+    }
+
+    const itineraryDays = parsedItinerary.itineraryDays.map((day) => ({
+      ...day,
+      activities: [...day.activities],
+    }));
+    for (const upload of itineraryImageUploads.uploads) {
+      itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
+        await uploadTourImage(upload.file);
+    }
 
     const imageFiles = formData
       .getAll("images")
@@ -231,6 +262,7 @@ export async function POST(request: NextRequest) {
       currency,
       maxParticipants,
       itinerary,
+      itineraryDays,
       highlights,
       meetingPoint,
       inclusions,

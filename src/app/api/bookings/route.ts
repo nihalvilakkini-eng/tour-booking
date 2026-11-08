@@ -219,6 +219,18 @@ if (!customer.name || !customer.email || !customer.phone) {
         tour: tour._id,
       });
 
+      // =========================
+      // Create notification for traveller
+      // =========================
+      await createNotification({
+        user: user.userId,
+        type: "booking_created",
+        title: "Booking Request Submitted",
+        message: `Your booking request for "${tour.title}" has been submitted and is pending operator review.`,
+        booking: booking._id,
+        tour: tour._id,
+      });
+
       return NextResponse.json(
         {
           success: true,

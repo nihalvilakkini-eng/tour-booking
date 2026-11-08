@@ -8,6 +8,10 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import TourItineraryBuilder, {
+  appendItineraryToFormData,
+  type EditableItineraryDay,
+} from "@/components/forms/TourItineraryBuilder";
 
 type TourForm = {
   title: string;
@@ -25,6 +29,8 @@ type TourForm = {
   inclusions: string;
   exclusions: string;
 };
+
+type ItineraryDay = EditableItineraryDay;
 
 const initialForm: TourForm = {
   title: "",
@@ -66,6 +72,7 @@ export default function AddTourPage() {
   const [form, setForm] = useState<TourForm>(initialForm);
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [itineraryDays, setItineraryDays] = useState<ItineraryDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -152,9 +159,9 @@ export default function AddTourPage() {
     if (
       !form.price.trim() ||
       !Number.isFinite(Number(form.price)) ||
-      Number(form.price) < 0
+      Number(form.price) <= 0
     ) {
-      setError("Enter a valid price.");
+      setError("Tour price must be greater than zero.");
       return;
     }
 
@@ -199,6 +206,8 @@ export default function AddTourPage() {
     for (const item of parseList(form.exclusions)) {
       data.append("exclusions", item);
     }
+
+    appendItineraryToFormData(data, itineraryDays);
 
     for (const image of images) {
       data.append("images", image);
@@ -409,7 +418,7 @@ export default function AddTourPage() {
                   id="price"
                   name="price"
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   value={form.price}
                   onChange={updateField}
@@ -554,7 +563,7 @@ export default function AddTourPage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label className={labelClass} htmlFor="inclusions">
-                    What's included
+                    What&apos;s included
                   </label>
                   <textarea
                     id="inclusions"
@@ -569,7 +578,7 @@ export default function AddTourPage() {
 
                 <div>
                   <label className={labelClass} htmlFor="exclusions">
-                    What's excluded
+                    What&apos;s excluded
                   </label>
                   <textarea
                     id="exclusions"
@@ -584,6 +593,11 @@ export default function AddTourPage() {
               </div>
             </div>
           </section>
+
+          <TourItineraryBuilder
+            days={itineraryDays}
+            onChange={setItineraryDays}
+          />
 
           <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
             <h2 className="text-xl font-bold text-gray-900">

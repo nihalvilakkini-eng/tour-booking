@@ -4,11 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MapPin, Plus } from "lucide-react";
+import TourItineraryBuilder, {
+  appendItineraryToFormData,
+  type EditableItineraryDay,
+} from "@/components/forms/TourItineraryBuilder";
 
 export default function OperatorTourCreateForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [itineraryDays, setItineraryDays] = useState<EditableItineraryDay[]>([]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,9 +21,12 @@ export default function OperatorTourCreateForm() {
     setError("");
 
     try {
+      const formData = new FormData(event.currentTarget);
+      appendItineraryToFormData(formData, itineraryDays);
+
       const response = await fetch("/api/operator/tours", {
         method: "POST",
-        body: new FormData(event.currentTarget),
+        body: formData,
       });
       const result: { success?: boolean; message?: string } =
         await response.json();
@@ -205,6 +213,11 @@ export default function OperatorTourCreateForm() {
             className="w-full resize-y rounded-xl border p-3 outline-none focus:border-teal-600"
           />
         </div>
+
+        <TourItineraryBuilder
+          days={itineraryDays}
+          onChange={setItineraryDays}
+        />
 
         {error && (
           <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">

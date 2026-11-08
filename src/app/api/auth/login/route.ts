@@ -3,20 +3,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import connectDB from "@/lib/mongodb";
+import { getJwtSecret } from "@/lib/auth";
 import User from "@/models/User";
 
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
-  return secret;
-}
-
-const JWT_SECRET = getJwtSecret();
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    const jwtSecret = getJwtSecret();
     await connectDB();
 
     const body = await request.json();
@@ -89,7 +83,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
         email: user.email,
       },
-      JWT_SECRET,
+      jwtSecret,
       {
         expiresIn: "7d",
       }

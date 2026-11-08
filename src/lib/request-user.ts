@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import connectDB from "@/lib/mongodb";
+import { getJwtSecret } from "@/lib/auth";
 import User from "@/models/User";
 
 export type UserRole = "user" | "operator" | "admin";
@@ -21,10 +22,7 @@ export async function getRequestUser(
 ): Promise<RequestUser | null> {
   if (!token) return null;
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
-  }
+  const secret = getJwtSecret();
 
   let decoded: string | jwt.JwtPayload;
   try {

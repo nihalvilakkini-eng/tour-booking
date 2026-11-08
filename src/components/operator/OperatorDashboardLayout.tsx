@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Map,
@@ -11,16 +11,10 @@ import {
   Star,
   Bell,
   Compass,
+  House,
+  UserRound,
+  MessageSquare,
 } from "lucide-react";
-
-const links = [
-  { label: "Overview", href: "/operator/dashboard", icon: LayoutDashboard },
-  { label: "My Tours", href: "/operator/dashboard/tours", icon: Map },
-  { label: "Availability", href: "/operator/dashboard/availability", icon: CalendarDays },
-  { label: "Bookings", href: "/operator/dashboard/bookings", icon: CalendarCheck },
-  { label: "Reviews", href: "/operator/dashboard/reviews", icon: Star },
-  { label: "Notifications", href: "/operator/dashboard/notifications", icon: Bell },
-];
 
 export default function OperatorDashboardLayout({
   children,
@@ -31,6 +25,57 @@ export default function OperatorDashboardLayout({
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchUnread() {
+      try {
+        const res = await fetch("/api/conversations/unread-count", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (mounted && data.success) {
+            setUnreadMessages(data.unreadCount || 0);
+          }
+        }
+      } catch (err) {
+        console.error("Operator unread count error:", err);
+      }
+    }
+
+    void fetchUnread();
+
+    const handleMessageChange = () => {
+      void fetchUnread();
+    };
+
+    window.addEventListener("wayora-message-change", handleMessageChange);
+    return () => {
+      mounted = false;
+      window.removeEventListener("wayora-message-change", handleMessageChange);
+    };
+  }, []);
+
+  const links = [
+    { label: "Home", href: "/", icon: House },
+    { label: "My Tours", href: "/operator/dashboard/tours", icon: Map },
+    { label: "Booking Management", href: "/operator/dashboard/bookings", icon: CalendarCheck },
+    { label: "Availability Management", href: "/operator/dashboard/availability", icon: CalendarDays },
+    {
+      label: "Messages",
+      href: "/operator/dashboard/messages",
+      icon: MessageSquare,
+      badge: unreadMessages,
+    },
+    { label: "Notifications", href: "/operator/dashboard/notifications", icon: Bell },
+    { label: "Dashboard", href: "/operator/dashboard", icon: LayoutDashboard },
+    { label: "Profile", href: "/profile", icon: UserRound },
+    { label: "Reviews", href: "/operator/dashboard/reviews", icon: Star },
+  ];
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -78,21 +123,30 @@ export default function OperatorDashboardLayout({
         </p>
 
         <nav className="grid grid-cols-2 gap-1 md:block md:space-y-1">
-          {links.map(({ label, href, icon: Icon }) => {
-            const active = pathname === href;
+          {links.map(({ label, href, icon: Icon, badge }) => {
+            const active =
+              pathname === href ||
+              (href !== "/" && pathname.startsWith(`${href}/`));
 
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
+                className={`flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium ${
                   active
                     ? "bg-teal-50 text-teal-700"
                     : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                <Icon size={18} />
-                {label}
+                <div className="flex items-center gap-3">
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </div>
+                {badge !== undefined && badge > 0 && (
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-teal-600 px-1.5 text-xs font-bold text-white">
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
               </Link>
             );
           })}

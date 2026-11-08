@@ -18,7 +18,7 @@ export default async function connectDB(): Promise<typeof mongoose> {
   const url = process.env.MONGODB_URL || process.env.MONGODB_URI;
 
   if (!url) {
-    throw new Error("Please define MONGODB_URL or MONGODB_URI in .env.local");
+    throw new Error("Please define MONGODB_URL or MONGODB_URI in environment variables");
   }
 
   if (mongoose.connection.readyState === 1) {

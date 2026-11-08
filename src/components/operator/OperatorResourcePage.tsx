@@ -544,12 +544,19 @@ function Detail({ label, value }: { label: string; value?: string }) {
 
 type ResourceRow = Record<string, unknown>;
 
-type ResourceProps = {
+export type ResourceField = {
+  key: string;
+  label: string;
+};
+
+export type OperatorResourcePageProps = {
   title: string;
   description: string;
   endpoint: string;
-  fields: { key: string; label: string }[];
+  fields: ResourceField[];
 };
+
+export type ResourceProps = OperatorResourcePageProps;
 
 function displayResourceValue(value: unknown): string {
   if (value == null || value === "") return "—";

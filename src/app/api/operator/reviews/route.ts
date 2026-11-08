@@ -39,14 +39,39 @@ export async function GET(request: NextRequest) {
     const reviews = await Review.find({
       tour: { $in: tourIds },
     })
-      .populate("user", "firstName lastName email")
-      .populate("tour", "title destination rating reviewCount")
+      .populate("user", "name lastName email")
+      .populate("tour", "title destination images rating reviewCount")
       .sort({ createdAt: -1 })
       .lean();
 
+    const data = reviews.map((review) => {
+      const user = review.user as unknown as {
+        name?: string;
+        lastName?: string;
+        email?: string;
+      } | null;
+      const tour = review.tour as unknown as {
+        title?: string;
+        destination?: string;
+        images?: string[];
+      } | null;
+
+      return {
+        ...review,
+        customerName:
+          [user?.name, user?.lastName].filter(Boolean).join(" ") ||
+          user?.email ||
+          "Customer",
+        customerEmail: user?.email || "",
+        tourName: tour?.title || "Tour",
+        tourDestination: tour?.destination || "",
+        tourImages: tour?.images || [],
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      data: reviews,
+      data,
     });
   } catch (error) {
     console.error("Operator reviews GET error:", error);

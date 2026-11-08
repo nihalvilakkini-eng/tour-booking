@@ -4,6 +4,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TourImage from "@/components/tours/TourImage";
+import TourItinerary from "@/components/tours/TourItinerary";
+import type { IItineraryDay } from "@/models/Tour";
 
 type Tour = {
   _id: string;
@@ -20,6 +22,8 @@ type Tour = {
   highlights?: string[];
   inclusions?: string[];
   exclusions?: string[];
+  itinerary?: string[];
+  itineraryDays?: IItineraryDay[];
   isActive?: boolean;
 };
 
@@ -50,9 +54,8 @@ export default function OperatorTourDetailsPage() {
     setError("");
 
     try {
-      // This endpoint must return the tour belonging to the logged-in operator.
       const [tourResponse, availabilityResponse] = await Promise.all([
-        fetch(`/api/operator/tours/${id}`, {
+        fetch(`/api/tours/${encodeURIComponent(id)}`, {
           credentials: "include",
           cache: "no-store",
         }),
@@ -90,7 +93,11 @@ export default function OperatorTourDetailsPage() {
   }, [id]);
 
   useEffect(() => {
-    void loadTour();
+    const timeoutId = window.setTimeout(() => {
+      void loadTour();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [loadTour]);
 
   if (loading) {
@@ -150,17 +157,36 @@ export default function OperatorTourDetailsPage() {
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
               {tour.title}
             </h1>
-            <p className="mt-2 text-gray-500">{tour.destination}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p className="text-gray-500">{tour.destination}</p>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  tour.isActive === false
+                    ? "bg-rose-100 text-rose-700"
+                    : "bg-emerald-100 text-emerald-700"
+                }`}
+              >
+                {tour.isActive === false ? "Inactive" : "Active"}
+              </span>
+            </div>
           </div>
 
-          <button
-            onClick={() =>
-              router.push(`/operator/dashboard/tours/${tour._id}/edit`)
-            }
-            className="rounded-xl bg-[#087f6e] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#066354]"
-          >
-            Edit Tour
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => router.push(`/operator/tours/${tour._id}/edit`)}
+              className="rounded-xl bg-[#087f6e] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#066354]"
+            >
+              Edit Tour
+            </button>
+            <button
+              onClick={() =>
+                router.push(`/operator/dashboard/tours/${tour._id}/edit`)
+              }
+              className="rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+            >
+              Edit Itinerary Only
+            </button>
+          </div>
         </div>
 
         <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -171,6 +197,24 @@ export default function OperatorTourDetailsPage() {
               className="object-cover"
             />
           </div>
+
+          {(tour.images?.length ?? 0) > 1 && (
+            <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
+              {tour.images?.map((image, index) => (
+                <div
+                  key={`${image}-${index}`}
+                  className="relative h-24 overflow-hidden rounded-xl bg-slate-100"
+                >
+                  <TourImage
+                    image={image}
+                    images={[image]}
+                    alt={`${tour.title} image ${index + 1}`}
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -210,6 +254,21 @@ export default function OperatorTourDetailsPage() {
                 {tour.description || "No description added yet."}
               </p>
             </section>
+
+            {tour.itineraryDays && tour.itineraryDays.length > 0 && (
+              <TourItinerary days={tour.itineraryDays} />
+            )}
+
+            {tour.itinerary && tour.itinerary.length > 0 && (
+              <section className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h2 className="text-xl font-bold text-gray-900">Itinerary</h2>
+                <ol className="mt-4 list-decimal space-y-2 pl-5 text-gray-600">
+                  {tour.itinerary.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6">
               <h2 className="text-xl font-bold text-gray-900">Highlights</h2>

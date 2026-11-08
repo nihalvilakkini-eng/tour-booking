@@ -6,6 +6,7 @@ import Link from "next/link";
 type Stats = {
   users: number;
   operators: number;
+  applications: number;
   tours: number;
   bookings: number;
   reviews: number;
@@ -18,6 +19,7 @@ const sections = [
     href: "/admin/dashboard/users",
     icon: "👥",
     key: "users",
+    countLabel: "Total users",
   },
   {
     title: "Operators",
@@ -25,6 +27,15 @@ const sections = [
     href: "/admin/dashboard/operators",
     icon: "🧭",
     key: "operators",
+    countLabel: "Approved operators",
+  },
+  {
+    title: "Operator Applications",
+    description: "Review, approve & reject operator requests",
+    href: "/admin/dashboard/operator-applications",
+    icon: "📋",
+    key: "applications",
+    countLabel: "Pending review",
   },
   {
     title: "Tours",
@@ -32,6 +43,7 @@ const sections = [
     href: "/admin/dashboard/tours",
     icon: "🌍",
     key: "tours",
+    countLabel: "Total tours",
   },
   {
     title: "Bookings",
@@ -39,6 +51,7 @@ const sections = [
     href: "/admin/dashboard/bookings",
     icon: "📅",
     key: "bookings",
+    countLabel: "Total bookings",
   },
   {
     title: "Reviews",
@@ -46,15 +59,40 @@ const sections = [
     href: "/admin/dashboard/reviews",
     icon: "⭐",
     key: "reviews",
+    countLabel: "Total reviews",
   },
 ] as const;
 
 const managementLinks = [
   {
+    title: "Operator Messages",
+    description: "Private direct communication with tour operators",
+    href: "/admin/dashboard/messages",
+    icon: "💬",
+  },
+  {
+    title: "Operator Applications",
+    description: "Inspect business credentials, approve or reject applications",
+    href: "/admin/dashboard/operator-applications",
+    icon: "📋",
+  },
+  {
     title: "Availability",
     description: "Monitor tour schedules and seat availability",
     href: "/admin/dashboard/availability",
     icon: "🗓️",
+  },
+  {
+    title: "Popular Destinations",
+    description: "Create and manage homepage destination places",
+    href: "/admin/dashboard/destinations",
+    icon: "📍",
+  },
+  {
+    title: "Popular Experiences",
+    description: "Create and manage homepage experience places",
+    href: "/admin/dashboard/experiences",
+    icon: "✨",
   },
   {
     title: "Payments",
@@ -80,6 +118,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats>({
     users: 0,
     operators: 0,
+    applications: 0,
     tours: 0,
     bookings: 0,
     reviews: 0,
@@ -124,6 +163,7 @@ export default function AdminDashboardPage() {
           setStats({
             users: Number(data.totalUsers ?? 0),
             operators: Number(data.totalOperators ?? 0),
+            applications: Number(data.pendingApplications ?? 0),
             tours: Number(data.totalTours ?? 0),
             bookings: Number(data.totalBookings ?? 0),
             reviews: Number(data.totalReviews ?? 0),
@@ -166,7 +206,7 @@ export default function AdminDashboardPage() {
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
-              Manage tours, operators, customers and bookings from one place.
+              Manage tours, operators, applications, customers and bookings from one place.
             </p>
           </div>
 
@@ -184,11 +224,18 @@ export default function AdminDashboardPage() {
             <div>
               <h2 className="text-xl font-bold">Quick Actions</h2>
               <p className="mt-1 text-sm text-gray-500">
-                Create tours and manage your platform.
+                Review applications, create tours and manage your platform.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
+              <Link
+                href="/admin/dashboard/operator-applications"
+                className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-600"
+              >
+                📋 Review Applications ({loading ? "…" : stats.applications})
+              </Link>
+
               <Link
                 href="/admin/dashboard/tours/create"
                 className="inline-flex items-center justify-center rounded-xl bg-[#087f6e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#066354]"
@@ -245,7 +292,7 @@ export default function AdminDashboardPage() {
                 </p>
 
                 <p className="mt-1 text-xs text-gray-400">
-                  Total {section.title.toLowerCase()}
+                  {section.countLabel}
                 </p>
               </Link>
             ))}
@@ -256,7 +303,7 @@ export default function AdminDashboardPage() {
         <section className="mt-10">
           <h2 className="mb-4 text-xl font-bold">More Management</h2>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {managementLinks.map((item) => (
               <Link
                 key={item.title}
@@ -290,15 +337,15 @@ export default function AdminDashboardPage() {
           </h2>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
-            Create tours, manage operators, review bookings and monitor activity
+            Review incoming operator applications, create tours, manage operators, review bookings and monitor activity
             across your travel booking platform.
           </p>
 
           <Link
-            href="/admin/dashboard/tours"
+            href="/admin/dashboard/operator-applications"
             className="mt-5 inline-flex rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#087f6e] transition hover:bg-gray-100"
           >
-            Manage All Tours →
+            Review Operator Applications →
           </Link>
         </section>
       </div>
