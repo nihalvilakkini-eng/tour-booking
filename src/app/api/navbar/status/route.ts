@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 import connectDB from "@/lib/mongodb";
+import { getJwtSecret } from "@/lib/auth";
 import User from "@/models/User";
 import Booking from "@/models/Booking";
 import Notification from "@/models/Notification";
@@ -24,12 +25,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const secret = process.env.JWT_SECRET;
-
-    if (!secret) {
-      throw new Error("JWT_SECRET is missing");
-    }
-
+    const secret = getJwtSecret();
     const decoded = jwt.verify(token, secret);
 
     if (

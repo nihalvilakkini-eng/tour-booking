@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 
 import connectDB from "@/lib/mongodb";
 import cloudinary from "@/lib/cloudinary";
+import { getJwtSecret } from "@/lib/auth";
 import User from "@/models/User";
 import { createNotification } from "@/lib/notifications";
 
@@ -45,14 +46,6 @@ type RegistrationData = {
   operatorPhone?: unknown;
   operatorApplication?: Record<string, unknown>;
 };
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in environment variables");
-  }
-  return secret;
-}
 
 async function uploadProfileImage(image: File): Promise<string> {
   const buffer = Buffer.from(await image.arrayBuffer());

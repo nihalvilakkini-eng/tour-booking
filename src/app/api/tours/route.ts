@@ -558,7 +558,7 @@ if (role === "admin") {
           return NextResponse.json(
             {
               success: false,
-              message: `Image upload is unavailable because Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to .env.local and restart the server, or remove the images and submit the tour without them during development.`,
+              message: `Image upload is unavailable because Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to the server environment and restart the server, or remove the images and submit the tour without them during development.`,
             },
             { status: 503 }
           );
@@ -597,7 +597,7 @@ if (role === "admin") {
           {
             success: false,
             message: invalidCredentials
-              ? "Cloudinary rejected the configured credentials. Verify CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in .env.local, then restart the server."
+              ? "Cloudinary rejected the configured credentials. Verify CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in the server environment, then restart the server."
               : `Cloudinary image upload failed: ${safeProviderMessage}`,
           },
           { status: invalidCredentials ? 503 : 502 }
@@ -624,7 +624,7 @@ if (role === "admin") {
         {
           success: false,
           message: unavailable
-            ? `Activity image uploads are unavailable because Cloudinary is not configured. Add valid ${getMissingCloudinaryCredentials().join(", ")} values to .env.local and restart the server.`
+            ? `Activity image uploads are unavailable because Cloudinary is not configured. Add valid ${getMissingCloudinaryCredentials().join(", ")} values to the server environment and restart the server.`
             : "Cloudinary could not upload an itinerary activity image.",
         },
         { status: unavailable ? 503 : 502 }

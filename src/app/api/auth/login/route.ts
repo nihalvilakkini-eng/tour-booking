@@ -3,17 +3,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import connectDB from "@/lib/mongodb";
+import { getJwtSecret } from "@/lib/auth";
 import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Please define JWT_SECRET in environment variables");
-  }
-  return secret;
-}
 
 export async function POST(request: NextRequest) {
   try {
