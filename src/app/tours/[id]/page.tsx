@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Star } from "lucide-react";
+import TourItinerary from "@/components/tours/TourItinerary";
+import type { IItineraryDay } from "@/models/Tour";
 
 type Tour = {
   _id?: string;
@@ -22,6 +24,7 @@ type Tour = {
   image?: string;
   highlights?: string[];
   included?: string[];
+  itineraryDays?: IItineraryDay[];
 };
 
 type CustomerReview = {
@@ -495,6 +498,10 @@ export default function TourDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {tour.itineraryDays && tour.itineraryDays.length > 0 && (
+              <TourItinerary days={tour.itineraryDays} />
+            )}
 
             {tour.highlights && tour.highlights.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">

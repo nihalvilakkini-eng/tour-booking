@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
       Booking.countDocuments({
         ...dateFilter,
-        status: "confirmed",
+        status: { $in: ["accepted", "confirmed"] },
       }),
 
       Booking.countDocuments({

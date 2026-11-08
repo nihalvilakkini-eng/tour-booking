@@ -8,7 +8,10 @@ export interface INotification extends Document {
     | "booking_rejected"
     | "booking_cancelled"
     | "booking_completed"
-    | "tour_update";
+    | "tour_update"
+    | "operator_application_submitted"
+    | "operator_application_approved"
+    | "operator_application_rejected";
   title: string;
   message: string;
   booking?: mongoose.Types.ObjectId;
@@ -35,6 +38,9 @@ const NotificationSchema = new Schema<INotification>(
         "booking_cancelled",
         "booking_completed",
         "tour_update",
+        "operator_application_submitted",
+        "operator_application_approved",
+        "operator_application_rejected",
       ],
       required: [true, "Notification type is required"],
     },

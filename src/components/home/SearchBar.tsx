@@ -2,27 +2,29 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
-export default function SearchBar() {
-  const router = useRouter();
+type SearchBarProps = {
+  onSearch: (destination: string, activity: string) => void;
+  onClear: () => void;
+};
+
+export default function SearchBar({
+  onSearch,
+  onClear,
+}: SearchBarProps) {
   const [destination, setDestination] = useState("");
   const [activity, setActivity] = useState("");
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const params = new URLSearchParams();
+    onSearch(destination.trim(), activity.trim());
+  }
 
-    if (destination.trim()) {
-      params.set("destination", destination.trim());
-    }
-
-    if (activity.trim()) {
-      params.set("search", activity.trim());
-    }
-
-    router.push(`/tours${params.size ? `?${params.toString()}` : ""}`);
+  function handleClear() {
+    setDestination("");
+    setActivity("");
+    onClear();
   }
 
   return (
@@ -45,9 +47,21 @@ export default function SearchBar() {
         />
       </label>
 
-      <button className="search-button" type="submit">
-        Search Tours
-      </button>
+      <div className="search-actions">
+        <button className="search-button" type="submit">
+          Search Tours
+        </button>
+
+        {(destination || activity) && (
+          <button
+            className="clear-button"
+            type="button"
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       <style jsx>{`
         .search-box {
@@ -95,6 +109,12 @@ export default function SearchBar() {
           color: #087f6e;
         }
 
+        .search-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .search-button {
           min-height: 50px;
           padding: 0 21px;
@@ -103,12 +123,21 @@ export default function SearchBar() {
           background: #087f6e;
           color: white;
           font-weight: 700;
+          cursor: pointer;
           transition: background 0.18s ease, transform 0.18s ease;
         }
 
         .search-button:hover {
           background: #066354;
           transform: translateY(-1px);
+        }
+
+        .clear-button {
+          border: 0;
+          background: transparent;
+          color: #64746b;
+          cursor: pointer;
+          font-weight: 600;
         }
 
         @media (max-width: 640px) {
@@ -124,6 +153,14 @@ export default function SearchBar() {
             padding: 11px 9px;
             border-bottom: 1px solid #e5ebe7;
             border-right: 0;
+          }
+
+          .search-actions {
+            flex-wrap: wrap;
+          }
+
+          .search-button {
+            flex: 1;
           }
         }
       `}</style>

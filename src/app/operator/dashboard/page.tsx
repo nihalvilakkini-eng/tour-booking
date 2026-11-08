@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import TourImage from "@/components/tours/TourImage";
 
 type Tour = {
   _id: string;
@@ -319,8 +320,13 @@ export default function OperatorDashboardPage() {
                   key={tour._id}
                   className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                 >
-                  <div className="flex h-36 items-center justify-center bg-emerald-50 text-5xl">
-                    🏞️
+                  <div className="relative h-44 w-full overflow-hidden bg-slate-100">
+                    <TourImage
+                      images={tour.images}
+                      image={tour.images?.[0]}
+                      alt={tour.title}
+                      className="object-cover"
+                    />
                   </div>
 
                   <div className="p-5">
@@ -362,6 +368,12 @@ export default function OperatorDashboardPage() {
                       >
                         Manage Availability
                       </Link>
+                      <Link
+  href={`/operator/tours/${tour._id}/edit`}
+  className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+>
+  Edit Tour
+</Link>
                     </div>
                   </div>
                 </article>

@@ -50,7 +50,7 @@ export default function AdminToursPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/tours", {
+      const response = await fetch("/api/tours?all=true", {
         method: "GET",
         credentials: "include",
         cache: "no-store",
@@ -73,7 +73,11 @@ export default function AdminToursPage() {
   }, []);
 
   useEffect(() => {
-    void loadTours();
+    const timeout = window.setTimeout(() => {
+      void loadTours();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [loadTours]);
 
   const handleDelete = async (tour: Tour) => {
@@ -99,7 +103,9 @@ export default function AdminToursPage() {
       }
 
       setTours((previousTours) =>
-        previousTours.filter((item) => item._id !== tour._id)
+        previousTours.map((item) =>
+          item._id === tour._id ? { ...item, isActive: false } : item
+        )
       );
 
       window.alert("Tour deactivated successfully.");
@@ -314,20 +320,27 @@ export default function AdminToursPage() {
                       Meeting point: {tour.meetingPoint}
                     </p>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                      <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                        Active
+                    <div className="flex items-center gap-3">
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tour.isActive === false ? "bg-slate-200 text-slate-600" : "bg-green-50 text-green-700"}`}>
+                        {tour.isActive === false ? "Inactive" : "Active"}
                       </span>
-
+                      <Link
+                        href={`/admin/dashboard/tours/${tour._id}/edit`}
+                        className="rounded-lg border border-teal-200 px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
+                      >
+                        Edit
+                      </Link>
                       <button
                         type="button"
-                        disabled={deletingId === tour._id}
+                        disabled={deletingId === tour._id || tour.isActive === false}
                         onClick={() => void handleDelete(tour)}
                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {deletingId === tour._id
-                          ? "Deleting..."
-                          : "Delete"}
+                          ? "Deactivating..."
+                          : tour.isActive === false
+                            ? "Inactive"
+                            : "Deactivate"}
                       </button>
                     </div>
                   </div>

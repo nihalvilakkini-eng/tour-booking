@@ -74,16 +74,18 @@ export default function ProfilePage() {
         setLastName(user.lastName || "");
         setPhone(user.phone || "");
 
-        const bookingResponse = await fetch("/api/bookings", {
-          credentials: "include",
-          cache: "no-store",
-        });
+        if (user.role !== "operator") {
+          const bookingResponse = await fetch("/api/bookings", {
+            credentials: "include",
+            cache: "no-store",
+          });
 
-        if (bookingResponse.ok) {
-          const bookingResult = await bookingResponse.json();
+          if (bookingResponse.ok) {
+            const bookingResult = await bookingResponse.json();
 
-          if (bookingResult.success && Array.isArray(bookingResult.data)) {
-            setBookings(bookingResult.data);
+            if (bookingResult.success && Array.isArray(bookingResult.data)) {
+              setBookings(bookingResult.data);
+            }
           }
         }
       } catch (err) {
@@ -415,6 +417,7 @@ export default function ProfilePage() {
             )}
           </section>
 
+          {profile.role !== "operator" && (
           <section className="profile-panel" id="my-bookings">
             <div className="profile-panel-heading">
               <div>
@@ -486,6 +489,7 @@ export default function ProfilePage() {
               </div>
             )}
           </section>
+          )}
         </div>
       </div>
     </main>

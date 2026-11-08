@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
       confirmedBookings,
       completedBookings,
       recentBookings,
+      pendingApplications,
+      totalApplications,
     ] = await Promise.all([
       User.countDocuments({
         role: "user",
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
       }),
 
       Booking.countDocuments({
-        status: "confirmed",
+        status: { $in: ["accepted", "confirmed"] },
       }),
 
       Booking.countDocuments({
@@ -74,6 +76,16 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
+
+      User.countDocuments({
+        "operatorApplication.businessName": { $exists: true, $ne: "" },
+        "operatorApplication.status": "pending",
+      }),
+
+      User.countDocuments({
+        "operatorApplication.businessName": { $exists: true, $ne: "" },
+        "operatorApplication.status": { $in: ["pending", "approved", "rejected"] },
+      }),
     ]);
 
     return NextResponse.json({
@@ -89,6 +101,8 @@ export async function GET(request: NextRequest) {
         confirmedBookings,
         completedBookings,
         recentBookings,
+        pendingApplications,
+        totalApplications,
       },
     });
   } catch (error) {
