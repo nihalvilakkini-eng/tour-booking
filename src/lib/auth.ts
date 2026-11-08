@@ -5,7 +5,13 @@ export type AuthUser = {
 };
 
 export function getJwtSecret() {
-  return process.env.JWT_SECRET || "development-secret";
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("Please define JWT_SECRET in environment variables");
+  }
+
+  return secret;
 }
 
 export function signToken(payload: Record<string, unknown>) {
