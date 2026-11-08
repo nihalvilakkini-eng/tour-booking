@@ -93,7 +93,7 @@ export default function OperatorAvailabilityPage() {
 
     try {
       const response = await fetch("/api/operator/availability", {
-        credentials: "same-origin",
+        credentials: "include",
         cache: "no-store",
       });
       const result = await response.json();
@@ -106,7 +106,7 @@ export default function OperatorAvailabilityPage() {
 
       try {
         const toursResponse = await fetch("/api/operator/tours", {
-          credentials: "same-origin",
+          credentials: "include",
           cache: "no-store",
         });
 
@@ -214,7 +214,7 @@ export default function OperatorAvailabilityPage() {
     try {
       const response = await fetch("/api/operator/availability", {
         method: "PATCH",
-        credentials: "same-origin",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           availabilityId: item._id,
@@ -305,7 +305,7 @@ export default function OperatorAvailabilityPage() {
 
       const response = await fetch("/api/operator/availability", {
         method: editing ? "PATCH" : "POST",
-        credentials: "same-origin",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -543,6 +543,12 @@ export default function OperatorAvailabilityPage() {
                 ×
               </button>
             </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )}
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {creating && (

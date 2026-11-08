@@ -17,7 +17,6 @@ interface Tour {
 }
 
 interface Slot {
-  
   _id: string;
   tour: string | { _id: string; title?: string };
   date: string;
@@ -26,12 +25,7 @@ interface Slot {
   availableSeats: number;
   isAvailable: boolean;
 }
-interface Customer {
-  name: string;
-  lastName?: string;
-  email: string;
-  phone: string;
-}
+
 export default function BookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +33,6 @@ export default function BookingPage() {
   const tourId = searchParams.get("tourId") || "";
 
   const [tour, setTour] = useState<Tour | null>(null);
-  const [customer, setCustomer] = useState<Customer | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [guests, setGuests] = useState(1);
@@ -57,42 +50,23 @@ export default function BookingPage() {
         setLoading(true);
         setError("");
 
-const [tourResponse, availabilityResponse, profileResponse] =
-  await Promise.all([
-    fetch(`/api/tours/${encodeURIComponent(tourId)}`, {
-      cache: "no-store",
-    }),
-    fetch(
-      `/api/availability?tourId=${encodeURIComponent(tourId)}`,
-      { cache: "no-store" }
-    ),
-    fetch("/api/auth/profile", {
-      credentials: "include",
-      cache: "no-store",
-    }),
-  ]);
+        const [tourResponse, availabilityResponse] = await Promise.all([
+          fetch(`/api/tours/${encodeURIComponent(tourId)}`, {
+            cache: "no-store",
+          }),
+          fetch(`/api/availability?tourId=${encodeURIComponent(tourId)}`, {
+            cache: "no-store",
+          }),
+        ]);
 
         const tourResult = await tourResponse.json();
         const availabilityResult = await availabilityResponse.json();
-        const profileResult = await profileResponse.json();
-        
-        if (!profileResponse.ok || !profileResult.success) {
+
+        if (!tourResponse.ok) {
           throw new Error(
-            profileResult.message || "Unable to load profile details."
+            tourResult?.message || "Unable to load tour details."
           );
         }
-
-        const profileData =
-          profileResult.data?.user ??
-          profileResult.data ??
-          profileResult.user;
-
-        setCustomer(profileData);
-                if (!tourResponse.ok) {
-                  throw new Error(
-                    tourResult?.message || "Unable to load tour details."
-                  );
-                }
 
         if (!availabilityResponse.ok) {
           throw new Error(
@@ -179,9 +153,7 @@ const [tourResponse, availabilityResponse, profileResponse] =
 
       if (response.status === 401) {
         router.push(
-          `/login?redirect=${encodeURIComponent(
-            `/bookings?tourId=${tourId}`
-          )}`
+          `/login?redirect=${encodeURIComponent(`/booking?tourId=${tourId}`)}`
         );
         return;
       }
@@ -190,11 +162,9 @@ const [tourResponse, availabilityResponse, profileResponse] =
         throw new Error(result?.message || "Booking could not be created.");
       }
 
-      setSuccess(
-        result?.message || "Booking request created successfully!"
-      );
-
       const bookingId = result?.data?._id;
+
+      setSuccess(result?.message || "Booking request created successfully!");
 
       if (bookingId) {
         router.push(`/bookings/${bookingId}?success=1`);
@@ -387,8 +357,8 @@ const [tourResponse, availabilityResponse, profileResponse] =
             </button>
 
             <p className="text-xs leading-5 text-gray-500">
-              Your booking is created with pending status. This button does not
-              process a payment.
+              Your booking is created with pending status. Payment is only
+              available after the operator accepts your booking.
             </p>
           </section>
 

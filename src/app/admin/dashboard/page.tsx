@@ -65,6 +65,12 @@ const sections = [
 
 const managementLinks = [
   {
+    title: "Operator Messages",
+    description: "Private direct communication with tour operators",
+    href: "/admin/dashboard/messages",
+    icon: "💬",
+  },
+  {
     title: "Operator Applications",
     description: "Inspect business credentials, approve or reject applications",
     href: "/admin/dashboard/operator-applications",
@@ -81,6 +87,12 @@ const managementLinks = [
     description: "Create and manage homepage destination places",
     href: "/admin/dashboard/destinations",
     icon: "📍",
+  },
+  {
+    title: "Popular Experiences",
+    description: "Create and manage homepage experience places",
+    href: "/admin/dashboard/experiences",
+    icon: "✨",
   },
   {
     title: "Payments",

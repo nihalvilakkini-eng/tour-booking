@@ -34,3 +34,7 @@ export async function uploadTourImage(file: File): Promise<string> {
 export async function uploadDestinationImage(file: File): Promise<string> {
   return uploadImage(file, "tour-booking/destinations");
 }
+
+export async function uploadExperienceImage(file: File): Promise<string> {
+  return uploadImage(file, "tour-booking/experiences");
+}

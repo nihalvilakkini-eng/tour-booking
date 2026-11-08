@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import User from "@/models/User";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
+import Destination from "@/models/Destination";
 import Availability from "@/models/Availability";
 import { getMissingCloudinaryCredentials } from "@/lib/cloudinary";
 import { getRequestUser, type RequestUser } from "@/lib/request-user";
@@ -12,6 +13,10 @@ import {
 } from "@/lib/tour-itinerary";
 import { uploadTourImage } from "@/lib/tour-images";
 export const dynamic = "force-dynamic";
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
@@ -754,6 +759,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const destination = searchParams.get("destination");
+    const destinationId = searchParams.get("destinationId");
     const activityType = searchParams.get("activityType");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
@@ -829,6 +835,48 @@ export async function GET(request: NextRequest) {
 
     if (duration) filter.duration = Number(duration);
     if (durationUnit) filter.durationUnit = durationUnit;
+
+    if (destinationId) {
+      if (!mongoose.isValidObjectId(destinationId)) {
+        return NextResponse.json(
+          { success: false, message: "Invalid destination" },
+          { status: 400 }
+        );
+      }
+
+      const destinationDoc = await Destination.findOne({
+        _id: destinationId,
+        isActive: true,
+      })
+        .select("name country state city search")
+        .lean();
+
+      if (!destinationDoc) {
+        return NextResponse.json(
+          { success: false, message: "Destination not found" },
+          { status: 404 }
+        );
+      }
+
+      const terms = Array.from(
+        new Set(
+          [
+            destinationDoc.name,
+            destinationDoc.search,
+            destinationDoc.country,
+            destinationDoc.state,
+            destinationDoc.city,
+          ]
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .filter(Boolean)
+        )
+      );
+
+      const pattern = terms.map(escapeRegExp).join("|");
+      filter.destination = pattern
+        ? { $regex: pattern, $options: "i" }
+        : { $regex: "^$", $options: "i" };
+    }
 
     const tours = await Tour.find(filter)
       .populate("operator", "name lastName email")

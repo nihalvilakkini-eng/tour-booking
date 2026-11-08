@@ -171,14 +171,22 @@ export default function OperatorTourDetailsPage() {
             </div>
           </div>
 
-          <button
-            onClick={() =>
-              router.push(`/operator/dashboard/tours/${tour._id}/edit`)
-            }
-            className="rounded-xl bg-[#087f6e] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#066354]"
-          >
-            Edit itinerary
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => router.push(`/operator/tours/${tour._id}/edit`)}
+              className="rounded-xl bg-[#087f6e] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#066354]"
+            >
+              Edit Tour
+            </button>
+            <button
+              onClick={() =>
+                router.push(`/operator/dashboard/tours/${tour._id}/edit`)
+              }
+              className="rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+            >
+              Edit Itinerary Only
+            </button>
+          </div>
         </div>
 
         <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

@@ -47,7 +47,7 @@ export default function OperatorToursPage() {
 
     try {
       const response = await fetch("/api/operator/tours", {
-        credentials: "same-origin",
+        credentials: "include",
         cache: "no-store",
       });
       const result = await response.json();
@@ -181,6 +181,7 @@ export default function OperatorToursPage() {
               <div className="relative h-52 overflow-hidden bg-slate-100">
                 <TourImage
                   images={tour.images}
+                  image={tour.images?.[0]}
                   alt={tour.title}
                   className="object-cover transition duration-300 group-hover:scale-[1.02]"
                 />

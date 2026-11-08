@@ -6,6 +6,8 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Booking from "@/models/Booking";
 import Notification from "@/models/Notification";
+import Conversation from "@/models/Conversation";
+import Message from "@/models/message";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +53,36 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    let unreadMessages = 0;
+    if (user.role === "user") {
+      const allowedConvs = await Conversation.find({
+        type: "customer_operator",
+        customer: user._id,
+      }).distinct("_id");
+      unreadMessages = await Message.countDocuments({
+        conversationId: { $in: allowedConvs },
+        senderId: { $ne: user._id },
+        isRead: false,
+      });
+    } else if (user.role === "operator") {
+      const allowedConvs = await Conversation.find({
+        operator: user._id,
+        type: { $in: ["customer_operator", "operator_admin"] },
+      }).distinct("_id");
+      unreadMessages = await Message.countDocuments({
+        conversationId: { $in: allowedConvs },
+        senderId: { $ne: user._id },
+        isRead: false,
+      });
+    }
+
     if (user.role !== "user") {
       return NextResponse.json({
         success: true,
         data: {
           hasBooking: false,
           unreadNotifications: 0,
+          unreadMessages,
         },
       });
     }
@@ -80,6 +106,7 @@ export async function GET(request: NextRequest) {
       data: {
         hasBooking: Boolean(hasBooking),
         unreadNotifications,
+        unreadMessages,
       },
     });
   } catch (error) {

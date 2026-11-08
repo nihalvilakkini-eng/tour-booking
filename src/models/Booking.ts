@@ -37,6 +37,8 @@ export interface IBooking extends Document {
 
   rejectionReason?: string;
   paidAt?: Date | null;
+  razorpayOrderId?: string | null;
+  razorpayPaymentId?: string | null;
 
   createdAt: Date;
   updatedAt: Date;
@@ -149,6 +151,18 @@ const BookingSchema = new Schema<IBooking>(
 
     paidAt: {
       type: Date,
+      default: null,
+    },
+
+    razorpayOrderId: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      trim: true,
       default: null,
     },
   },

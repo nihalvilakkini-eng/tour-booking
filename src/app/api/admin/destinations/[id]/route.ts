@@ -143,8 +143,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const formData = await request.formData();
     const name = text(formData, "name") || destination.name;
     const country = text(formData, "country") || destination.country;
-    const state = text(formData, "state") || destination.state || "";
-    const city = text(formData, "city") || destination.city || "";
+    const state = formData.has("state")
+      ? text(formData, "state")
+      : destination.state || "";
+    const city = formData.has("city")
+      ? text(formData, "city")
+      : destination.city || "";
     const description =
       text(formData, "description") || destination.description;
     const imageUrl = text(formData, "imageUrl");

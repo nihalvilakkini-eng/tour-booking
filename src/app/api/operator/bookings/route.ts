@@ -4,6 +4,7 @@ import Tour from "@/models/Tour";
 import Booking, { type IBooking } from "@/models/Booking";
 import Availability from "@/models/Availability";
 import { createNotification } from "@/lib/notifications";
+import { sendBookingAcceptedEmail } from "@/lib/email";
 import { getRequestUser, type RequestUser } from "@/lib/request-user";
 import mongoose from "mongoose";
 
@@ -296,6 +297,16 @@ export async function PATCH(request: NextRequest) {
         booking: booking._id,
         tour: tour._id,
       });
+
+      try {
+        await sendBookingAcceptedEmail({
+          to: booking.customerEmail,
+          name: booking.customerName,
+          tourTitle: tour.title,
+        });
+      } catch (emailError) {
+        console.error("Booking accepted email failed:", emailError);
+      }
     }
 
     if (status === "rejected") {

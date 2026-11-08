@@ -97,9 +97,13 @@ export default function PopularDestinations() {
           {destinations.map((destination) => (
             <Link
               key={destination._id || destination.name}
-              href={`/tours?destination=${encodeURIComponent(
-                destination.search || destination.name
-              )}`}
+              href={
+                destination._id
+                  ? `/destinations/${destination._id}`
+                  : `/destinations/${encodeURIComponent(
+                      destination.search || destination.name
+                    )}`
+              }
               className="destination-card"
               aria-label={`Discover experiences in ${destination.name}, ${destination.country}`}
             >

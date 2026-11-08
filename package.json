@@ -9,12 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ably/chat": "^2.0.0",
+    "ably": "^2.30.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.59.0",
     "mongoose": "^9.11.1",
     "next": "16.4.0",
+    "razorpay": "^2.9.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "^6.37.0"

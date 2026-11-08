@@ -35,6 +35,7 @@ export default function Navbar() {
 
   const [hasBooking, setHasBooking] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -55,6 +56,7 @@ export default function Navbar() {
           setRole(null);
           setHasBooking(false);
           setUnreadNotifications(0);
+          setUnreadMessages(0);
           return;
         }
 
@@ -107,11 +109,16 @@ export default function Navbar() {
               setUnreadNotifications(
                 Number(statusResult.data?.unreadNotifications) || 0
               );
+
+              setUnreadMessages(
+                Number(statusResult.data?.unreadMessages) || 0
+              );
             }
           }
         } else {
           setHasBooking(false);
           setUnreadNotifications(0);
+          setUnreadMessages(0);
         }
       } catch (error) {
         if (!mounted) return;
@@ -140,6 +147,11 @@ export default function Navbar() {
       handleAuthChange
     );
 
+    window.addEventListener(
+      "wayora-message-change",
+      handleAuthChange
+    );
+
     return () => {
       mounted = false;
 
@@ -155,6 +167,11 @@ export default function Navbar() {
 
       window.removeEventListener(
         "wayora-notification-change",
+        handleAuthChange
+      );
+
+      window.removeEventListener(
+        "wayora-message-change",
         handleAuthChange
       );
     };
@@ -176,6 +193,7 @@ export default function Navbar() {
       setRole(null);
       setHasBooking(false);
       setUnreadNotifications(0);
+      setUnreadMessages(0);
       setMenuOpen(false);
 
       window.dispatchEvent(new Event("wayora-auth-change"));
@@ -194,6 +212,11 @@ export default function Navbar() {
     ...(hasBooking
       ? [
           { label: "My Bookings", href: "/bookings" },
+          {
+            label: "Messages",
+            href: "/messages",
+            badge: unreadMessages,
+          },
           {
             label: "Notifications",
             href: "/notifications",

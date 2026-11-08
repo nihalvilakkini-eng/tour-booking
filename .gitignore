@@ -45,3 +45,8 @@ out/
 .env
 .env.local
 .env.*.local
+
+.next.bak/
+_tmp-operator-availability-test.mjs
+_tmp-operator-tour-edit-test.mjs
+/.tmp-operator-*,mjs

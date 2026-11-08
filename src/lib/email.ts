@@ -117,3 +117,83 @@ export async function sendOperatorStatusEmail(
     };
   }
 }
+
+type SendBookingAcceptedEmailInput = {
+  to: string;
+  name?: string;
+  tourTitle: string;
+  bookingUrl?: string;
+};
+
+export async function sendBookingAcceptedEmail(
+  input: SendBookingAcceptedEmailInput
+): Promise<SendOperatorStatusEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!apiKey) {
+    console.error("Booking accepted email skipped: RESEND_API_KEY is not configured");
+    return { success: false, error: "RESEND_API_KEY is not configured" };
+  }
+
+  if (!from) {
+    console.error("Booking accepted email skipped: EMAIL_FROM is not configured");
+    return { success: false, error: "EMAIL_FROM is not configured" };
+  }
+
+  if (!input.to) {
+    console.error("Booking accepted email skipped: recipient email is missing");
+    return { success: false, error: "Recipient email is missing" };
+  }
+
+  const applicantName = input.name?.trim() || "there";
+  const tourTitle = input.tourTitle.trim() || "your tour";
+  const bookingUrl =
+    input.bookingUrl ||
+    `${process.env.NEXT_PUBLIC_APP_URL || ""}/bookings`;
+
+  const subject = "Your WAYORA booking was accepted";
+  const text = `Hi ${applicantName},\n\nGood news! Your booking for "${tourTitle}" has been accepted. You can now open My Bookings and complete payment to confirm your booking.\n\nOpen My Bookings: ${bookingUrl}\n\n- WAYORA`;
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172b27">
+      <h2>Booking accepted</h2>
+      <p>Hi ${escapeHtml(applicantName)},</p>
+      <p>Good news! Your booking for <strong>${escapeHtml(tourTitle)}</strong> has been accepted. You can now open My Bookings and complete payment to confirm your booking.</p>
+      <p><a href="${escapeHtml(bookingUrl)}">Open My Bookings</a></p>
+      <p>WAYORA</p>
+    </div>
+  `;
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from,
+      to: input.to,
+      subject,
+      text,
+      html,
+    });
+
+    if (result.error) {
+      console.error("Resend booking accepted email failed", {
+        to: input.to,
+        error: result.error,
+      });
+      return {
+        success: false,
+        error: result.error.message || "Resend email request failed",
+      };
+    }
+
+    return { success: true, id: result.data?.id };
+  } catch (error) {
+    console.error("Resend booking accepted email threw", {
+      to: input.to,
+      error,
+    });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown email error",
+    };
+  }
+}

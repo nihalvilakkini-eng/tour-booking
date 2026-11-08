@@ -26,6 +26,8 @@ type Tour = {
   image?: string;
   images?: string[];
   rating?: number;
+  duration?: number;
+  durationUnit?: string;
 };
 
 type TourResponse =
@@ -45,6 +47,25 @@ function getTours(result: TourResponse): Tour[] {
   }
 
   return [];
+}
+
+function formatDuration(tour: Tour) {
+  if (typeof tour.duration !== "number" || !Number.isFinite(tour.duration)) {
+    return "";
+  }
+
+  const unit =
+    tour.durationUnit === "hours"
+      ? tour.duration === 1
+        ? "hour"
+        : "hours"
+      : tour.durationUnit === "days"
+        ? tour.duration === 1
+          ? "day"
+          : "days"
+        : "";
+
+  return unit ? `${tour.duration} ${unit}` : `${tour.duration}`;
 }
 
 export default function FeaturedTours({
@@ -155,21 +176,17 @@ export default function FeaturedTours({
         <div className="section-top">
           <div>
             <span className="eyebrow">
-              {isSearching
-                ? "FIND YOUR EXPERIENCE"
-                : "HANDPICKED FOR YOU"}
+              {isSearching ? "FIND YOUR EXPERIENCE" : "TOUR PACKAGES"}
             </span>
 
             <h2 className="section-heading">
-              {isSearching
-                ? "Search Results"
-                : "Popular experiences"}
+              {isSearching ? "Search Results" : "Tour packages"}
             </h2>
 
             <p className="section-description">
               {isSearching
                 ? `${filteredTours.length} experiences found`
-                : "Find your next unforgettable adventure."}
+                : "Bookable packages with images, prices and durations."}
             </p>
           </div>
 
@@ -243,7 +260,7 @@ export default function FeaturedTours({
               <h3>No tours found</h3>
 
               <p>
-                We couldn't find any matching experiences.
+                We couldn’t find any matching experiences.
                 Try another destination or activity.
               </p>
             </div>
@@ -258,6 +275,8 @@ export default function FeaturedTours({
                 const id = tour._id ?? tour.id ?? "";
                 const title =
                   tour.title ?? tour.name ?? "Explore this tour";
+                const detailHref = id ? `/tours/${id}` : "/tours";
+                const durationText = formatDuration(tour);
 
                 return (
                   <article
@@ -292,6 +311,7 @@ export default function FeaturedTours({
                         {tour.destination ??
                           tour.location ??
                           "Discover more"}
+                        {durationText ? ` · ⏱ ${durationText}` : ""}
                       </p>
 
                       <Link href={id ? `/tours/${id}` : "/tours"}>
@@ -318,11 +338,16 @@ export default function FeaturedTours({
                           </p>
                         </div>
 
-                        {typeof tour.rating === "number" && (
-                          <span className="rating">
-                            ★ {tour.rating.toFixed(1)}
-                          </span>
-                        )}
+                        <div className="tour-actions">
+                          {typeof tour.rating === "number" && (
+                            <span className="rating">
+                              ★ {tour.rating.toFixed(1)}
+                            </span>
+                          )}
+                          <Link href={detailHref} className="view-details">
+                            View Details
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -504,6 +529,33 @@ export default function FeaturedTours({
           color: #a46b00;
           font-size: 13px;
           font-weight: 700;
+        }
+
+        .tour-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .view-details {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 12px;
+          border: 1px solid #dfe8e2;
+          border-radius: 8px;
+          background: #fff;
+          color: #087f6e;
+          font-size: 12px;
+          font-weight: 800;
+          text-decoration: none;
+          transition: border-color 0.18s ease, background-color 0.18s ease,
+            color 0.18s ease;
+        }
+
+        .view-details:hover {
+          border-color: #9dc8b6;
+          background: #f0f7f2;
+          color: #095443;
         }
 
         .status {

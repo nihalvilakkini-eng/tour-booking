@@ -111,6 +111,34 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Direct toggle if only isAvailable is being updated
+    if (
+      isAvailable !== undefined &&
+      date === undefined &&
+      endDate === undefined &&
+      startTime === undefined &&
+      endTime === undefined &&
+      totalSeats === undefined &&
+      availableSeats === undefined
+    ) {
+      if (typeof isAvailable !== "boolean") {
+        return NextResponse.json(
+          { success: false, message: "Availability status must be active or deactive" },
+          { status: 400 }
+        );
+      }
+      availability.isAvailable = isAvailable;
+      await availability.save();
+
+      return NextResponse.json({
+        success: true,
+        message: isAvailable
+          ? "Availability activated successfully"
+          : "Availability deactivated successfully",
+        data: availability,
+      });
+    }
+
     const parseDateInput = (value: unknown, fallback: Date) => {
       if (value === undefined || value === null || value === "") {
         return fallback;
@@ -180,13 +208,29 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    if (nextTotalSeats < bookedSeats) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Total seats cannot be less than already booked seats (${bookedSeats})`,
+        },
+        { status: 400 }
+      );
+    }
+
     if (
       !Number.isInteger(nextAvailableSeats) ||
-      nextAvailableSeats < bookedSeats ||
-      nextAvailableSeats > nextTotalSeats
+      nextAvailableSeats < 0 ||
+      nextAvailableSeats > nextTotalSeats - bookedSeats
     ) {
       return NextResponse.json(
-        { success: false, message: "Available slots cannot be less than booked seats" },
+        {
+          success: false,
+          message: `Available slots cannot exceed remaining unbooked seats (${Math.max(
+            0,
+            nextTotalSeats - bookedSeats
+          )})`,
+        },
         { status: 400 }
       );
     }

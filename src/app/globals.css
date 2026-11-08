@@ -298,6 +298,11 @@ button {
   transform: translate(3px, -3px);
 }
 
+.popular-experiences {
+  padding-top: 0;
+  margin-top: -52px;
+}
+
 .primary-btn {
   display: inline-flex;
   justify-content: center;

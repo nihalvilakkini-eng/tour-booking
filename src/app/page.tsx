@@ -5,6 +5,7 @@ import { useState } from "react";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedTours from "@/components/home/FeaturedTours";
 import PopularDestinations from "@/components/home/PopularDestinations";
+import PopularExperiences from "@/components/home/PopularExperiences";
 import HomeExperienceSections from "@/components/home/HomeExperienceSections";
 
 export default function HomePage() {
@@ -39,11 +40,22 @@ export default function HomePage() {
 
       <PopularDestinations />
 
-      <FeaturedTours
-        destination={destination}
-        activity={activity}
-        isSearching={isSearching}
-      />
+      {isSearching ? (
+        <FeaturedTours
+          destination={destination}
+          activity={activity}
+          isSearching={isSearching}
+        />
+      ) : (
+        <>
+          <PopularExperiences />
+          <FeaturedTours
+            destination={destination}
+            activity={activity}
+            isSearching={isSearching}
+          />
+        </>
+      )}
 
       <HomeExperienceSections />
     </>
