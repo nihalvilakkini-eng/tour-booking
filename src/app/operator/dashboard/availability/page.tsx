@@ -23,7 +23,16 @@ type Availability = {
   isAvailable?: boolean;
 };
 
+type OperatorTour = {
+  _id: string;
+  title?: string;
+  destination?: string;
+  images?: string[];
+  isActive?: boolean;
+};
+
 type EditForm = {
+  tourId: string;
   date: string;
   endDate: string;
   startTime: string;
@@ -58,16 +67,20 @@ function tourOf(item: Availability): TourRef | null {
 
 export default function OperatorAvailabilityPage() {
   const [items, setItems] = useState<Availability[]>([]);
+  const [tours, setTours] = useState<OperatorTour[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<Availability | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [form, setForm] = useState<EditForm>({
+    tourId: "",
     date: "",
     endDate: "",
     startTime: "09:00",
-    endTime: "17:00",
+    endTime: "",
     totalSeats: "10",
     availableSeats: "10",
     isAvailable: true,
@@ -90,6 +103,30 @@ export default function OperatorAvailabilityPage() {
       }
 
       setItems(Array.isArray(result.data) ? result.data : []);
+
+      try {
+        const toursResponse = await fetch("/api/operator/tours", {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+
+        if (toursResponse.ok) {
+          const toursResult = await toursResponse.json();
+          const operatorTours = Array.isArray(toursResult.data)
+            ? toursResult.data
+            : [];
+
+          setTours(
+            operatorTours.filter(
+              (tour: OperatorTour) => Boolean(tour._id) && tour.isActive !== false
+            )
+          );
+        } else {
+          setTours([]);
+        }
+      } catch {
+        setTours([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load availability.");
     } finally {
@@ -128,8 +165,11 @@ export default function OperatorAvailabilityPage() {
   }, [items, search]);
 
   function openEdit(item: Availability) {
+    setCreating(false);
     setEditing(item);
     setForm({
+      tourId:
+        typeof item.tour === "string" ? item.tour : item.tour?._id ?? "",
       date: toDateInput(item.date),
       endDate: toDateInput(item.endDate || item.date),
       startTime: item.startTime || "09:00",
@@ -142,12 +182,79 @@ export default function OperatorAvailabilityPage() {
     setSuccess("");
   }
 
+  function openCreate() {
+    setEditing(null);
+    setCreating(true);
+    setForm({
+      tourId: tours[0]?._id ?? "",
+      date: "",
+      endDate: "",
+      startTime: "09:00",
+      endTime: "",
+      totalSeats: "10",
+      availableSeats: "10",
+      isAvailable: true,
+    });
+    setError("");
+    setSuccess("");
+  }
+
+  function closeModal() {
+    setEditing(null);
+    setCreating(false);
+  }
+
+  async function toggleAvailability(item: Availability) {
+    const nextValue = item.isAvailable === false;
+
+    setTogglingId(item._id);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/operator/availability", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          availabilityId: item._id,
+          isAvailable: nextValue,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to update availability status.");
+      }
+
+      setSuccess(
+        nextValue
+          ? "Availability activated successfully."
+          : "Availability deactivated successfully."
+      );
+      await load();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update availability status."
+      );
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
   async function saveAvailability(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!editing) return;
+    if (!editing && !creating) return;
 
     const totalSeats = Number(form.totalSeats);
     const availableSeats = Number(form.availableSeats);
+
+    if (creating && !form.tourId) {
+      setError("Please select a tour.");
+      return;
+    }
 
     if (!form.date || !form.endDate) {
       setError("Starting and ending dates are required.");
@@ -183,32 +290,40 @@ export default function OperatorAvailabilityPage() {
     setSuccess("");
 
     try {
+      const payload = {
+        ...(editing
+          ? { availabilityId: editing._id }
+          : { tourId: form.tourId }),
+        date: form.date,
+        endDate: form.endDate,
+        startTime: form.startTime,
+        endTime: form.endTime,
+        totalSeats,
+        availableSeats,
+        isAvailable: form.isAvailable,
+      };
+
       const response = await fetch("/api/operator/availability", {
-        method: "PATCH",
+        method: editing ? "PATCH" : "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          availabilityId: editing._id,
-          date: form.date,
-          endDate: form.endDate,
-          startTime: form.startTime,
-          endTime: form.endTime,
-          totalSeats,
-          availableSeats,
-          isAvailable: form.isAvailable,
-        }),
+        body: JSON.stringify(payload),
       });
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Unable to update availability.");
+        throw new Error(result.message || "Unable to save availability.");
       }
 
-      setSuccess("Availability updated successfully.");
-      setEditing(null);
+      setSuccess(
+        editing
+          ? "Availability updated successfully."
+          : "Availability created successfully."
+      );
+      closeModal();
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update availability.");
+      setError(err instanceof Error ? err.message : "Unable to save availability.");
     } finally {
       setSaving(false);
     }
@@ -226,14 +341,23 @@ export default function OperatorAvailabilityPage() {
             Manage dates, time slots, capacity and availability status for your tours.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={loading}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw size={16} /> Refresh
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+          >
+            + Add Availability
+          </button>
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+          >
+            <RefreshCw size={16} /> Refresh
+          </button>
+        </div>
       </header>
 
       {(error || success) && (
@@ -357,13 +481,31 @@ export default function OperatorAvailabilityPage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => openEdit(item)}
-                        className="mt-4 flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"
-                      >
-                        <Pencil size={15} /> Edit Availability
-                      </button>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void toggleAvailability(item)}
+                          disabled={togglingId === item._id}
+                          className={`rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
+                            active
+                              ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                              : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          }`}
+                        >
+                          {togglingId === item._id
+                            ? "Saving..."
+                            : active
+                              ? "Deactivate"
+                              : "Activate"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(item)}
+                          className="flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                        >
+                          <Pencil size={15} /> Edit Availability
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -373,7 +515,7 @@ export default function OperatorAvailabilityPage() {
         )}
       </section>
 
-      {editing && (
+      {(editing || creating) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <form
             onSubmit={saveAvailability}
@@ -382,15 +524,20 @@ export default function OperatorAvailabilityPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
-                  Edit Availability
+                  {creating ? "Add Availability" : "Edit Availability"}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {tourOf(editing)?.title || "Tour availability"}
+                  {creating
+                    ? tours.find((tour) => tour._id === form.tourId)?.title ||
+                      "Select a tour to continue"
+                    : editing
+                      ? tourOf(editing)?.title || "Tour availability"
+                      : "Availability"}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setEditing(null)}
+                onClick={closeModal}
                 className="text-2xl text-slate-400 hover:text-slate-700"
               >
                 ×
@@ -398,6 +545,32 @@ export default function OperatorAvailabilityPage() {
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {creating && (
+                <label className="text-sm font-semibold text-slate-700 sm:col-span-2">
+                  Tour *
+                  <select
+                    required
+                    value={form.tourId}
+                    onChange={(event) =>
+                      setForm({ ...form, tourId: event.target.value })
+                    }
+                    className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  >
+                    <option value="">Select a tour</option>
+                    {tours.map((tour) => (
+                      <option key={tour._id} value={tour._id}>
+                        {tour.title || "Untitled tour"}
+                        {tour.destination ? ` — ${tour.destination}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {tours.length === 0 && (
+                    <span className="mt-2 block text-xs font-normal text-rose-600">
+                      No active tours are available for new availability.
+                    </span>
+                  )}
+                </label>
+              )}
               <label className="text-sm font-semibold text-slate-700">
                 Starting date
                 <input
@@ -473,7 +646,7 @@ export default function OperatorAvailabilityPage() {
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={() => setEditing(null)}
+                onClick={closeModal}
                 className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold"
               >
                 Cancel
@@ -483,7 +656,11 @@ export default function OperatorAvailabilityPage() {
                 disabled={saving}
                 className="flex-1 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save Changes"}
+                {saving
+                  ? "Saving..."
+                  : creating
+                    ? "Create Availability"
+                    : "Save Changes"}
               </button>
             </div>
           </form>

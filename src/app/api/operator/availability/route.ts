@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
 import Availability from "@/models/Availability";
+import Booking from "@/models/Booking";
 import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
 
@@ -77,9 +79,13 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { availabilityId, date, endDate, startTime, endTime, totalSeats, availableSeats, isAvailable } = body;
 
-    if (!availabilityId || typeof availabilityId !== "string") {
+    if (
+      !availabilityId ||
+      typeof availabilityId !== "string" ||
+      !mongoose.isValidObjectId(availabilityId)
+    ) {
       return NextResponse.json(
-        { success: false, message: "Availability ID is required" },
+        { success: false, message: "A valid availability ID is required" },
         { status: 400 }
       );
     }
@@ -105,12 +111,29 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const nextDate = date ? new Date(date) : availability.date;
-    const nextEndDate = endDate ? new Date(endDate) : availability.endDate ?? availability.date;
+    const parseDateInput = (value: unknown, fallback: Date) => {
+      if (value === undefined || value === null || value === "") {
+        return fallback;
+      }
+      if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return null;
+      }
+      const parsed = new Date(`${value}T00:00:00.000Z`);
+      return Number.isNaN(parsed.getTime()) ||
+        parsed.toISOString().slice(0, 10) !== value
+        ? null
+        : parsed;
+    };
 
-    if (Number.isNaN(nextDate.getTime()) || Number.isNaN(nextEndDate.getTime())) {
+    const nextDate = parseDateInput(date, availability.date);
+    const nextEndDate = parseDateInput(
+      endDate,
+      availability.endDate ?? availability.date
+    );
+
+    if (!nextDate || !nextEndDate) {
       return NextResponse.json(
-        { success: false, message: "Invalid date" },
+        { success: false, message: "Invalid date. Use YYYY-MM-DD format" },
         { status: 400 }
       );
     }
@@ -122,10 +145,22 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const bookedBookings = await Booking.find({
+      availability: availability._id,
+      status: { $in: ["pending", "accepted", "confirmed", "completed"] },
+    })
+      .select("participants")
+      .lean();
+    const bookedSeats = bookedBookings.reduce(
+      (total, booking) => total + (booking.participants || 0),
+      0
+    );
+
     const nextTotalSeats = totalSeats === undefined ? availability.totalSeats : Number(totalSeats);
-    const bookedSeats = Math.max(0, availability.totalSeats - availability.availableSeats);
     const nextAvailableSeats = availableSeats === undefined
-      ? Math.max(0, nextTotalSeats - bookedSeats)
+      ? totalSeats === undefined
+        ? availability.availableSeats
+        : Math.max(0, nextTotalSeats - bookedSeats)
       : Number(availableSeats);
 
     if (!Number.isInteger(nextTotalSeats) || nextTotalSeats < 1) {
@@ -156,27 +191,41 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (startTime !== undefined && typeof startTime !== "string") {
-      return NextResponse.json(
-        { success: false, message: "Invalid start time" },
-        { status: 400 }
-      );
-    }
-
-    if (endTime !== undefined && typeof endTime !== "string") {
-      return NextResponse.json(
-        { success: false, message: "Invalid end time" },
-        { status: 400 }
-      );
-    }
-
+    const validTime = (value: unknown) =>
+      typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
     const nextStartTime = startTime ?? availability.startTime;
     const nextEndTime = endTime ?? availability.endTime ?? "";
 
-    if (nextEndTime && nextEndTime <= nextStartTime) {
+    if (!validTime(nextStartTime)) {
+      return NextResponse.json(
+        { success: false, message: "Start time must be in HH:MM format" },
+        { status: 400 }
+      );
+    }
+
+    if (nextEndTime && (!validTime(nextEndTime) || nextEndTime <= nextStartTime)) {
       return NextResponse.json(
         { success: false, message: "End time must be after start time" },
         { status: 400 }
+      );
+    }
+
+    const nextDay = new Date(nextDate);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    const duplicateAvailability = await Availability.findOne({
+      _id: { $ne: availability._id },
+      tour: availability.tour,
+      date: { $gte: nextDate, $lt: nextDay },
+      startTime: nextStartTime,
+    });
+
+    if (duplicateAvailability) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Availability already exists for this date and start time",
+        },
+        { status: 409 }
       );
     }
 
@@ -241,6 +290,7 @@ export async function POST(request: NextRequest) {
       endTime,
       totalSeats,
       availableSeats,
+      isAvailable,
     } = body;
 
     if (!tourId || !date || !startTime || !totalSeats) {
@@ -254,12 +304,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (typeof tourId !== "string" || !mongoose.isValidObjectId(tourId)) {
+      return NextResponse.json(
+        { success: false, message: "A valid tour ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const validTime = (value: unknown) =>
+      typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+    if (!validTime(startTime)) {
+      return NextResponse.json(
+        { success: false, message: "Start time must be in HH:MM format" },
+        { status: 400 }
+      );
+    }
+
+    if (endTime !== undefined && endTime !== "" && !validTime(endTime)) {
+      return NextResponse.json(
+        { success: false, message: "End time must be in HH:MM format" },
+        { status: 400 }
+      );
+    }
+
     if (!Number.isInteger(totalSeats) || totalSeats < 1) {
       return NextResponse.json(
         {
           success: false,
           message: "Total seats must be at least 1",
         },
+        { status: 400 }
+      );
+    }
+
+    const parseDateInput = (value: unknown) => {
+      if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return null;
+      }
+      const parsed = new Date(`${value}T00:00:00.000Z`);
+      return Number.isNaN(parsed.getTime()) ||
+        parsed.toISOString().slice(0, 10) !== value
+        ? null
+        : parsed;
+    };
+
+    const availabilityDate = parseDateInput(date);
+    const availabilityEndDate = endDate ? parseDateInput(endDate) : availabilityDate;
+
+    if (!availabilityDate || !availabilityEndDate) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Date and end date must use YYYY-MM-DD format",
+        },
+        { status: 400 }
+      );
+    }
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    if (availabilityDate < today) {
+      return NextResponse.json(
+        { success: false, message: "Availability date cannot be in the past" },
         { status: 400 }
       );
     }
@@ -292,22 +399,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const availabilityDate = new Date(date);
-    const availabilityEndDate = endDate ? new Date(endDate) : availabilityDate;
-
-    if (
-      Number.isNaN(availabilityDate.getTime()) ||
-      Number.isNaN(availabilityEndDate.getTime())
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid date",
-        },
-        { status: 400 }
-      );
-    }
-
     if (availabilityEndDate < availabilityDate) {
       return NextResponse.json(
         {
@@ -335,6 +426,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (isAvailable !== undefined && typeof isAvailable !== "boolean") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Availability status must be true or false",
+        },
+        { status: 400 }
+      );
+    }
+
     if (endTime && endTime <= startTime) {
       return NextResponse.json(
         {
@@ -346,11 +447,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check duplicate slot
+    const nextDay = new Date(availabilityDate);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
     const existingAvailability = await Availability.findOne({
       tour: tourId,
-      date: availabilityDate,
+      date: { $gte: availabilityDate, $lt: nextDay },
       startTime,
-      isAvailable: true,
     });
 
     if (existingAvailability) {
@@ -371,7 +473,7 @@ export async function POST(request: NextRequest) {
       endTime: endTime || "",
       totalSeats,
       availableSeats: requestedAvailableSeats,
-      isAvailable: true,
+      isAvailable: isAvailable ?? true,
     });
 
     return NextResponse.json(

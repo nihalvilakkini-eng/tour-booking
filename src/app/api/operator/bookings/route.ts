@@ -11,16 +11,6 @@ export const dynamic = "force-dynamic";
 
 type Manager = RequestUser;
 
-async function getManager(request: NextRequest): Promise<Manager | null> {
-  const user = await getRequestUser(request.cookies.get("token")?.value);
-
-  if (!user || (user.role !== "operator" && user.role !== "admin")) {
-    return null;
-  }
-
-  return user;
-}
-
 function isBookingStatus(status: string): status is IBooking["status"] {
   return (
     status === "pending" ||
@@ -44,17 +34,31 @@ async function getManagedTourIds(manager: Manager) {
 // Admins retain access to all bookings through this management endpoint.
 export async function GET(request: NextRequest) {
   try {
-    const manager = await getManager(request);
+    const requestUser = await getRequestUser(
+      request.cookies.get("token")?.value
+    );
 
-    if (!manager) {
+    if (!requestUser) {
       return NextResponse.json(
         {
           success: false,
-          message: "Operator or admin authentication required",
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (requestUser.role !== "operator" && requestUser.role !== "admin") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Operator or admin access required",
         },
         { status: 403 }
       );
     }
+
+    const manager = requestUser;
 
     await connectDB();
 
@@ -124,17 +128,31 @@ export async function GET(request: NextRequest) {
 // PATCH - Accept / reject / complete a booking owned by the operator.
 export async function PATCH(request: NextRequest) {
   try {
-    const manager = await getManager(request);
+    const requestUser = await getRequestUser(
+      request.cookies.get("token")?.value
+    );
 
-    if (!manager) {
+    if (!requestUser) {
       return NextResponse.json(
         {
           success: false,
-          message: "Operator or admin authentication required",
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (requestUser.role !== "operator" && requestUser.role !== "admin") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Operator or admin access required",
         },
         { status: 403 }
       );
     }
+
+    const manager = requestUser;
 
     await connectDB();
 
@@ -228,7 +246,7 @@ export async function PATCH(request: NextRequest) {
       },
       {
         $set: {
-          status: isAcceptedStatus ? "accepted" : status,
+          status,
           ...(status === "rejected"
             ? { rejectionReason: rejectionReason.trim() }
             : {}),

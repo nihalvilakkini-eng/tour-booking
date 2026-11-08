@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 import connectDB from "@/lib/mongodb";
 import Tour from "@/models/Tour";
+import Availability from "@/models/Availability";
 import { getRequestUser, type RequestUser } from "@/lib/request-user";
 import { getMissingCloudinaryCredentials } from "@/lib/cloudinary";
 import { uploadTourImage } from "@/lib/tour-images";
@@ -18,7 +19,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-async function getOperator(
+async function getTourManager(
   request: NextRequest
 ): Promise<
   | { user: RequestUser; error?: never }
@@ -47,10 +48,10 @@ async function getOperator(
       };
     }
 
-    if (user.role !== "operator") {
+    if (user.role !== "operator" && user.role !== "admin") {
       return {
         error: NextResponse.json(
-          { success: false, message: "Operator access required" },
+          { success: false, message: "Operator or admin access required" },
           { status: 403 }
         ),
       };
@@ -82,9 +83,6 @@ export async function GET(
   context: RouteContext
 ) {
   try {
-    const auth = await getOperator(request);
-    if (auth.error) return auth.error;
-
     const { id } = await context.params;
 
     if (!mongoose.isValidObjectId(id)) {
@@ -96,14 +94,34 @@ export async function GET(
 
     await connectDB();
 
-    const tour = await Tour.findOne({
-      _id: id,
-      operator: auth.user.userId,
-    }).lean();
+    const tour = await Tour.findById(id).lean();
 
     if (!tour) {
       return NextResponse.json(
-        { success: false, message: "Tour not found or access denied" },
+        { success: false, message: "Tour not found" },
+        { status: 404 }
+      );
+    }
+
+    let user: RequestUser | null = null;
+    const token = request.cookies.get("token")?.value;
+
+    if (token) {
+      try {
+        user = await getRequestUser(token);
+      } catch {
+        user = null;
+      }
+    }
+
+    const canViewInactive =
+      user?.role === "admin" ||
+      (user?.role === "operator" &&
+        String(tour.operator) === user.userId);
+
+    if (tour.isActive === false && !canViewInactive) {
+      return NextResponse.json(
+        { success: false, message: "Tour not found" },
         { status: 404 }
       );
     }
@@ -125,7 +143,7 @@ export async function PATCH(
   request: NextRequest,
   context: RouteContext
 ) {
-  const auth = await getOperator(request);
+  const auth = await getTourManager(request);
   if (auth.error) return auth.error;
 
   const { id } = await context.params;
@@ -158,11 +176,14 @@ export async function PATCH(
   try {
     await connectDB();
 
-    // Ownership check: an operator can update only their own tour.
-    const tour = await Tour.findOne({
-      _id: id,
-      operator: auth.user.userId,
-    });
+    // Ownership check: operators update only their own tours; admins can update any tour.
+    const tour =
+      auth.user.role === "admin"
+        ? await Tour.findById(id)
+        : await Tour.findOne({
+            _id: id,
+            operator: auth.user.userId,
+          });
 
     if (!tour) {
       return NextResponse.json(
@@ -197,40 +218,82 @@ export async function PATCH(
     const currency = getText("currency") || "INR";
     const maxParticipants = Number(getText("maxParticipants"));
     const meetingPoint = getText("meetingPoint");
+    const hasTourDetails = Boolean(
+      title ||
+        description ||
+        destination ||
+        activityType ||
+        getText("duration") ||
+        getText("durationUnit") ||
+        priceValue ||
+        getText("currency") ||
+        getText("maxParticipants") ||
+        meetingPoint
+    );
+    const itineraryOnlyUpdate = !hasTourDetails;
 
-    if (!title || !description || !destination || !activityType || !meetingPoint) {
+    if (itineraryOnlyUpdate && formData.get("itineraryDays") === null) {
       return NextResponse.json(
-        { success: false, message: "Please complete all required tour fields" },
+        { success: false, message: "Itinerary details are required" },
         { status: 400 }
       );
     }
 
-    if (!Number.isFinite(duration) || duration < 1) {
-      return NextResponse.json(
-        { success: false, message: "Duration must be at least 1" },
-        { status: 400 }
-      );
-    }
+    if (!itineraryOnlyUpdate) {
+      if (!title || !description || !destination || !activityType || !meetingPoint) {
+        return NextResponse.json(
+          { success: false, message: "Please complete all required tour fields" },
+          { status: 400 }
+        );
+      }
 
-    if (durationUnit !== "hours" && durationUnit !== "days") {
-      return NextResponse.json(
-        { success: false, message: "Duration unit must be hours or days" },
-        { status: 400 }
-      );
-    }
+      if (!Number.isFinite(duration) || duration < 1) {
+        return NextResponse.json(
+          { success: false, message: "Duration must be at least 1" },
+          { status: 400 }
+        );
+      }
 
-    if (!priceValue || !Number.isFinite(price) || price < 0) {
-      return NextResponse.json(
-        { success: false, message: "Enter a valid price" },
-        { status: 400 }
-      );
-    }
+      if (durationUnit !== "hours" && durationUnit !== "days") {
+        return NextResponse.json(
+          { success: false, message: "Duration unit must be hours or days" },
+          { status: 400 }
+        );
+      }
 
-    if (!Number.isInteger(maxParticipants) || maxParticipants < 1) {
-      return NextResponse.json(
-        { success: false, message: "Maximum participants must be at least 1" },
-        { status: 400 }
-      );
+      if (!priceValue || !Number.isFinite(price) || price <= 0) {
+        return NextResponse.json(
+          { success: false, message: "Price must be greater than zero" },
+          { status: 400 }
+        );
+      }
+
+      if (!Number.isInteger(maxParticipants) || maxParticipants < 1) {
+        return NextResponse.json(
+          { success: false, message: "Maximum participants must be at least 1" },
+          { status: 400 }
+        );
+      }
+
+      if (maxParticipants !== tour.maxParticipants) {
+        const conflictingAvailability = await Availability.findOne({
+          tour: tour._id,
+          totalSeats: { $gt: maxParticipants },
+        })
+          .select("_id")
+          .lean();
+
+        if (conflictingAvailability) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Maximum participants cannot be lower than an existing availability slot's total seats",
+            },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const itinerary = getTextList("itinerary");
@@ -300,10 +363,12 @@ export async function PATCH(
       );
     }
 
-    // Keep only existing tour photos explicitly sent by the edit form.
-    const requestedExistingImages = getTextList("existingImages");
+    // Keep only existing tour photos explicitly sent by the full edit form.
+    const requestedExistingImages = itineraryOnlyUpdate
+      ? []
+      : getTextList("existingImages");
 
-    if (requestedExistingImages === null) {
+    if (!itineraryOnlyUpdate && requestedExistingImages === null) {
       return NextResponse.json(
         { success: false, message: "Invalid existing image values" },
         { status: 400 }
@@ -311,15 +376,21 @@ export async function PATCH(
     }
 
     const oldImages = new Set(tour.images ?? []);
+    const safeExistingImages = requestedExistingImages ?? [];
 
-    if (requestedExistingImages.some((url) => !oldImages.has(url))) {
+    if (
+      !itineraryOnlyUpdate &&
+      safeExistingImages.some((url) => !oldImages.has(url))
+    ) {
       return NextResponse.json(
         { success: false, message: "An existing tour image is invalid" },
         { status: 400 }
       );
     }
 
-    const imageEntries = formData.getAll("images");
+    const imageEntries = itineraryOnlyUpdate
+      ? []
+      : formData.getAll("images");
 
     if (imageEntries.some((item) => typeof item === "string")) {
       return NextResponse.json(
@@ -332,56 +403,60 @@ export async function PATCH(
       (item): item is File => item instanceof File
     );
 
-    const totalImages = requestedExistingImages.length + imageFiles.length;
+    if (!itineraryOnlyUpdate) {
+      const totalImages = safeExistingImages.length + imageFiles.length;
 
-    if (totalImages > 10) {
-      return NextResponse.json(
-        { success: false, message: "Maximum 10 tour photos are allowed" },
-        { status: 400 }
-      );
-    }
-
-    if (process.env.NODE_ENV === "production" && totalImages === 0) {
-      return NextResponse.json(
-        { success: false, message: "At least one tour photo is required" },
-        { status: 400 }
-      );
-    }
-
-    for (const file of imageFiles) {
-      if (
-        file.size === 0 ||
-        !file.type.startsWith("image/") ||
-        file.size > 10 * 1024 * 1024
-      ) {
+      if (totalImages > 10) {
         return NextResponse.json(
-          { success: false, message: "Each tour photo must be an image under 10MB" },
+          { success: false, message: "Maximum 10 tour photos are allowed" },
           { status: 400 }
         );
+      }
+
+      if (process.env.NODE_ENV === "production" && totalImages === 0) {
+        return NextResponse.json(
+          { success: false, message: "At least one tour photo is required" },
+          { status: 400 }
+        );
+      }
+
+      for (const file of imageFiles) {
+        if (
+          file.size === 0 ||
+          !file.type.startsWith("image/") ||
+          file.size > 10 * 1024 * 1024
+        ) {
+          return NextResponse.json(
+            { success: false, message: "Each tour photo must be an image under 10MB" },
+            { status: 400 }
+          );
+        }
       }
     }
 
     const newImageUrls: string[] = [];
 
-    for (const file of imageFiles) {
-      try {
-        newImageUrls.push(await uploadTourImage(file));
-      } catch (error) {
-        console.error("Tour photo upload error:", error);
+    if (!itineraryOnlyUpdate) {
+      for (const file of imageFiles) {
+        try {
+          newImageUrls.push(await uploadTourImage(file));
+        } catch (error) {
+          console.error("Tour photo upload error:", error);
 
-        const unavailable =
-          error instanceof Error &&
-          error.message.startsWith("Cloudinary is not configured.");
+          const unavailable =
+            error instanceof Error &&
+            error.message.startsWith("Cloudinary is not configured.");
 
-        return NextResponse.json(
-          {
-            success: false,
-            message: unavailable
-              ? `Cloudinary is not configured. Missing: ${getMissingCloudinaryCredentials().join(", ")}`
-              : "Unable to upload a tour photo to Cloudinary",
-          },
-          { status: unavailable ? 503 : 502 }
-        );
+          return NextResponse.json(
+            {
+              success: false,
+              message: unavailable
+                ? `Cloudinary is not configured. Missing: ${getMissingCloudinaryCredentials().join(", ")}`
+                : "Unable to upload a tour photo to Cloudinary",
+            },
+            { status: unavailable ? 503 : 502 }
+          );
+        }
       }
     }
 
@@ -408,25 +483,29 @@ export async function PATCH(
       }
     }
 
-    // Update only editable tour fields. Related records and ratings are untouched.
-    tour.set({
-      title,
-      description,
-      destination,
-      activityType,
-      duration,
-      durationUnit,
-      price,
-      currency,
-      maxParticipants,
-      itinerary,
-      itineraryDays,
-      highlights,
-      meetingPoint,
-      inclusions,
-      exclusions,
-      images: [...requestedExistingImages, ...newImageUrls],
-    });
+    // Update editable tour fields. Related records and ratings are untouched.
+    if (itineraryOnlyUpdate) {
+      tour.set({ itineraryDays });
+    } else {
+      tour.set({
+        title,
+        description,
+        destination,
+        activityType,
+        duration,
+        durationUnit,
+        price,
+        currency,
+        maxParticipants,
+        itinerary,
+        itineraryDays,
+        highlights,
+        meetingPoint,
+        inclusions,
+        exclusions,
+        images: [...safeExistingImages, ...newImageUrls],
+      });
+    }
 
     await tour.save();
 
@@ -454,6 +533,60 @@ export async function PATCH(
 
     return NextResponse.json(
       { success: false, message: "Failed to update tour" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Admin-only tour deactivation. Preserves the tour, bookings,
+// availability records and images for audit/history.
+export async function DELETE(
+  request: NextRequest,
+  context: RouteContext
+) {
+  try {
+    const auth = await getTourManager(request);
+    if (auth.error) return auth.error;
+
+    if (auth.user.role !== "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await context.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid tour ID" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const tour = await Tour.findByIdAndUpdate(
+      id,
+      { $set: { isActive: false } },
+      { new: true }
+    );
+
+    if (!tour) {
+      return NextResponse.json(
+        { success: false, message: "Tour not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Tour deactivated successfully",
+      data: tour,
+    });
+  } catch (error) {
+    console.error("DELETE /api/tours/[id] error:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to deactivate tour" },
       { status: 500 }
     );
   }

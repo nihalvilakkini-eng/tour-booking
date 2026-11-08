@@ -4,16 +4,23 @@ import User from "@/models/User";
 import { getRequestUser } from "@/lib/request-user";
 export const dynamic = "force-dynamic";
 
-async function checkAdmin(request: NextRequest) {
-  const user = await getRequestUser(request.cookies.get("token")?.value);
-  return user?.role === "admin" ? user : null;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const admin = await checkAdmin(request);
+    const requestUser = await getRequestUser(
+      request.cookies.get("token")?.value
+    );
 
-    if (!admin) {
+    if (!requestUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (requestUser.role !== "admin") {
       return NextResponse.json(
         {
           success: false,
@@ -30,12 +37,13 @@ export async function GET(request: NextRequest) {
 
     const query: Record<string, unknown> = {
       role: "operator",
+      isActive: { $ne: false },
     };
 
     if (search) {
       query.$or = [
         {
-          firstName: {
+          name: {
             $regex: search,
             $options: "i",
           },

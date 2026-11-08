@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import TourImage from "@/components/tours/TourImage";
 
 type UserRole = "user" | "operator" | "admin";
 
@@ -197,39 +198,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function changeRole(user: User, role: "user" | "operator") {
-    const action =
-      role === "operator"
-        ? "promote this customer to operator"
-        : "remove operator access";
-    if (!window.confirm(`Are you sure you want to ${action} for ${user.name}?`)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setUpdatingId(user._id);
-      setError("");
-      setSuccess("");
-      const response = await fetch(`/api/admin/users/${user._id}/role`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "Role update failed.");
-      }
-      setSuccess(`${user.name}'s role was updated to ${roleLabel[role]}.`);
-      setRefreshKey((value) => value + 1);
-    } catch (roleError) {
-      setError(roleError instanceof Error ? roleError.message : "Role update failed.");
-    } finally {
-      setUpdatingId("");
-    }
-  }
-
   const currentPage = pagination.totalPages
     ? Math.min(page, pagination.totalPages)
     : 1;
@@ -391,26 +359,6 @@ export default function AdminUsersPage() {
                                     : "Activate"}
                               </button>
                             )}
-                            {!isCurrentAdmin && user.role === "user" && (
-                              <button
-                                type="button"
-                                disabled={updatingId === user._id}
-                                onClick={() => void changeRole(user, "operator")}
-                                className="rounded-lg border border-[#087f6e]/30 px-3 py-2 font-semibold text-[#087f6e] hover:bg-[#087f6e]/5 disabled:opacity-50"
-                              >
-                                Make Operator
-                              </button>
-                            )}
-                            {!isCurrentAdmin && user.role === "operator" && (
-                              <button
-                                type="button"
-                                disabled={updatingId === user._id}
-                                onClick={() => void changeRole(user, "user")}
-                                className="rounded-lg border border-amber-200 px-3 py-2 font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"
-                              >
-                                Remove Operator
-                              </button>
-                            )}
                           </div>
                         </td>
                       </tr>
@@ -470,13 +418,26 @@ export default function AdminUsersPage() {
             className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#087f6e]">
-                  Account details
-                </p>
-                <h2 id="user-details-title" className="mt-2 text-2xl font-bold">
-                  {[selectedUser.name, selectedUser.lastName].filter(Boolean).join(" ")}
-                </h2>
+              <div className="flex items-center gap-4">
+                <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#087f6e]/10 text-xl font-bold text-[#087f6e]">
+                  {selectedUser.profileImage ? (
+                    <TourImage
+                      images={[selectedUser.profileImage]}
+                      alt="User profile"
+                      className="object-cover"
+                    />
+                  ) : (
+                    (selectedUser.name || "U").charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#087f6e]">
+                    Account details
+                  </p>
+                  <h2 id="user-details-title" className="mt-2 text-2xl font-bold">
+                    {[selectedUser.name, selectedUser.lastName].filter(Boolean).join(" ")}
+                  </h2>
+                </div>
               </div>
               <button
                 type="button"

@@ -219,11 +219,15 @@ export default function OperatorToursPage() {
                       Up to {tour.maxParticipants} guests
                     </span>
                   )}
-                  {!tour.isActive && (
-                    <span className="rounded-lg bg-rose-100 px-3 py-2 text-rose-700">
-                      Inactive
-                    </span>
-                  )}
+                  <span
+                    className={`rounded-lg px-3 py-2 ${
+                      tour.isActive === false
+                        ? "bg-rose-100 text-rose-700"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {tour.isActive === false ? "Inactive" : "Active"}
+                  </span>
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
@@ -233,12 +237,20 @@ export default function OperatorToursPage() {
                       {formatPrice(tour)}
                     </p>
                   </div>
-                  <Link
-                    href={`/operator/tours/${tour._id}/edit`}
-                    className="flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50"
-                  >
-                    <Pencil size={15} /> Edit Tour
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/operator/dashboard/tours/${tour._id}`}
+                      className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      View Details
+                    </Link>
+                    <Link
+                      href={`/operator/tours/${tour._id}/edit`}
+                      className="flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                    >
+                      <Pencil size={15} /> Edit Tour
+                    </Link>
+                  </div>
                 </div>
               </div>
             </article>

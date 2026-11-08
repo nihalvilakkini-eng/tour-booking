@@ -7,6 +7,10 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import TourItineraryBuilder, {
+  appendItineraryToFormData,
+  type EditableItineraryDay,
+} from "@/components/forms/TourItineraryBuilder";
 
 const inputClass =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-100";
@@ -37,6 +41,26 @@ type Operator = {
   email: string;
 };
 
+type AvailabilitySlot = {
+  date: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  totalSeats: string;
+  availableSeats: string;
+  isAvailable: boolean;
+};
+
+const emptyAvailabilitySlot: AvailabilitySlot = {
+  date: "",
+  endDate: "",
+  startTime: "09:00",
+  endTime: "",
+  totalSeats: "10",
+  availableSeats: "10",
+  isAvailable: true,
+};
+
 function splitList(value: string): string[] {
   return value
     .split(/\r?\n|,/)
@@ -51,6 +75,10 @@ export default function AdminCreateTourPage() {
   const [images, setImages] = useState<File[]>([]);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [selectedOperator, setSelectedOperator] = useState("");
+  const [itineraryDays, setItineraryDays] = useState<EditableItineraryDay[]>([]);
+  const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([
+    { ...emptyAvailabilitySlot },
+  ]);
 
   const [loading, setLoading] = useState(false);
   const [operatorsLoading, setOperatorsLoading] = useState(true);
@@ -110,6 +138,18 @@ export default function AdminCreateTourPage() {
     }));
   }
 
+  function updateAvailabilitySlot(
+    index: number,
+    field: keyof AvailabilitySlot,
+    value: string | boolean
+  ) {
+    setAvailabilitySlots((previous) =>
+      previous.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, [field]: value } : slot
+      )
+    );
+  }
+
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
   ) {
@@ -156,8 +196,8 @@ export default function AdminCreateTourPage() {
       return;
     }
 
-    if (!Number.isFinite(price) || price < 0 || !form.price.trim()) {
-      setError("Enter a valid tour price.");
+    if (!Number.isFinite(price) || price <= 0 || !form.price.trim()) {
+      setError("Tour price must be greater than zero.");
       return;
     }
 
@@ -172,6 +212,48 @@ export default function AdminCreateTourPage() {
     ) {
       setError("Choose a valid duration unit.");
       return;
+    }
+
+    const validSlots = availabilitySlots.filter((slot) => slot.date);
+    const seenSlots = new Set<string>();
+
+    for (const [index, slot] of validSlots.entries()) {
+      const label = `Availability slot ${index + 1}`;
+      const slotDate = new Date(`${slot.date}T00:00:00.000Z`);
+      const slotEndDate = new Date(`${slot.endDate || slot.date}T00:00:00.000Z`);
+      const total = Number(slot.totalSeats);
+      const available = Number(slot.availableSeats);
+      const key = `${slot.date}|${slot.startTime}`;
+
+      if (Number.isNaN(slotDate.getTime()) || Number.isNaN(slotEndDate.getTime())) {
+        setError(`${label} has an invalid date.`);
+        return;
+      }
+      if ((slot.endDate || slot.date) < slot.date) {
+        setError(`${label} ending date cannot be before its date.`);
+        return;
+      }
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.startTime)) {
+        setError(`${label} requires a valid start time.`);
+        return;
+      }
+      if (slot.endTime && (!/^([01]\d|2[0-3]):[0-5]\d$/.test(slot.endTime) || slot.endTime <= slot.startTime)) {
+        setError(`${label} end time must be after start time.`);
+        return;
+      }
+      if (!Number.isInteger(total) || total < 1 || total > maxParticipants) {
+        setError(`${label} total seats must be between 1 and ${maxParticipants}.`);
+        return;
+      }
+      if (!Number.isInteger(available) || available < 0 || available > total) {
+        setError(`${label} available seats are invalid.`);
+        return;
+      }
+      if (seenSlots.has(key)) {
+        setError(`${label} duplicates another slot.`);
+        return;
+      }
+      seenSlots.add(key);
     }
 
     const data = new FormData();
@@ -203,6 +285,25 @@ export default function AdminCreateTourPage() {
       }
     }
 
+    appendItineraryToFormData(data, itineraryDays);
+
+    if (validSlots.length > 0) {
+      data.append(
+        "availability",
+        JSON.stringify(
+          validSlots.map((slot) => ({
+            date: slot.date,
+            endDate: slot.endDate || slot.date,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            totalSeats: Number(slot.totalSeats),
+            availableSeats: Number(slot.availableSeats),
+            isAvailable: slot.isAvailable,
+          }))
+        )
+      );
+    }
+
     for (const image of images) {
       data.append("images", image);
     }
@@ -229,6 +330,8 @@ export default function AdminCreateTourPage() {
       setForm(initialForm);
       setImages([]);
       setSelectedOperator("");
+      setItineraryDays([]);
+      setAvailabilitySlots([{ ...emptyAvailabilitySlot }]);
 
       window.setTimeout(() => {
         router.push("/admin/dashboard/tours");
@@ -493,7 +596,7 @@ export default function AdminCreateTourPage() {
                 <input
                   id="price"
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   className={inputClass}
                   value={form.price}
@@ -545,9 +648,152 @@ export default function AdminCreateTourPage() {
 
           <hr className="border-gray-100" />
 
+          <TourItineraryBuilder days={itineraryDays} onChange={setItineraryDays} />
+
+          <section>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Tour Availability
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Add one or more bookable date slots. These are saved with the tour.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setAvailabilitySlots((previous) => [
+                    ...previous,
+                    { ...emptyAvailabilitySlot },
+                  ])
+                }
+                className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-100"
+              >
+                + Add Slot
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {availabilitySlots.map((slot, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-sm font-bold text-gray-800">
+                      Slot {index + 1}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAvailabilitySlots((previous) =>
+                          previous.filter((_, slotIndex) => slotIndex !== index)
+                        )
+                      }
+                      className="text-sm font-semibold text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <label className={labelClass}>
+                      Date *
+                      <input
+                        type="date"
+                        required={false}
+                        className={inputClass}
+                        value={slot.date}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "date", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      End date
+                      <input
+                        type="date"
+                        className={inputClass}
+                        value={slot.endDate}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "endDate", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      Start time *
+                      <input
+                        type="time"
+                        required={false}
+                        className={inputClass}
+                        value={slot.startTime}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "startTime", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      End time
+                      <input
+                        type="time"
+                        className={inputClass}
+                        value={slot.endTime}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "endTime", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      Total seats *
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        required={false}
+                        className={inputClass}
+                        value={slot.totalSeats}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "totalSeats", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={labelClass}>
+                      Available seats
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className={inputClass}
+                        value={slot.availableSeats}
+                        onChange={(e) =>
+                          updateAvailabilitySlot(index, "availableSeats", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <label className="mt-4 flex items-center gap-3 text-sm font-semibold text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={slot.isAvailable}
+                      onChange={(e) =>
+                        updateAvailabilitySlot(index, "isAvailable", e.target.checked)
+                      }
+                      className="h-4 w-4 accent-teal-700"
+                    />
+                    Active availability
+                  </label>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <hr className="border-gray-100" />
+
           <section>
             <h2 className="mb-2 text-xl font-bold text-gray-900">
-              3. Tour Details
+              4. Tour Details
             </h2>
 
             <p className="mb-5 text-sm text-gray-500">

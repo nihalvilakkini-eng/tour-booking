@@ -229,6 +229,25 @@ export default function EditTourPage() {
       return;
     }
 
+    const duration = Number(form.duration);
+    const price = Number(form.price);
+    const maxParticipants = Number(form.maxParticipants);
+
+    if (!Number.isFinite(duration) || duration < 1) {
+      setError("Duration must be at least 1.");
+      return;
+    }
+
+    if (!Number.isFinite(price) || price <= 0) {
+      setError("Tour price must be greater than zero.");
+      return;
+    }
+
+    if (!Number.isInteger(maxParticipants) || maxParticipants < 1) {
+      setError("Maximum participants must be at least 1.");
+      return;
+    }
+
     const data = new FormData();
 
     data.append("title", form.title.trim());
@@ -435,7 +454,7 @@ export default function EditTourPage() {
                 Price *
                 <input
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   className={inputClass}
                   value={form.price}

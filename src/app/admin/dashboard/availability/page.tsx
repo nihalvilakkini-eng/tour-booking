@@ -14,6 +14,7 @@ type Availability = {
   _id: string;
   tour: Tour | string | null;
   date: string;
+  endDate?: string | null;
   startTime: string;
   endTime?: string;
   totalSeats: number;
@@ -33,14 +34,33 @@ function getDateString(value: string) {
   return value.slice(0, 10);
 }
 
+function toDateInput(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
 export default function AdminAvailabilityPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [tourId, setTourId] = useState("");
   const [date, setDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [totalSeats, setTotalSeats] = useState("10");
+  const [availableSeats, setAvailableSeats] = useState("10");
+  const [slotIsAvailable, setSlotIsAvailable] = useState(true);
+  const [editing, setEditing] = useState<Availability | null>(null);
+  const [editForm, setEditForm] = useState({
+    date: "",
+    endDate: "",
+    startTime: "09:00",
+    endTime: "",
+    totalSeats: "10",
+    availableSeats: "10",
+    isAvailable: true,
+  });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,7 +74,7 @@ export default function AdminAvailabilityPage() {
     try {
       const [tourResponse, availabilityResponse] = await Promise.all([
         fetch("/api/tours", { credentials: "include" }),
-        fetch("/api/availability", { credentials: "include" }),
+        fetch("/api/availability?manage=true", { credentials: "include" }),
       ]);
 
       const tourResult =
@@ -105,7 +125,11 @@ export default function AdminAvailabilityPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    const timeout = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [loadData]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -118,15 +142,35 @@ export default function AdminAvailabilityPage() {
       return;
     }
 
+    if (!date || !endDate) {
+      setError("Starting and ending dates are required.");
+      return;
+    }
+
+    if (endDate < date) {
+      setError("Ending date cannot be before the starting date.");
+      return;
+    }
+
     if (endTime && endTime <= startTime) {
       setError("End time must be later than start time.");
       return;
     }
 
     const seats = Number(totalSeats);
+    const remainingSeats = Number(availableSeats);
 
     if (!Number.isInteger(seats) || seats < 1) {
       setError("Total seats must be a whole number greater than zero.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(remainingSeats) ||
+      remainingSeats < 0 ||
+      remainingSeats > seats
+    ) {
+      setError("Available seats must be between 0 and total seats.");
       return;
     }
 
@@ -142,9 +186,12 @@ export default function AdminAvailabilityPage() {
         body: JSON.stringify({
           tourId,
           date,
+          endDate,
           startTime,
           endTime,
           totalSeats: seats,
+          availableSeats: remainingSeats,
+          isAvailable: slotIsAvailable,
         }),
       });
 
@@ -157,9 +204,12 @@ export default function AdminAvailabilityPage() {
 
       setSuccess("Availability created successfully!");
       setDate("");
+      setEndDate("");
       setStartTime("09:00");
       setEndTime("17:00");
       setTotalSeats("10");
+      setAvailableSeats("10");
+      setSlotIsAvailable(true);
 
       await loadData();
     } catch (err) {
@@ -167,6 +217,146 @@ export default function AdminAvailabilityPage() {
         err instanceof Error
           ? err.message
           : "Could not create availability."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleAvailability(item: Availability) {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/availability", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          availabilityId: item._id,
+          isAvailable: !item.isAvailable,
+        }),
+      });
+      const result = (await response.json()) as ApiResponse<Availability>;
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Could not update availability.");
+      }
+      setSuccess(
+        `Availability ${item.isAvailable ? "deactivated" : "activated"} successfully.`
+      );
+      await loadData();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not update availability."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function openEditSlot(item: Availability) {
+    setEditing(item);
+    setEditForm({
+      date: toDateInput(item.date),
+      endDate: toDateInput(item.endDate || item.date),
+      startTime: item.startTime || "09:00",
+      endTime: item.endTime || "",
+      totalSeats: String(item.totalSeats ?? 1),
+      availableSeats: String(item.availableSeats ?? item.totalSeats ?? 1),
+      isAvailable: item.isAvailable !== false,
+    });
+    setError("");
+    setSuccess("");
+  }
+
+  async function saveEditSlot(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+
+    const total = Number(editForm.totalSeats);
+    const remaining = Number(editForm.availableSeats);
+
+    if (!editForm.date || !editForm.endDate) {
+      setError("Starting and ending dates are required.");
+      return;
+    }
+    if (editForm.endDate < editForm.date) {
+      setError("Ending date cannot be before the starting date.");
+      return;
+    }
+    if (editForm.endTime && editForm.endTime <= editForm.startTime) {
+      setError("End time must be later than start time.");
+      return;
+    }
+    if (!Number.isInteger(total) || total < 1) {
+      setError("Total seats must be a whole number greater than zero.");
+      return;
+    }
+    if (!Number.isInteger(remaining) || remaining < 0 || remaining > total) {
+      setError("Available seats must be between 0 and total seats.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/availability", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          availabilityId: editing._id,
+          date: editForm.date,
+          endDate: editForm.endDate,
+          startTime: editForm.startTime,
+          endTime: editForm.endTime,
+          totalSeats: total,
+          availableSeats: remaining,
+          isAvailable: editForm.isAvailable,
+        }),
+      });
+      const result = (await response.json()) as ApiResponse<Availability>;
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Could not update availability.");
+      }
+      setSuccess("Availability updated successfully!");
+      setEditing(null);
+      await loadData();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not update availability."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteSlot(item: Availability) {
+    if (!window.confirm("Remove this availability slot? Slots with bookings will be deactivated instead.")) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(`/api/availability?id=${item._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const result = (await response.json()) as ApiResponse<Availability>;
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Could not remove availability.");
+      }
+      setSuccess(result.message || "Availability removed successfully!");
+      await loadData();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not remove availability."
       );
     } finally {
       setSaving(false);
@@ -273,6 +463,24 @@ export default function AdminAvailabilityPage() {
 
               <div>
                 <label
+                  htmlFor="endDate"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Ending Date *
+                </label>
+                <input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  min={date || new Date().toLocaleDateString("en-CA")}
+                  onChange={(event) => setEndDate(event.target.value)}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+
+              <div>
+                <label
                   htmlFor="totalSeats"
                   className="mb-2 block text-sm font-medium"
                 >
@@ -285,6 +493,25 @@ export default function AdminAvailabilityPage() {
                   step="1"
                   value={totalSeats}
                   onChange={(event) => setTotalSeats(event.target.value)}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="availableSeats"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Available Seats *
+                </label>
+                <input
+                  id="availableSeats"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={availableSeats}
+                  onChange={(event) => setAvailableSeats(event.target.value)}
                   required
                   className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 />
@@ -323,6 +550,16 @@ export default function AdminAvailabilityPage() {
                 />
               </div>
             </div>
+
+            <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={slotIsAvailable}
+                onChange={(event) => setSlotIsAvailable(event.target.checked)}
+                className="h-4 w-4 accent-teal-700"
+              />
+              Active availability
+            </label>
 
             <button
               type="submit"
@@ -401,6 +638,7 @@ export default function AdminAvailabilityPage() {
                       <th className="px-5 py-3 font-semibold">Total Seats</th>
                       <th className="px-5 py-3 font-semibold">Available</th>
                       <th className="px-5 py-3 font-semibold">Status</th>
+                      <th className="px-5 py-3 font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -431,6 +669,34 @@ export default function AdminAvailabilityPage() {
                               : "Unavailable"}
                           </span>
                         </td>
+                        <td className="px-5 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEditSlot(item)}
+                              disabled={saving}
+                              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void toggleAvailability(item)}
+                              disabled={saving}
+                              className="rounded-lg border border-teal-200 px-3 py-2 text-xs font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-50"
+                            >
+                              {item.isAvailable ? "Deactivate" : "Activate"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteSlot(item)}
+                              disabled={saving}
+                              className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -439,6 +705,152 @@ export default function AdminAvailabilityPage() {
             </>
           )}
         </section>
+
+        {editing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+              <h2 className="text-xl font-semibold">Edit Availability</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                {getTourTitle(editing)} — {getDateString(editing.date)}
+              </p>
+
+              <form onSubmit={saveEditSlot} className="mt-6 space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-date">
+                      Starting Date *
+                    </label>
+                    <input
+                      id="edit-date"
+                      type="date"
+                      value={editForm.date}
+                      min={new Date().toLocaleDateString("en-CA")}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, date: event.target.value }))
+                      }
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-endDate">
+                      Ending Date *
+                    </label>
+                    <input
+                      id="edit-endDate"
+                      type="date"
+                      value={editForm.endDate}
+                      min={editForm.date || new Date().toLocaleDateString("en-CA")}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, endDate: event.target.value }))
+                      }
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-startTime">
+                      Start Time *
+                    </label>
+                    <input
+                      id="edit-startTime"
+                      type="time"
+                      value={editForm.startTime}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, startTime: event.target.value }))
+                      }
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-endTime">
+                      End Time
+                    </label>
+                    <input
+                      id="edit-endTime"
+                      type="time"
+                      value={editForm.endTime}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, endTime: event.target.value }))
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-totalSeats">
+                      Total Seats *
+                    </label>
+                    <input
+                      id="edit-totalSeats"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={editForm.totalSeats}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, totalSeats: event.target.value }))
+                      }
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-availableSeats">
+                      Available Seats *
+                    </label>
+                    <input
+                      id="edit-availableSeats"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={editForm.availableSeats}
+                      onChange={(event) =>
+                        setEditForm((current) => ({ ...current, availableSeats: event.target.value }))
+                      }
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isAvailable}
+                    onChange={(event) =>
+                      setEditForm((current) => ({ ...current, isAvailable: event.target.checked }))
+                    }
+                    className="h-4 w-4 accent-teal-700"
+                  />
+                  Active availability
+                </label>
+
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(null)}
+                    disabled={saving}
+                    className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="rounded-lg bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

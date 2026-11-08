@@ -159,9 +159,9 @@ export default function AddTourPage() {
     if (
       !form.price.trim() ||
       !Number.isFinite(Number(form.price)) ||
-      Number(form.price) < 0
+      Number(form.price) <= 0
     ) {
-      setError("Enter a valid price.");
+      setError("Tour price must be greater than zero.");
       return;
     }
 
@@ -418,7 +418,7 @@ export default function AddTourPage() {
                   id="price"
                   name="price"
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   value={form.price}
                   onChange={updateField}

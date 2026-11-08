@@ -1,7 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-const destinations = [
+type Destination = {
+  _id?: string;
+  name: string;
+  country: string;
+  state?: string;
+  city?: string;
+  description: string;
+  image: string;
+  search?: string;
+  order?: number;
+};
+
+const fallbackDestinations: Destination[] = [
   {
     name: "Bali",
     country: "Indonesia",
@@ -37,6 +52,38 @@ const destinations = [
 ];
 
 export default function PopularDestinations() {
+  const [destinations, setDestinations] =
+    useState<Destination[]>(fallbackDestinations);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDestinations() {
+      try {
+        const response = await fetch("/api/destinations", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+        const data = Array.isArray(result.data) ? result.data : [];
+
+        if (!cancelled && data.length > 0) {
+          setDestinations(data);
+        }
+      } catch {
+        // Keep the built-in destination cards if the API is unavailable.
+      }
+    }
+
+    void loadDestinations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section className="section destinations">
       <div className="container">
@@ -49,9 +96,9 @@ export default function PopularDestinations() {
         <div className="destination-grid">
           {destinations.map((destination) => (
             <Link
-              key={destination.name}
+              key={destination._id || destination.name}
               href={`/tours?destination=${encodeURIComponent(
-                destination.search
+                destination.search || destination.name
               )}`}
               className="destination-card"
               aria-label={`Discover experiences in ${destination.name}, ${destination.country}`}
@@ -63,6 +110,7 @@ export default function PopularDestinations() {
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 850px) 50vw, 25vw"
                   className="destination-photo"
+                  unoptimized
                 />
               </span>
               <span className="destination-info">

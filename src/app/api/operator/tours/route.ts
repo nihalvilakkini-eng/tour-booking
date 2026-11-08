@@ -123,11 +123,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Number.isFinite(price) || price < 0) {
+    if (!Number.isFinite(price) || price <= 0) {
       return NextResponse.json(
         {
           success: false,
-          message: "Price cannot be negative",
+          message: "Price must be greater than zero",
         },
         { status: 400 }
       );

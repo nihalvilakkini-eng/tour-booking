@@ -77,6 +77,12 @@ const managementLinks = [
     icon: "🗓️",
   },
   {
+    title: "Popular Destinations",
+    description: "Create and manage homepage destination places",
+    href: "/admin/dashboard/destinations",
+    icon: "📍",
+  },
+  {
     title: "Payments",
     description: "Track payment status and transactions",
     href: "/admin/dashboard/payments",

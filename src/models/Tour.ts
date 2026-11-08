@@ -205,7 +205,10 @@ const TourSchema = new Schema<ITour>(
     price: {
       type: Number,
       required: [true, "Price is required"],
-      min: [0, "Price cannot be negative"],
+      validate: {
+        validator: (value: number) => value > 0,
+        message: "Price must be greater than zero",
+      },
     },
 
     currency: {

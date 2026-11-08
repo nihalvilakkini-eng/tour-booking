@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
-import cloudinary from "@/lib/cloudinary";
+import cloudinary, { configureCloudinary } from "@/lib/cloudinary";
 export const dynamic = "force-dynamic";
 
 function getJwtSecret(): string {
@@ -238,6 +238,7 @@ export async function PATCH(request: NextRequest) {
       const buffer = Buffer.from(bytes);
 
       // Upload to Cloudinary
+      configureCloudinary();
       const uploadResult = await new Promise<{
         secure_url: string;
       }>((resolve, reject) => {

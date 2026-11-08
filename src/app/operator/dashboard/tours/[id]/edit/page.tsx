@@ -37,7 +37,7 @@ export default function EditTourItineraryPage() {
       try {
         const response = await fetch(
           `/api/tours/${encodeURIComponent(id)}`,
-          { cache: "no-store", signal: controller.signal }
+          { cache: "no-store", credentials: "include", signal: controller.signal }
         );
         const result = (await response.json()) as TourResponse;
         if (!response.ok || result.success !== true || !result.data) {
