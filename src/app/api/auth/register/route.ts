@@ -7,6 +7,8 @@ import cloudinary from "@/lib/cloudinary";
 import User from "@/models/User";
 import { createNotification } from "@/lib/notifications";
 
+export const dynamic = "force-dynamic";
+
 const VALID_BUSINESS_TYPES = [
   "Travel Agency",
   "Tour Operator",
@@ -47,7 +49,7 @@ type RegistrationData = {
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
+    throw new Error("Please define JWT_SECRET in environment variables");
   }
   return secret;
 }

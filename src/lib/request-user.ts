@@ -23,7 +23,7 @@ export async function getRequestUser(
 
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("Please define JWT_SECRET in .env.local");
+    throw new Error("Please define JWT_SECRET in environment variables");
   }
 
   let decoded: string | jwt.JwtPayload;
