@@ -15,10 +15,12 @@ const cached =
   });
 
 export default async function connectDB(): Promise<typeof mongoose> {
-  const url = process.env.MONGODB_URL || process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI || process.env.MONGODB_URL;
 
-  if (!url) {
-    throw new Error("Please define MONGODB_URL or MONGODB_URI in environment variables");
+  if (!uri) {
+    throw new Error(
+      "MongoDB is not configured. Set MONGODB_URI (or MONGODB_URL) in the server environment. On Vercel, add it under Project Settings > Environment Variables for the deployed environment, then redeploy."
+    );
   }
 
   if (mongoose.connection.readyState === 1) {
@@ -30,7 +32,7 @@ export default async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(url);
+    cached.promise = mongoose.connect(uri);
   }
 
   try {
