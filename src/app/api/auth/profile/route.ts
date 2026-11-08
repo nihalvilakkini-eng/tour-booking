@@ -21,6 +21,19 @@ function getUserIdFromToken(token: string): string {
   return decoded.userId;
 }
 
+function isTokenVerificationError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    error.name === "JsonWebTokenError" ||
+    error.name === "TokenExpiredError" ||
+    error.name === "NotBeforeError" ||
+    error.message === "Invalid token payload"
+  );
+}
+
 // ==============================
 // GET AUTHENTICATED PROFILE
 // ==============================
@@ -83,12 +96,16 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Profile error:", error);
 
+    const invalidToken = isTokenVerificationError(error);
+
     return NextResponse.json(
       {
         success: false,
-        message: "Invalid or expired token",
+        message: invalidToken
+          ? "Invalid or expired token"
+          : "Failed to fetch profile",
       },
-      { status: 401 }
+      { status: invalidToken ? 401 : 500 }
     );
   }
 }
@@ -296,12 +313,16 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error("Profile update error:", error);
 
+    const invalidToken = isTokenVerificationError(error);
+
     return NextResponse.json(
       {
         success: false,
-        message: "Profile update failed",
+        message: invalidToken
+          ? "Invalid or expired token"
+          : "Profile update failed",
       },
-      { status: 500 }
+      { status: invalidToken ? 401 : 500 }
     );
   }
 }
