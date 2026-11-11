@@ -221,7 +221,7 @@ export default function OperatorDashboardPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/operator/tours/add"
+              href="/operator/tour/add"
               className="rounded-xl bg-emerald-700 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-800"
             >
               + Add Tour
@@ -290,7 +290,7 @@ export default function OperatorDashboardPage() {
             </div>
 
             <Link
-              href="/operator/tours/add"
+              href="/operator/tour/add"
               className="font-semibold text-emerald-800 hover:underline"
             >
               Create a new tour →
@@ -307,7 +307,7 @@ export default function OperatorDashboardPage() {
                 Create your first tour to start receiving booking requests.
               </p>
               <Link
-                href="/operator/tours/add"
+                href="/operator/tour/add"
                 className="mt-5 inline-flex rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white hover:bg-emerald-800"
               >
                 Add your first tour

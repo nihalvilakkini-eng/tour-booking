@@ -108,7 +108,10 @@ export default function MyBookingsPage() {
   }, [router]);
 
   useEffect(() => {
-    void loadBookings();
+    const timeoutId = window.setTimeout(() => {
+      void loadBookings();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [loadBookings, reloadKey]);
 
   // Listen for global booking updates (e.g. from operator actions or notifications)
@@ -234,8 +237,6 @@ export default function MyBookingsPage() {
             const isAcceptedOrConfirmed =
               bookingStatus === "accepted" || bookingStatus === "confirmed";
             const isPending = bookingStatus === "pending";
-            const isRejectedOrCancelled =
-              bookingStatus === "rejected" || bookingStatus === "cancelled";
             const isPaid = paymentStatus === "paid";
 
             // Payment Eligibility:

@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Find an admin user to associate or use existing admin
-      let adminUser = await User.findOne({ role: "admin" }).select("_id").lean();
+      const adminUser = await User.findOne({ role: "admin" }).select("_id").lean();
       const adminObjectId = authUser.role === "admin" ? userObjectId : adminUser?._id;
 
       // Check if conversation already exists between this operator and admin

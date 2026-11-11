@@ -2972,3 +2972,19 @@ body {
 body {
   min-height: 100vh;
 }
+
+/* Keep the shared shell in control of viewport height so page roots cannot
+   force a second 100vh and push the footer or shift dashboard content. */
+.site-content {
+  min-height: 0;
+}
+
+.site-content > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.operator-dashboard-shell .min-h-screen,
+.admin-shell .min-h-screen {
+  min-height: 0;
+}
