@@ -8,6 +8,7 @@ import { createNotification } from "@/lib/notifications";
 import User from "@/models/User";
 import { isBookingCompleted } from "@/lib/booking-status";
 import { getRequestUser } from "@/lib/request-user";
+import { sendBookingSubmittedEmail } from "@/lib/email";
 export const dynamic = "force-dynamic";
 
 // =========================
@@ -33,26 +34,29 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-const customer = await User.findById(user.userId).select(
-  "name lastName email phone"
-);
 
-if (!customer) {
-  return NextResponse.json(
-    { success: false, message: "User not found" },
-    { status: 404 }
-  );
-}
+    const customer = await User.findById(user.userId).select(
+      "name lastName email phone"
+    );
 
-if (!customer.name || !customer.email || !customer.phone) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Please complete your name, email and phone in your profile before booking.",
-    },
-    { status: 400 }
-  );
-}
+    if (!customer) {
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!customer.name || !customer.email || !customer.phone) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Please complete your name, email and phone in your profile before booking.",
+        },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
 
     const {
@@ -199,12 +203,9 @@ if (!customer.name || !customer.email || !customer.phone) {
 
       // If no seats remain, mark availability unavailable
       if (updatedAvailability.availableSeats === 0) {
-        await Availability.findByIdAndUpdate(
-          availabilityId,
-          {
-            isAvailable: false,
-          }
-        );
+        await Availability.findByIdAndUpdate(availabilityId, {
+          isAvailable: false,
+        });
       }
 
       // =========================
@@ -231,6 +232,20 @@ if (!customer.name || !customer.email || !customer.phone) {
         tour: tour._id,
       });
 
+      // =========================
+      // Send Booking Submitted Email to Customer
+      // =========================
+      await sendBookingSubmittedEmail({
+        to: booking.customerEmail,
+        name: booking.customerName,
+        tourTitle: tour.title,
+        bookingDate: new Date(booking.bookingDate).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+      });
+
       return NextResponse.json(
         {
           success: true,
@@ -241,17 +256,14 @@ if (!customer.name || !customer.email || !customer.phone) {
       );
     } catch (error) {
       // Roll back seats if booking creation fails
-      await Availability.findByIdAndUpdate(
-        availabilityId,
-        {
-          $inc: {
-            availableSeats: participantCount,
-          },
-          $set: {
-            isAvailable: true,
-          },
-        }
-      );
+      await Availability.findByIdAndUpdate(availabilityId, {
+        $inc: {
+          availableSeats: participantCount,
+        },
+        $set: {
+          isAvailable: true,
+        },
+      });
 
       throw error;
     }

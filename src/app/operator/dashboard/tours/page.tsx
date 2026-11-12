@@ -176,9 +176,9 @@ export default function OperatorToursPage() {
           {filteredTours.map((tour) => (
             <article
               key={tour._id}
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="relative h-52 overflow-hidden bg-slate-100">
+              <div className="relative h-52 shrink-0 overflow-hidden bg-slate-100">
                 <TourImage
                   images={tour.images}
                   image={tour.images?.[0]}
@@ -192,7 +192,7 @@ export default function OperatorToursPage() {
                 )}
               </div>
 
-              <div className="flex h-full flex-col p-5">
+              <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="line-clamp-2 text-lg font-bold text-slate-900">
@@ -231,25 +231,25 @@ export default function OperatorToursPage() {
                   </span>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
                   <div>
                     <p className="text-xs text-slate-500">Price</p>
-                    <p className="mt-1 text-lg font-bold text-teal-700">
+                    <p className="mt-0.5 text-lg font-bold text-teal-700">
                       {formatPrice(tour)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Link
                       href={`/operator/dashboard/tours/${tour._id}`}
-                      className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       View Details
                     </Link>
                     <Link
                       href={`/operator/tours/${tour._id}/edit`}
-                      className="flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2.5 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                      className="flex items-center gap-1.5 rounded-xl bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-800"
                     >
-                      <Pencil size={15} /> Edit Tour
+                      <Pencil size={14} /> Edit Tour
                     </Link>
                   </div>
                 </div>

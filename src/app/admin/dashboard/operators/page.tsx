@@ -24,7 +24,9 @@ export default function OperatorsPage() {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     async function loadOperators() {
@@ -64,6 +66,51 @@ export default function OperatorsPage() {
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+
+  // Operator-നെ Deactivate ചെയ്ത് സാധാരണ User ആക്കി മാറ്റാൻ
+  const handleDeactivateOperator = async (operator: Operator) => {
+    const name =
+      operator.name ||
+      `${operator.firstName ?? ""} ${operator.lastName ?? ""}`.trim() ||
+      operator.email;
+
+    if (
+      !window.confirm(
+        `Are you sure you want to deactivate ${name} as an Operator? Their operator role will be removed and they will be moved to the Users list.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setUpdatingId(operator._id);
+      setError("");
+      setSuccess("");
+
+      const res = await fetch(`/api/admin/users/${operator._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ role: "user", isActive: true }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to deactivate operator.");
+      }
+
+      // Operators ലിസ്റ്റിൽ നിന്നും ഒഴിവാക്കുക (ഇപ്പോൾ ഇവർ Users പേജിലേക്ക് മാറിയിട്ടുണ്ടാകും)
+      setOperators((prev) => prev.filter((op) => op._id !== operator._id));
+      setSuccess(`${name} has been deactivated as an operator and moved to Users.`);
+    } catch (err) {
+      console.error("Deactivate operator error:", err);
+      setError(
+        err instanceof Error ? err.message : "Something went wrong while updating operator."
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
@@ -111,13 +158,19 @@ export default function OperatorsPage() {
             </p>
           )}
 
+          {success && (
+            <p className="mt-4 rounded-xl bg-green-50 p-4 text-sm text-green-700">
+              {success}
+            </p>
+          )}
+
           {loading ? (
             <p className="py-12 text-center text-gray-500">Loading operators...</p>
           ) : filtered.length === 0 ? (
             <p className="py-12 text-center text-gray-500">No operators found.</p>
           ) : (
             <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[650px] text-left text-sm">
+              <table className="w-full min-w-[750px] text-left text-sm">
                 <thead>
                   <tr className="border-b text-xs uppercase text-gray-500">
                     <th className="px-4 py-4">Operator</th>
@@ -125,7 +178,7 @@ export default function OperatorsPage() {
                     <th className="px-4 py-4">Email</th>
                     <th className="px-4 py-4">Phone</th>
                     <th className="px-4 py-4">Joined</th>
-                    <th className="px-4 py-4">Role</th>
+                    <th className="px-4 py-4 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -135,10 +188,12 @@ export default function OperatorsPage() {
                       `${operator.firstName ?? ""} ${operator.lastName ?? ""}`.trim() ||
                       "Unnamed operator";
 
+                    const isUpdating = updatingId === operator._id;
+
                     return (
                       <tr key={operator._id} className="border-b border-gray-50">
                         <td className="px-4 py-5 font-semibold">{name}</td>
-                        <td className="px-4 py-5 text-gray-700 font-medium">
+                        <td className="px-4 py-5 font-medium text-gray-700">
                           {operator.operatorApplication?.businessName || "—"}
                         </td>
                         <td className="px-4 py-5 text-gray-600">{operator.email}</td>
@@ -150,10 +205,15 @@ export default function OperatorsPage() {
                             ? new Date(operator.createdAt).toLocaleDateString()
                             : "—"}
                         </td>
-                        <td className="px-4 py-5">
-                          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                            Operator
-                          </span>
+                        <td className="px-4 py-5 text-right">
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => void handleDeactivateOperator(operator)}
+                            className="rounded-lg bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {isUpdating ? "Deactivating..." : "Deactivate"}
+                          </button>
                         </td>
                       </tr>
                     );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import TourImage from "@/components/tours/TourImage";
 
 type UserRole = "user" | "operator" | "admin";
@@ -28,22 +29,15 @@ type UserPage = {
   };
 };
 
-const roleLabel: Record<UserRole, string> = {
-  user: "Customer",
-  operator: "Operator",
-  admin: "Admin",
-};
-
 async function fetchUsers(
   search: string,
-  role: string,
   status: string,
   page: number,
   signal: AbortSignal
 ): Promise<UserPage> {
   const params = new URLSearchParams({
     search,
-    role,
+    role: "user", // എപ്പോഴും സാധാരണ Users (Customers) മാത്രം എടുക്കാൻ
     status,
     page: String(page),
     limit: "10",
@@ -59,8 +53,9 @@ async function fetchUsers(
     throw new Error(result.message || "Failed to load users.");
   }
 
+  const rawUsers = Array.isArray(result.users) ? result.users : [];
   return {
-    users: Array.isArray(result.users) ? result.users : [],
+    users: rawUsers.filter((u: User) => u.role === "user"),
     currentUserId: result.currentUserId,
     pagination: result.pagination || { page: 1, total: 0, totalPages: 0 },
   };
@@ -89,7 +84,6 @@ export default function AdminUsersPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -100,7 +94,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchUsers(search, roleFilter, statusFilter, page, controller.signal)
+    fetchUsers(search, statusFilter, page, controller.signal)
       .then((result) => {
         setUsers(result.users);
         setCurrentUserId(result.currentUserId || "");
@@ -118,13 +112,14 @@ export default function AdminUsersPage() {
       });
 
     return () => controller.abort();
-  }, [page, refreshKey, roleFilter, search, statusFilter]);
+  }, [page, refreshKey, search, statusFilter]);
 
   async function changeStatus(user: User) {
     if (user._id === currentUserId) return;
-    const nextIsActive = !user.isActive;
+    const isCurrentlyActive = user.isActive !== false;
+    const nextIsActive = !isCurrentlyActive;
     const action = nextIsActive ? "activate" : "deactivate";
-    const name = [user.name, user.lastName].filter(Boolean).join(" ");
+    const name = [user.name, user.lastName].filter(Boolean).join(" ") || user.email;
 
     if (
       !window.confirm(
@@ -139,7 +134,6 @@ export default function AdminUsersPage() {
     }
 
     try {
-      setLoading(true);
       setUpdatingId(user._id);
       setError("");
       setSuccess("");
@@ -205,31 +199,31 @@ export default function AdminUsersPage() {
   return (
     <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <a
+        <Link
           href="/admin/dashboard"
           className="text-sm font-semibold text-[#087f6e] hover:underline"
         >
           ← Back to Dashboard
-        </a>
+        </Link>
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-widest text-[#087f6e]">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">User Management</h1>
+            <h1 className="mt-2 text-3xl font-bold">Users (Customers)</h1>
             <p className="mt-2 text-sm text-gray-500">
-              Review account details and manage platform access.
+              View and manage registered customer accounts.
             </p>
           </div>
           <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
-            <p className="text-xs text-gray-500">Matching accounts</p>
-            <p className="text-2xl font-bold">{pagination.total}</p>
+            <p className="text-xs text-gray-500">Total customers</p>
+            <p className="text-2xl font-bold text-[#087f6e]">{pagination.total}</p>
           </div>
         </div>
 
         <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-          <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_190px_190px]">
+          <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_220px]">
             <input
               type="search"
               value={search}
@@ -239,26 +233,10 @@ export default function AdminUsersPage() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search name, email or role..."
-              aria-label="Search users by name, email or role"
+              placeholder="Search customer name or email..."
+              aria-label="Search customers by name or email"
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e] focus:ring-2 focus:ring-[#087f6e]/10"
             />
-            <select
-              value={roleFilter}
-              onChange={(event) => {
-                setLoading(true);
-                setError("");
-                setRoleFilter(event.target.value);
-                setPage(1);
-              }}
-              aria-label="Filter by role"
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
-            >
-              <option value="all">All roles</option>
-              <option value="user">Customers</option>
-              <option value="operator">Operators</option>
-              <option value="admin">Admins</option>
-            </select>
             <select
               value={statusFilter}
               onChange={(event) => {
@@ -290,73 +268,70 @@ export default function AdminUsersPage() {
           {loading ? (
             <p className="py-12 text-center text-gray-500">Loading users...</p>
           ) : users.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No users found.</p>
+            <p className="py-12 text-center text-gray-500">No customers found.</p>
           ) : (
             <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[1050px] text-left text-sm">
+              <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-500">
-                    <th className="px-4 py-4">Name</th>
-                    <th className="px-4 py-4">Email</th>
-                    <th className="px-4 py-4">Phone</th>
-                    <th className="px-4 py-4">Role</th>
-                    <th className="px-4 py-4">Account status</th>
-                    <th className="px-4 py-4">Registered</th>
-                    <th className="px-4 py-4">Actions</th>
+                    <th className="px-3 py-4">Customer</th>
+                    <th className="px-3 py-4">Phone</th>
+                    <th className="px-3 py-4">Status</th>
+                    <th className="px-3 py-4">Registered</th>
+                    <th className="px-3 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user) => {
                     const name = [user.name, user.lastName].filter(Boolean).join(" ");
                     const isCurrentAdmin = user._id === currentUserId;
+                    const isActive = user.isActive !== false;
+
                     return (
-                      <tr key={user._id} className="border-b border-gray-50">
-                        <td className="px-4 py-5 font-semibold">{name || "—"}</td>
-                        <td className="px-4 py-5 text-gray-600">{user.email}</td>
-                        <td className="px-4 py-5 text-gray-600">{user.phone || "—"}</td>
-                        <td className="px-4 py-5">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                            {roleLabel[user.role] || user.role}
-                          </span>
+                      <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-3 py-4">
+                          <p className="font-semibold text-[#172b27]">{name || "—"}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
                         </td>
-                        <td className="px-4 py-5">
+                        <td className="px-3 py-4 text-gray-600">{user.phone || "—"}</td>
+                        <td className="px-3 py-4">
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              user.isActive
+                              isActive
                                 ? "bg-green-100 text-green-700"
                                 : "bg-red-100 text-red-700"
                             }`}
                           >
-                            {user.isActive ? "Active" : "Deactivated"}
+                            {isActive ? "Active" : "Deactivated"}
                           </span>
                         </td>
-                        <td className="px-4 py-5 text-gray-600">{formatDate(user.createdAt)}</td>
-                        <td className="px-4 py-5">
-                          <div className="flex flex-wrap gap-2">
+                        <td className="px-3 py-4 text-gray-600">{formatDate(user.createdAt)}</td>
+                        <td className="px-3 py-4">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
                               disabled={detailsLoading}
                               onClick={() => void viewDetails(user._id)}
-                              className="rounded-lg border border-gray-200 px-3 py-2 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                             >
-                              View Details
+                              Details
                             </button>
                             {!isCurrentAdmin && (
                               <button
                                 type="button"
                                 disabled={updatingId === user._id}
                                 onClick={() => void changeStatus(user)}
-                                className={`rounded-lg px-3 py-2 font-semibold text-white disabled:opacity-50 ${
-                                  user.isActive
+                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50 ${
+                                  isActive
                                     ? "bg-red-600 hover:bg-red-700"
                                     : "bg-[#087f6e] hover:bg-[#066354]"
                                 }`}
                               >
                                 {updatingId === user._id
                                   ? "Updating..."
-                                  : user.isActive
-                                    ? "Deactivate"
-                                    : "Activate"}
+                                  : isActive
+                                  ? "Deactivate"
+                                  : "Activate"}
                               </button>
                             )}
                           </div>
@@ -432,7 +407,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-[#087f6e]">
-                    Account details
+                    Customer details
                   </p>
                   <h2 id="user-details-title" className="mt-2 text-2xl font-bold">
                     {[selectedUser.name, selectedUser.lastName].filter(Boolean).join(" ")}
@@ -458,24 +433,37 @@ export default function AdminUsersPage() {
                 <dd className="text-right font-medium">{selectedUser.phone || "Not provided"}</dd>
               </div>
               <div className="flex justify-between gap-4 border-b pb-3">
-                <dt className="text-gray-500">Role</dt>
-                <dd className="font-medium">{roleLabel[selectedUser.role] || selectedUser.role}</dd>
-              </div>
-              <div className="flex justify-between gap-4 border-b pb-3">
                 <dt className="text-gray-500">Account status</dt>
-                <dd className="font-medium">{selectedUser.isActive ? "Active" : "Deactivated"}</dd>
+                <dd className="font-medium">
+                  {selectedUser.isActive !== false ? "Active" : "Deactivated"}
+                </dd>
               </div>
               <div className="flex justify-between gap-4 border-b pb-3">
                 <dt className="text-gray-500">Registration date</dt>
                 <dd className="font-medium">{formatDate(selectedUser.createdAt)}</dd>
               </div>
-              {selectedUser.updatedAt && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-gray-500">Last updated</dt>
-                  <dd className="font-medium">{formatDate(selectedUser.updatedAt)}</dd>
-                </div>
-              )}
             </dl>
+
+            {selectedUser._id !== currentUserId && (
+              <div className="mt-6 flex justify-end border-t pt-4">
+                <button
+                  type="button"
+                  disabled={updatingId === selectedUser._id}
+                  onClick={() => void changeStatus(selectedUser)}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${
+                    selectedUser.isActive !== false
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-[#087f6e] hover:bg-[#066354]"
+                  }`}
+                >
+                  {updatingId === selectedUser._id
+                    ? "Updating..."
+                    : selectedUser.isActive !== false
+                    ? "Deactivate Account"
+                    : "Activate Account"}
+                </button>
+              </div>
+            )}
           </section>
         </div>
       )}

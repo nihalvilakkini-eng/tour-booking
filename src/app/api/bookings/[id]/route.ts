@@ -5,6 +5,10 @@ import { createNotification } from "@/lib/notifications";
 import Availability from "@/models/Availability";
 import Tour from "@/models/Tour";
 import { getRequestUser } from "@/lib/request-user";
+import {
+  sendBookingAcceptedEmail,
+  sendBookingRejectedEmail,
+} from "@/lib/email";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
@@ -155,7 +159,7 @@ export async function PATCH(
     const { id } = await context.params;
 
     const body = await request.json();
-    const { status } = body;
+    const { status, rejectionReason } = body;
 
     const allowedStatuses = [
       "accepted",
@@ -286,6 +290,16 @@ export async function PATCH(
         );
       }
 
+      if (status === "rejected" && !String(rejectionReason || "").trim()) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Rejection reason is required when rejecting a booking",
+          },
+          { status: 400 }
+        );
+      }
+
       if (
         status === "completed" &&
         booking.status !== "accepted" &&
@@ -334,55 +348,88 @@ export async function PATCH(
     }
 
     booking.status = status;
+
+    if (status === "rejected" && rejectionReason) {
+      booking.rejectionReason = String(rejectionReason).trim();
+    }
+
     await booking.save();
 
-// =========================
-// Create notification
-// =========================
+    // Fetch tour title & format date for emails
+    const tourDoc = await Tour.findById(booking.tour).select("title");
+    const tourTitle = tourDoc?.title || "your tour";
+    const formattedDate = booking.bookingDate
+      ? new Date(booking.bookingDate).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : undefined;
 
-if (status === "accepted" || status === "confirmed") {
-  await createNotification({
-    user: booking.user,
-    type: "booking_confirmed",
-    title: "Booking Confirmed",
-    message: `Your booking for "${booking.tour}" has been confirmed.`,
-    booking: booking._id,
-    tour: booking.tour,
-  });
-}
+    // =========================
+    // Create notification & Send Email
+    // =========================
 
-if (status === "rejected") {
-  await createNotification({
-    user: booking.user,
-    type: "booking_rejected",
-    title: "Booking Rejected",
-    message: `Your booking request has been rejected.`,
-    booking: booking._id,
-    tour: booking.tour,
-  });
-}
+    if (status === "accepted" || status === "confirmed") {
+      await createNotification({
+        user: booking.user,
+        type: "booking_confirmed",
+        title: "Booking Confirmed",
+        message: `Your booking for "${booking.tour}" has been confirmed.`,
+        booking: booking._id,
+        tour: booking.tour,
+      });
 
-if (status === "cancelled") {
-  await createNotification({
-    user: booking.user,
-    type: "booking_cancelled",
-    title: "Booking Cancelled",
-    message: `Your booking has been cancelled.`,
-    booking: booking._id,
-    tour: booking.tour,
-  });
-}
+      await sendBookingAcceptedEmail({
+        to: booking.customerEmail,
+        name: booking.customerName,
+        tourTitle,
+        bookingDate: formattedDate,
+      });
+    }
 
-if (status === "completed") {
-  await createNotification({
-    user: booking.user,
-    type: "booking_completed",
-    title: "Booking Completed",
-    message: `Your tour booking has been completed. You can now leave a review.`,
-    booking: booking._id,
-    tour: booking.tour,
-  });
-}
+    if (status === "rejected") {
+      const cleanReason = String(rejectionReason || "").trim();
+
+      await createNotification({
+        user: booking.user,
+        type: "booking_rejected",
+        title: "Booking Rejected",
+        message: `Your booking request has been rejected.`,
+        booking: booking._id,
+        tour: booking.tour,
+      });
+
+      await sendBookingRejectedEmail({
+        to: booking.customerEmail,
+        name: booking.customerName,
+        tourTitle,
+        bookingDate: formattedDate,
+        rejectionReason: cleanReason,
+      });
+    }
+
+    if (status === "cancelled") {
+      await createNotification({
+        user: booking.user,
+        type: "booking_cancelled",
+        title: "Booking Cancelled",
+        message: `Your booking has been cancelled.`,
+        booking: booking._id,
+        tour: booking.tour,
+      });
+    }
+
+    if (status === "completed") {
+      await createNotification({
+        user: booking.user,
+        type: "booking_completed",
+        title: "Booking Completed",
+        message: `Your tour booking has been completed. You can now leave a review.`,
+        booking: booking._id,
+        tour: booking.tour,
+      });
+    }
 
     return NextResponse.json(
       {
@@ -520,14 +567,14 @@ export async function DELETE(
     booking.status = "cancelled";
     await booking.save();
 
-     await createNotification({
-  user: booking.user,
-  type: "booking_cancelled",
-  title: "Booking Cancelled",
-  message: "Your booking has been cancelled successfully.",
-  booking: booking._id,
-  tour: booking.tour,
-});
+    await createNotification({
+      user: booking.user,
+      type: "booking_cancelled",
+      title: "Booking Cancelled",
+      message: "Your booking has been cancelled successfully.",
+      booking: booking._id,
+      tour: booking.tour,
+    });
 
     return NextResponse.json(
       {
