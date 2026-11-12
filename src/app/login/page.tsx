@@ -21,6 +21,12 @@ export default function LoginPage() {
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -50,7 +56,7 @@ export default function LoginPage() {
           : role === "operator"
             ? "/operator/dashboard"
             : role === "user"
-              ? "/tours"
+              ? "/"
               : null;
 
       if (!roleRedirect) {
@@ -149,6 +155,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
+                minLength={8}
               />
 
               <button

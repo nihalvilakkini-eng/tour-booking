@@ -27,7 +27,7 @@ export default function CustomerMessagesPage() {
       if (!userRes.ok || !userData.success) {
         throw new Error("Please log in to access messages");
       }
-      setCurrentUser({ id: userData.data.userId || userData.data._id, role: "user" });
+      setCurrentUser({ id: userData.data.id || userData.data.userId || userData.data._id, role: "user" });
 
       // If bookingIdParam is present, automatically ensure conversation exists
       if (bookingIdParam) {

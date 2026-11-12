@@ -9,6 +9,7 @@ import {
   Compass,
   CircleUserRound,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 
 type AuthRole = "admin" | "operator" | "user";
@@ -16,7 +17,7 @@ type AuthRole = "admin" | "operator" | "user";
 type NavigationLink = {
   label: string;
   href: string;
-  icon?: "profile" | "notification";
+  icon?: "profile" | "notification" | "message";
   badge?: number;
 };
 
@@ -215,6 +216,7 @@ export default function Navbar() {
           {
             label: "Messages",
             href: "/messages",
+            icon: "message" as const,
             badge: unreadMessages,
           },
           {
@@ -263,6 +265,10 @@ export default function Navbar() {
 
     if (icon === "notification") {
       return <Bell size={21} />;
+    }
+
+    if (icon === "message") {
+      return <MessageSquare size={21} />;
     }
 
     return null;

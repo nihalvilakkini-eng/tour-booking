@@ -22,7 +22,7 @@ export default function OperatorMessagesPage() {
       if (!userRes.ok || !userData.success) {
         throw new Error("Please log in as an operator");
       }
-      setCurrentUser({ id: userData.data.userId || userData.data._id, role: "operator" });
+      setCurrentUser({ id: userData.data.id || userData.data.userId || userData.data._id, role: "operator" });
 
       const convRes = await fetch("/api/conversations", {
         credentials: "include",

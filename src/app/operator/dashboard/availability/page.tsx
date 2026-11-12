@@ -42,6 +42,22 @@ type EditForm = {
   isAvailable: boolean;
 };
 
+function to12Hour(time24: string): { hour: string; minute: string; period: "AM" | "PM" } {
+  if (!time24) return { hour: "09", minute: "00", period: "AM" };
+  const [hStr, mStr] = time24.split(":");
+  const h = parseInt(hStr, 10);
+  const period = h < 12 ? "AM" : "PM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return { hour: String(hour12).padStart(2, "0"), minute: mStr || "00", period };
+}
+
+function to24Hour(hour: string, minute: string, period: "AM" | "PM"): string {
+  let h = parseInt(hour, 10);
+  if (period === "AM" && h === 12) h = 0;
+  if (period === "PM" && h !== 12) h += 12;
+  return `${String(h).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+}
+
 function toDateInput(value?: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -599,13 +615,43 @@ export default function OperatorAvailabilityPage() {
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 Start time
-                <input
-                  type="time"
-                  required
-                  value={form.startTime}
-                  onChange={(event) => setForm({ ...form, startTime: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
-                />
+                <div className="mt-2 flex gap-2">
+                  <select
+                    value={to12Hour(form.startTime).hour}
+                    onChange={(e) => {
+                      const { minute, period } = to12Hour(form.startTime);
+                      setForm({ ...form, startTime: to24Hour(e.target.value, minute, period) });
+                    }}
+                    className="flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                      <option key={h} value={String(h).padStart(2, "0")}>{String(h).padStart(2, "0")}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={to12Hour(form.startTime).minute}
+                    onChange={(e) => {
+                      const { hour, period } = to12Hour(form.startTime);
+                      setForm({ ...form, startTime: to24Hour(hour, e.target.value, period) });
+                    }}
+                    className="flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  >
+                    {["00","05","10","15","20","25","30","35","40","45","50","55"].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={to12Hour(form.startTime).period}
+                    onChange={(e) => {
+                      const { hour, minute } = to12Hour(form.startTime);
+                      setForm({ ...form, startTime: to24Hour(hour, minute, e.target.value as "AM" | "PM") });
+                    }}
+                    className="rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 End time

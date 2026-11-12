@@ -22,7 +22,7 @@ export default function AdminMessagesPage() {
       if (!userRes.ok || !userData.success || userData.data.role !== "admin") {
         throw new Error("Admin authorization required");
       }
-      setCurrentUser({ id: userData.data.userId || userData.data._id, role: "admin" });
+      setCurrentUser({ id: userData.data.id || userData.data.userId || userData.data._id, role: "admin" });
 
       const convRes = await fetch("/api/conversations", {
         credentials: "include",

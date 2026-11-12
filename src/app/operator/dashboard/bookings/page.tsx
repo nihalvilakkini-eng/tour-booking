@@ -172,7 +172,7 @@ export default function OperatorBookingsPage() {
 
     try {
       const response = await fetch("/api/operator/bookings", {
-        credentials: "same-origin",
+        credentials: "include",
         cache: "no-store",
       });
       const result = await response.json();
@@ -210,7 +210,7 @@ export default function OperatorBookingsPage() {
     try {
       const response = await fetch("/api/operator/bookings", {
         method: "PATCH",
-        credentials: "same-origin",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId: booking._id,
