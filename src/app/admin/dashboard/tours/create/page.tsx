@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -187,6 +186,8 @@ export default function AdminCreateTourPage() {
       return;
     }
 
+    const duration = Number(form.duration);
+    const price = Number(form.price);
     let effectiveMaxParticipants = Number(form.maxParticipants);
 
     if (!Number.isFinite(duration) || duration < 1) {
