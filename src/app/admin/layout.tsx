@@ -10,9 +10,11 @@ export default async function AdminLayout({
   await requireRole("admin");
 
   return (
-    <div className="admin-shell min-h-screen bg-slate-50 text-slate-800 md:flex">
+    <div className="admin-shell min-h-screen bg-slate-900 text-slate-100 md:flex">
       <AdminSidebar />
-      <div className="min-w-0 flex-1 overflow-x-hidden">{children}</div>
+      <div className="min-w-0 flex-1 overflow-x-hidden bg-slate-900">
+        {children}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import type { ReactNode } from "react";
 import OperatorDashboardLayout from "@/components/operator/OperatorDashboardLayout";
 import { requireRole } from "@/lib/page-auth";

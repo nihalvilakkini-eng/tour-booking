@@ -197,32 +197,32 @@ export default function AdminUsersPage() {
     : 1;
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <Link
           href="/admin/dashboard"
-          className="text-sm font-semibold text-[#087f6e] hover:underline"
+          className="text-sm font-semibold text-teal-400 hover:underline"
         >
           ← Back to Dashboard
         </Link>
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#087f6e]">
+            <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Users (Customers)</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="mt-2 text-3xl font-bold text-white">Users (Customers)</h1>
+            <p className="mt-2 text-sm text-slate-400">
               View and manage registered customer accounts.
             </p>
           </div>
-          <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
-            <p className="text-xs text-gray-500">Total customers</p>
-            <p className="text-2xl font-bold text-[#087f6e]">{pagination.total}</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 px-5 py-3 shadow-sm">
+            <p className="text-xs text-slate-400">Total customers</p>
+            <p className="text-2xl font-bold text-teal-400">{pagination.total}</p>
           </div>
         </div>
 
-        <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-7 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6">
           <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_220px]">
             <input
               type="search"
@@ -235,7 +235,7 @@ export default function AdminUsersPage() {
               }}
               placeholder="Search customer name or email..."
               aria-label="Search customers by name or email"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e] focus:ring-2 focus:ring-[#087f6e]/10"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-950"
             />
             <select
               value={statusFilter}
@@ -246,7 +246,7 @@ export default function AdminUsersPage() {
                 setPage(1);
               }}
               aria-label="Filter by account status"
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             >
               <option value="all">All account statuses</option>
               <option value="active">Active</option>
@@ -255,25 +255,25 @@ export default function AdminUsersPage() {
           </div>
 
           {error && (
-            <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            <p role="alert" className="mt-4 rounded-xl border border-rose-900 bg-rose-950/50 p-3 text-sm text-rose-300">
               {error}
             </p>
           )}
           {success && (
-            <p role="status" className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-700">
+            <p role="status" className="mt-4 rounded-xl border border-emerald-900 bg-emerald-950/50 p-3 text-sm text-emerald-300">
               {success}
             </p>
           )}
 
           {loading ? (
-            <p className="py-12 text-center text-gray-500">Loading users...</p>
+            <p className="py-12 text-center text-slate-400">Loading users...</p>
           ) : users.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No customers found.</p>
+            <p className="py-12 text-center text-slate-400">No customers found.</p>
           ) : (
             <div className="mt-5 overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-500">
+                  <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
                     <th className="px-3 py-4">Customer</th>
                     <th className="px-3 py-4">Phone</th>
                     <th className="px-3 py-4">Status</th>
@@ -288,31 +288,31 @@ export default function AdminUsersPage() {
                     const isActive = user.isActive !== false;
 
                     return (
-                      <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                      <tr key={user._id} className="border-b border-slate-800/60 transition hover:bg-slate-800/40">
                         <td className="px-3 py-4">
-                          <p className="font-semibold text-[#172b27]">{name || "—"}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
+                          <p className="font-semibold text-white">{name || "—"}</p>
+                          <p className="text-xs text-slate-400">{user.email}</p>
                         </td>
-                        <td className="px-3 py-4 text-gray-600">{user.phone || "—"}</td>
+                        <td className="px-3 py-4 text-slate-300">{user.phone || "—"}</td>
                         <td className="px-3 py-4">
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${
                               isActive
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
+                                ? "border border-emerald-800 bg-emerald-950 text-emerald-300"
+                                : "border border-rose-900 bg-rose-950 text-rose-300"
                             }`}
                           >
                             {isActive ? "Active" : "Deactivated"}
                           </span>
                         </td>
-                        <td className="px-3 py-4 text-gray-600">{formatDate(user.createdAt)}</td>
+                        <td className="px-3 py-4 text-slate-300">{formatDate(user.createdAt)}</td>
                         <td className="px-3 py-4">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
                               disabled={detailsLoading}
                               onClick={() => void viewDetails(user._id)}
-                              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50"
                             >
                               Details
                             </button>
@@ -323,8 +323,8 @@ export default function AdminUsersPage() {
                                 onClick={() => void changeStatus(user)}
                                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50 ${
                                   isActive
-                                    ? "bg-red-600 hover:bg-red-700"
-                                    : "bg-[#087f6e] hover:bg-[#066354]"
+                                    ? "border border-rose-900 bg-rose-950/40 text-rose-300 hover:bg-rose-900/50"
+                                    : "bg-teal-600 hover:bg-teal-500"
                                 }`}
                               >
                                 {updatingId === user._id
@@ -344,8 +344,8 @@ export default function AdminUsersPage() {
             </div>
           )}
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
-            <p className="text-sm text-gray-500">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
+            <p className="text-sm text-slate-400">
               {pagination.total
                 ? `Page ${currentPage} of ${pagination.totalPages}`
                 : "No matching accounts"}
@@ -358,7 +358,7 @@ export default function AdminUsersPage() {
                   setLoading(true);
                   setPage((value) => Math.max(1, value - 1));
                 }}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Previous
               </button>
@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
                   setLoading(true);
                   setPage((value) => value + 1);
                 }}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
               </button>
@@ -380,7 +380,7 @@ export default function AdminUsersPage() {
 
       {selectedUser && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setSelectedUser(null);
@@ -390,11 +390,11 @@ export default function AdminUsersPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="user-details-title"
-            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+            className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl text-slate-100"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#087f6e]/10 text-xl font-bold text-[#087f6e]">
+                <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-teal-900 bg-teal-950 text-xl font-bold text-teal-400">
                   {selectedUser.profileImage ? (
                     <TourImage
                       images={[selectedUser.profileImage]}
@@ -406,10 +406,10 @@ export default function AdminUsersPage() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#087f6e]">
+                  <p className="text-xs font-bold uppercase tracking-widest text-teal-400">
                     Customer details
                   </p>
-                  <h2 id="user-details-title" className="mt-2 text-2xl font-bold">
+                  <h2 id="user-details-title" className="mt-2 text-2xl font-bold text-white">
                     {[selectedUser.name, selectedUser.lastName].filter(Boolean).join(" ")}
                   </h2>
                 </div>
@@ -418,42 +418,42 @@ export default function AdminUsersPage() {
                 type="button"
                 onClick={() => setSelectedUser(null)}
                 aria-label="Close user details"
-                className="rounded-lg px-3 py-1 text-xl text-gray-500 hover:bg-gray-100"
+                className="rounded-lg px-3 py-1 text-xl text-slate-400 hover:bg-slate-800"
               >
                 ×
               </button>
             </div>
             <dl className="mt-6 space-y-4 text-sm">
-              <div className="flex justify-between gap-4 border-b pb-3">
-                <dt className="text-gray-500">Email</dt>
-                <dd className="break-all text-right font-medium">{selectedUser.email}</dd>
+              <div className="flex justify-between gap-4 border-b border-slate-800 pb-3">
+                <dt className="text-slate-400">Email</dt>
+                <dd className="break-all text-right font-medium text-slate-200">{selectedUser.email}</dd>
               </div>
-              <div className="flex justify-between gap-4 border-b pb-3">
-                <dt className="text-gray-500">Phone</dt>
-                <dd className="text-right font-medium">{selectedUser.phone || "Not provided"}</dd>
+              <div className="flex justify-between gap-4 border-b border-slate-800 pb-3">
+                <dt className="text-slate-400">Phone</dt>
+                <dd className="text-right font-medium text-slate-200">{selectedUser.phone || "Not provided"}</dd>
               </div>
-              <div className="flex justify-between gap-4 border-b pb-3">
-                <dt className="text-gray-500">Account status</dt>
-                <dd className="font-medium">
+              <div className="flex justify-between gap-4 border-b border-slate-800 pb-3">
+                <dt className="text-slate-400">Account status</dt>
+                <dd className="font-medium text-slate-200">
                   {selectedUser.isActive !== false ? "Active" : "Deactivated"}
                 </dd>
               </div>
-              <div className="flex justify-between gap-4 border-b pb-3">
-                <dt className="text-gray-500">Registration date</dt>
-                <dd className="font-medium">{formatDate(selectedUser.createdAt)}</dd>
+              <div className="flex justify-between gap-4 border-b border-slate-800 pb-3">
+                <dt className="text-slate-400">Registration date</dt>
+                <dd className="font-medium text-slate-200">{formatDate(selectedUser.createdAt)}</dd>
               </div>
             </dl>
 
             {selectedUser._id !== currentUserId && (
-              <div className="mt-6 flex justify-end border-t pt-4">
+              <div className="mt-6 flex justify-end border-t border-slate-800 pt-4">
                 <button
                   type="button"
                   disabled={updatingId === selectedUser._id}
                   onClick={() => void changeStatus(selectedUser)}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${
                     selectedUser.isActive !== false
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-[#087f6e] hover:bg-[#066354]"
+                      ? "border border-rose-900 bg-rose-950/40 text-rose-300 hover:bg-rose-900/50"
+                      : "bg-teal-600 hover:bg-teal-500"
                   }`}
                 >
                   {updatingId === selectedUser._id

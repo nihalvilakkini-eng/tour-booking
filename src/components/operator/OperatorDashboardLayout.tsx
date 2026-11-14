@@ -62,6 +62,7 @@ export default function OperatorDashboardLayout({
 
   const links = [
     { label: "Home", href: "/", icon: House },
+    { label: "Dashboard", href: "/operator/dashboard", icon: LayoutDashboard },
     { label: "My Tours", href: "/operator/dashboard/tours", icon: Map },
     { label: "Booking Management", href: "/operator/dashboard/bookings", icon: CalendarCheck },
     { label: "Availability Management", href: "/operator/dashboard/availability", icon: CalendarDays },
@@ -72,9 +73,8 @@ export default function OperatorDashboardLayout({
       badge: unreadMessages,
     },
     { label: "Notifications", href: "/operator/dashboard/notifications", icon: Bell },
-    { label: "Dashboard", href: "/operator/dashboard", icon: LayoutDashboard },
-    { label: "Profile", href: "/profile", icon: UserRound },
     { label: "Reviews", href: "/operator/dashboard/reviews", icon: Star },
+    { label: "Profile", href: "/profile", icon: UserRound },
   ];
 
   async function handleLogout() {
@@ -106,19 +106,21 @@ export default function OperatorDashboardLayout({
   }
 
   return (
-    <div className="operator-dashboard-shell min-h-screen bg-slate-50 text-slate-800 md:flex">
-      <aside className="border-b border-slate-200 bg-white p-4 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:border-b-0 md:border-r md:p-5">
+    <div className="operator-dashboard-shell min-h-screen bg-slate-900 text-slate-100 md:flex">
+      <aside className="border-b border-white/10 bg-[#121a22] p-4 md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r md:p-5">
         <Link href="/operator/dashboard" className="flex items-center gap-3 px-2 py-3">
-          <span className="rounded-xl bg-teal-600 p-2.5 text-white">
+          <span className="rounded-xl border border-amber-500/40 bg-amber-500/15 p-2.5 text-amber-400">
             <Compass size={24} />
           </span>
           <span>
-            <span className="block text-xl font-bold">Wayora</span>
-            <span className="text-xs text-slate-500">Operator Portal</span>
+            <span className="block text-xl font-extrabold tracking-tight text-white">Wayora</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+              Operator Portal
+            </span>
           </span>
         </Link>
 
-        <p className="mb-3 mt-7 px-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+        <p className="mb-3 mt-7 px-3 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
           Manage business
         </p>
 
@@ -126,24 +128,27 @@ export default function OperatorDashboardLayout({
           {links.map(({ label, href, icon: Icon, badge }) => {
             const active =
               pathname === href ||
-              (href !== "/" && pathname.startsWith(`${href}/`));
+              (href !== "/" && href !== "/operator/dashboard" && pathname.startsWith(`${href}/`));
 
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium ${
+                className={`flex items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold transition ${
                   active
-                    ? "bg-teal-50 text-teal-700"
-                    : "text-slate-600 hover:bg-slate-50"
+                    ? "border border-amber-500/35 bg-amber-500/15 text-amber-300"
+                    : "border border-transparent text-slate-400 hover:bg-white/[0.04] hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon size={18} />
+                  <Icon
+                    size={18}
+                    className={active ? "text-amber-400" : "text-slate-500"}
+                  />
                   <span>{label}</span>
                 </div>
                 {badge !== undefined && badge > 0 && (
-                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-teal-600 px-1.5 text-xs font-bold text-white">
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-extrabold text-slate-950">
                     {badge > 99 ? "99+" : badge}
                   </span>
                 )}
@@ -152,28 +157,30 @@ export default function OperatorDashboardLayout({
           })}
         </nav>
 
-        <Link
-          href="/"
-          className="mt-6 block rounded-xl px-3 py-3 text-sm text-slate-500 hover:bg-slate-50"
-        >
-          ← Back to website
-        </Link>
-        {logoutError && (
-          <p role="alert" className="mt-2 px-3 text-sm text-red-600">
-            {logoutError}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={loggingOut}
-          className="mt-2 w-full rounded-xl px-3 py-3 text-left text-sm text-slate-500 hover:bg-slate-50 disabled:opacity-60"
-        >
-          {loggingOut ? "Logging out..." : "Logout"}
-        </button>
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <Link
+            href="/"
+            className="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-amber-400"
+          >
+            ← Back to website
+          </Link>
+          {logoutError && (
+            <p role="alert" className="mt-2 px-3 text-xs text-rose-400">
+              {logoutError}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="mt-1.5 w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-400 transition hover:bg-rose-500/15 disabled:opacity-60"
+          >
+            {loggingOut ? "Logging out..." : "Sign Out"}
+          </button>
+        </div>
       </aside>
 
-      <main className="min-w-0 flex-1 p-4 sm:p-7 lg:p-9">
+      <main className="min-w-0 flex-1 bg-[#0b1116] p-4 sm:p-7 lg:p-9">
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
     </div>

@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, MapPin, Star } from "lucide-react";
 import { isBookingCompleted } from "@/lib/booking-status";
 
+export const dynamic = "force-dynamic";
+
 type BookingDetails = {
   _id: string;
   status: string;
@@ -164,10 +166,10 @@ function ReviewsForm() {
 
   if (loading) {
     return (
-      <main className="flex min-h-[65vh] items-center justify-center px-5">
+      <main className="flex min-h-[65vh] items-center justify-center bg-slate-900 px-5 text-slate-300">
         <div className="text-center">
-          <div className="mx-auto h-11 w-11 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700" />
-          <p className="mt-4 text-sm font-medium text-slate-600">
+          <div className="mx-auto h-11 w-11 animate-spin rounded-full border-4 border-slate-700 border-t-amber-500" />
+          <p className="mt-4 text-sm font-medium text-slate-400">
             Loading your booking...
           </p>
         </div>
@@ -177,15 +179,15 @@ function ReviewsForm() {
 
   if (authRequired) {
     return (
-      <main className="flex min-h-[65vh] items-center justify-center bg-[#f7faf8] px-5 py-12">
-        <section className="w-full max-w-lg rounded-3xl border border-slate-100 bg-white p-8 text-center shadow-sm sm:p-10">
-          <h1 className="text-2xl font-bold text-slate-900">Sign in to continue</h1>
-          <p className="mt-3 text-slate-600">
+      <main className="flex min-h-[65vh] items-center justify-center bg-slate-900 px-5 py-12 text-slate-100">
+        <section className="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-800 p-8 text-center shadow-xl sm:p-10">
+          <h1 className="text-2xl font-bold text-white">Sign in to continue</h1>
+          <p className="mt-3 text-slate-400">
             Please log in to view your booking and share your experience.
           </p>
           <Link
             href={`/login?redirect=${encodeURIComponent(`/reviews?bookingId=${bookingId}`)}`}
-            className="mt-7 inline-flex rounded-xl bg-emerald-700 px-6 py-3 font-semibold text-white transition hover:bg-emerald-800"
+            className="mt-7 inline-flex rounded-xl bg-amber-500 px-6 py-3 font-bold text-slate-950 transition hover:bg-amber-400"
           >
             Log in
           </Link>
@@ -197,22 +199,22 @@ function ReviewsForm() {
   const eligible = isBookingCompleted(booking?.status);
 
   return (
-    <main className="min-h-screen bg-[#f7faf8] px-4 py-10 sm:px-6 sm:py-16">
+    <main className="min-h-screen bg-slate-900 px-4 py-10 text-slate-100 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-2xl">
         <Link
           href="/bookings"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 transition hover:text-emerald-950"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-amber-400 transition hover:text-amber-300"
         >
           <ArrowLeft size={17} aria-hidden="true" />
           Back to My Bookings
         </Link>
 
-        <section className="mt-6 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-[0_20px_60px_rgba(16,54,40,0.08)]">
-          <div className="h-2 bg-gradient-to-r from-emerald-700 via-emerald-500 to-amber-400" />
+        <section className="mt-6 overflow-hidden rounded-3xl border border-slate-700 bg-slate-800 shadow-2xl">
+          <div className="h-2 bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400" />
           <div className="p-6 sm:p-10">
             {booking?.tour && (
-              <div className="mb-8 rounded-2xl bg-emerald-50/80 p-5">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">
+              <div className="mb-8 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-400">
                   Your recent experience
                 </p>
                 <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">

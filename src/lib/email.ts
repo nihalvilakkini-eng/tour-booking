@@ -179,7 +179,7 @@ export async function sendBookingSubmittedEmail(
   });
 }
 
-// 3. Operator Accepted Booking Email (UPDATED - No payment required)
+// 3. Operator Accepted Booking Email (Updated with Payment Deadline)
 type SendBookingAcceptedEmailInput = {
   to: string;
   name?: string;
@@ -197,20 +197,23 @@ export async function sendBookingAcceptedEmail(
   const bookingUrl =
     input.bookingUrl || `${process.env.NEXT_PUBLIC_APP_URL || ""}/bookings`;
 
-  const subject = "Your WAYORA booking was accepted";
+  const subject = "Your WAYORA booking was accepted - Action Required: Complete Payment";
 
   const text = `Hi ${customerName},\n\nGood news! Your booking for "${tourTitle}"${
     bookingDate ? ` on ${bookingDate}` : ""
-  } has been accepted by the operator. You can check your booking details in My Bookings.\n\nOpen My Bookings: ${bookingUrl}\n\nWAYORA`;
+  } has been accepted by the operator.\n\nPlease complete your payment within 2 days to confirm your tour. If payment is not completed within 2 days, your booking will be automatically cancelled.\n\nComplete Payment & View Bookings: ${bookingUrl}\n\nWAYORA`;
 
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172b27">
-      <h2>Booking accepted</h2>
+      <h2>Booking accepted - Payment required</h2>
       <p>Hi ${escapeHtml(customerName)},</p>
       <p>Good news! Your booking for <strong>${escapeHtml(tourTitle)}</strong>${
         bookingDate ? ` on <strong>${escapeHtml(bookingDate)}</strong>` : ""
-      } has been accepted by the operator. You can check your booking details in My Bookings.</p>
-      <p><a href="${escapeHtml(bookingUrl)}">Open My Bookings</a></p>
+      } has been accepted by the operator.</p>
+      <p style="background-color:#fff3cd;padding:12px;border-left:4px solid #ffc107;margin:15px 0;">
+        <strong>Important:</strong> Please complete your payment within <strong>2 days</strong> to confirm your tour. If the payment is not completed within this timeframe, your booking will be cancelled.
+      </p>
+      <p><a href="${escapeHtml(bookingUrl)}" style="background-color:#0f766e;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Complete Payment</a></p>
       <p>WAYORA</p>
     </div>
   `;
@@ -223,7 +226,6 @@ export async function sendBookingAcceptedEmail(
     logContext: "booking accepted email",
   });
 }
-
 // 4. Operator Rejected Booking Email with Reason (NEW)
 type SendBookingRejectedEmailInput = {
   to: string;
@@ -269,5 +271,111 @@ export async function sendBookingRejectedEmail(
     text,
     html,
     logContext: "booking rejected email",
+  });
+}
+// 5. Customer Payment Receipt & Tour Confirmation Email (NEW)
+type SendPaymentReceiptEmailInput = {
+  to: string;
+  name?: string;
+  tourTitle: string;
+  bookingDate?: string;
+  amountPaid: number;
+  currency?: string;
+  bookingId: string;
+  bookingUrl?: string;
+};
+
+export async function sendPaymentReceiptEmail(
+  input: SendPaymentReceiptEmailInput
+): Promise<EmailSendResult> {
+  const customerName = input.name?.trim() || "there";
+  const tourTitle = input.tourTitle.trim() || "your tour";
+  const bookingDate = input.bookingDate?.trim();
+  const currency = input.currency || "INR";
+  const amountPaid = input.amountPaid;
+  const bookingId = input.bookingId;
+  const bookingUrl =
+    input.bookingUrl || `${process.env.NEXT_PUBLIC_APP_URL || ""}/bookings`;
+
+  const subject = `Payment Successful - Receipt & Tour Confirmation (${tourTitle})`;
+
+  const text = `Hi ${customerName},\n\nThank you! We have successfully received your payment of ${currency} ${amountPaid} for your tour "${tourTitle}"${
+    bookingDate ? ` scheduled on ${bookingDate}` : ""
+  }.\n\nBooking ID: ${bookingId}\nStatus: Confirmed & Paid\n\nYou can view your booking details and receipt here: ${bookingUrl}\n\nWAYORA`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172b27;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;padding:20px;border-radius:8px;">
+      <h2 style="color:#0f766e;margin-top:0;">Payment Receipt & Confirmation</h2>
+      <p>Hi ${escapeHtml(customerName)},</p>
+      <p>Thank you! We have successfully received your payment. Your tour is now fully confirmed.</p>
+      
+      <div style="background-color:#f8fafc;padding:15px;border-radius:6px;margin:20px 0;border:1px solid #e2e8f0;">
+        <p style="margin:5px 0;"><strong>Tour:</strong> ${escapeHtml(tourTitle)}</p>
+        ${bookingDate ? `<p style="margin:5px 0;"><strong>Date:</strong> ${escapeHtml(bookingDate)}</p>` : ""}
+        <p style="margin:5px 0;"><strong>Booking ID:</strong> ${escapeHtml(bookingId)}</p>
+        <p style="margin:5px 0;"><strong>Amount Paid:</strong> ${escapeHtml(currency)} ${amountPaid}</p>
+        <p style="margin:5px 0;"><strong>Payment Status:</strong> <span style="color:#16a34a;font-weight:bold;">Paid & Confirmed</span></p>
+      </div>
+
+      <p><a href="${escapeHtml(bookingUrl)}" style="background-color:#0f766e;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">View Booking & Receipt</a></p>
+      <p style="margin-top:30px;font-size:12px;color:#64748b;">Thank you for booking with WAYORA.</p>
+    </div>
+  `;
+
+  return dispatchEmail({
+    to: input.to,
+    subject,
+    text,
+    html,
+    logContext: "payment receipt email",
+  });
+}
+// 6. Customer Payment Failed / Error Email (NEW)
+type SendPaymentFailedEmailInput = {
+  to: string;
+  name?: string;
+  tourTitle: string;
+  bookingId: string;
+  errorMessage?: string;
+  bookingUrl?: string;
+};
+
+export async function sendPaymentFailedEmail(
+  input: SendPaymentFailedEmailInput
+): Promise<EmailSendResult> {
+  const customerName = input.name?.trim() || "there";
+  const tourTitle = input.tourTitle.trim() || "your tour";
+  const bookingId = input.bookingId;
+  const errorMessage = input.errorMessage?.trim() || "Payment could not be processed.";
+  const bookingUrl =
+    input.bookingUrl || `${process.env.NEXT_PUBLIC_APP_URL || ""}/bookings`;
+
+  const subject = `Payment Failed - Action Required for ${tourTitle}`;
+
+  const text = `Hi ${customerName},\n\nWe encountered an error while processing your payment for "${tourTitle}".\n\nError Details: ${errorMessage}\n\nPlease go to My Bookings and try completing the payment again to secure your spot.\n\nView Bookings: ${bookingUrl}\n\nWAYORA`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172b27;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;padding:20px;border-radius:8px;">
+      <h2 style="color:#dc2626;margin-top:0;">Payment Failed</h2>
+      <p>Hi ${escapeHtml(customerName)},</p>
+      <p>We encountered an error while processing your payment for <strong>${escapeHtml(tourTitle)}</strong>.</p>
+      
+      <div style="background-color:#fef2f2;padding:15px;border-radius:6px;margin:20px 0;border-left:4px solid #dc2626;border:1px solid #fee2e2;">
+        <p style="margin:5px 0;color:#991b1b;"><strong>Error Reason:</strong> ${escapeHtml(errorMessage)}</p>
+        <p style="margin:5px 0;"><strong>Booking ID:</strong> ${escapeHtml(bookingId)}</p>
+      </div>
+
+      <p>Please click the button below to retry your payment and confirm your tour:</p>
+      <p><a href="${escapeHtml(bookingUrl)}" style="background-color:#0f766e;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Retry Payment / View Bookings</a></p>
+      <p style="margin-top:30px;font-size:12px;color:#64748b;">If you need assistance, please contact support.</p>
+    </div>
+  `;
+
+  return dispatchEmail({
+    to: input.to,
+    subject,
+    text,
+    html,
+    logContext: "payment failed email",
   });
 }

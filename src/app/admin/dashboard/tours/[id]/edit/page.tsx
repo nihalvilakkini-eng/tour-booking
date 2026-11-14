@@ -75,8 +75,8 @@ const initialForm: TourForm = {
 };
 
 const inputClass =
-  "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
-const labelClass = "block text-sm font-semibold text-slate-700";
+  "mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const labelClass = "block text-sm font-semibold text-slate-200";
 
 function listToText(items?: string[]) {
   return (items ?? []).join("\n");

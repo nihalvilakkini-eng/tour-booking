@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Login successful",
+        token,
         data: {
           id: user._id,
           name: user.name,
@@ -100,6 +101,7 @@ export async function POST(request: NextRequest) {
           email: user.email,
           phone: user.phone,
           role: user.role,
+          token,
         },
       },
       { status: 200 }

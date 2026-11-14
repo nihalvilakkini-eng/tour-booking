@@ -71,19 +71,19 @@ export default function TourItinerary({ days }: TourItineraryProps) {
   return (
     <section
       aria-labelledby="tour-itinerary-heading"
-      className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
+      className="overflow-hidden rounded-3xl border border-white/10 bg-[#121a22] shadow-xl"
     >
-      <header className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6 sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+      <header className="border-b border-white/10 bg-gradient-to-br from-amber-500/10 via-[#121a22] to-[#0b1116] p-6 sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-400">
           The journey, day by day
         </p>
         <h2
           id="tour-itinerary-heading"
-          className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl"
+          className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl"
         >
           Your Trip Itinerary
         </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
           Follow the plan, explore each stop, and open the map for directions.
         </p>
       </header>
@@ -95,35 +95,35 @@ export default function TourItinerary({ days }: TourItineraryProps) {
             return (
               <section
                 key={`${day.dayNumber}-${day.title}`}
-                className="overflow-hidden rounded-2xl border border-slate-200"
+                className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1116]"
               >
                 <button
                   type="button"
                   aria-expanded={expanded}
                   aria-controls={`itinerary-day-content-${day.dayNumber}`}
                   onClick={() => toggleDay(day.dayNumber)}
-                  className="flex w-full items-center justify-between gap-4 bg-white px-4 py-4 text-left transition hover:bg-emerald-50/50 sm:px-5"
+                  className="flex w-full items-center justify-between gap-4 bg-[#121a22] px-4 py-4 text-left transition hover:bg-white/[0.04] sm:px-5"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-700 text-sm font-bold text-white shadow-sm">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500 text-sm font-extrabold text-slate-950 shadow-sm">
                       {day.dayNumber}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-xs font-bold uppercase tracking-wider text-emerald-700">
+                      <span className="block text-xs font-bold uppercase tracking-wider text-amber-400">
                         Day {day.dayNumber}
                       </span>
-                      <span className="mt-1 block truncate font-bold text-slate-900">
+                      <span className="mt-1 block truncate font-bold text-white">
                         {day.title || `Day ${day.dayNumber}`}
                       </span>
                     </span>
-                    <span className="hidden text-xs text-slate-500 sm:inline">
+                    <span className="hidden text-xs text-slate-400 sm:inline">
                       {day.activities.length}{" "}
                       {day.activities.length === 1 ? "stop" : "stops"}
                     </span>
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`shrink-0 text-lg text-emerald-700 transition-transform duration-300 ${
+                    className={`shrink-0 text-lg text-amber-400 transition-transform duration-300 ${
                       expanded ? "rotate-180" : ""
                     }`}
                   >
@@ -140,15 +140,15 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                   }`}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    <div className="relative space-y-3 border-t border-slate-100 p-4 sm:p-5">
+                    <div className="relative space-y-3 border-t border-white/10 p-4 sm:p-5">
                       {day.activities.length > 0 && (
                         <div
                           aria-hidden="true"
-                          className="absolute bottom-8 left-[2.4rem] top-8 w-px bg-emerald-200 sm:left-[2.9rem]"
+                          className="absolute bottom-8 left-[2.4rem] top-8 w-px bg-amber-500/25 sm:left-[2.9rem]"
                         />
                       )}
                       {day.activities.length === 0 ? (
-                        <p className="py-2 text-sm text-slate-500">
+                        <p className="py-2 text-sm text-slate-400">
                           No activities have been added to this day yet.
                         </p>
                       ) : (
@@ -160,8 +160,8 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                               key={stopKey}
                               className={`relative rounded-2xl border p-4 transition-colors sm:p-5 ${
                                 selected
-                                  ? "border-emerald-300 bg-emerald-50/70 ring-1 ring-emerald-100"
-                                  : "border-slate-100 bg-white"
+                                  ? "border-amber-500/40 bg-amber-500/10 ring-1 ring-amber-500/20"
+                                  : "border-white/10 bg-[#121a22]"
                               }`}
                             >
                               <button
@@ -171,26 +171,26 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                                 className="relative z-10 flex w-full items-start gap-3 text-left"
                               >
                                 <span
-                                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border-4 border-white text-xs font-bold shadow-sm ${
+                                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 text-xs font-bold shadow-sm ${
                                     selected
-                                      ? "bg-emerald-700 text-white"
-                                      : "bg-emerald-100 text-emerald-800"
+                                      ? "border-amber-400 bg-amber-500 text-slate-950"
+                                      : "border-white/15 bg-[#0b1116] text-amber-400"
                                   }`}
                                 >
                                   {activityIndex + 1}
                                 </span>
                                 <span className="min-w-0 flex-1">
-                                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-emerald-800">
+                                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-amber-400">
                                     <time>{activity.startTime}</time>
                                     <span aria-hidden="true">—</span>
                                     <time>{activity.endTime}</time>
-                                    <span className="text-slate-400">·</span>
-                                    <span>{activity.duration}</span>
+                                    <span className="text-slate-600">·</span>
+                                    <span className="text-slate-300">{activity.duration}</span>
                                   </span>
-                                  <span className="mt-1 block text-base font-bold text-slate-900">
+                                  <span className="mt-1 block text-base font-bold text-white">
                                     {activity.title}
                                   </span>
-                                  <span className="mt-1 block text-sm text-slate-600">
+                                  <span className="mt-1 block text-sm text-slate-400">
                                     <span aria-hidden="true">⌖ </span>
                                     {activity.location}
                                   </span>
@@ -198,30 +198,29 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                               </button>
 
                               {activity.image && (
-                                // Activity images are uploaded to Cloudinary like tour photos.
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={activity.image}
                                   alt={activity.title}
                                   loading="lazy"
-                                  className="ml-12 mt-4 h-40 w-[calc(100%-3rem)] rounded-xl object-cover sm:h-52"
+                                  className="ml-12 mt-4 h-40 w-[calc(100%-3rem)] rounded-xl border border-white/10 object-cover sm:h-52"
                                 />
                               )}
 
                               {activity.description && (
-                                <p className="ml-12 mt-4 whitespace-pre-line text-sm leading-6 text-slate-600">
+                                <p className="ml-12 mt-4 whitespace-pre-line text-sm leading-6 text-slate-300">
                                   {activity.description}
                                 </p>
                               )}
 
-                              <div className="ml-12 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
+                              <div className="ml-12 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-400">
                                 <span>
-                                  <span aria-hidden="true">↗ </span>
+                                  <span aria-hidden="true" className="text-amber-400">↗ </span>
                                   {activity.travelMode || "Other transport"}
                                 </span>
                                 {activity.latitude !== undefined &&
                                   activity.longitude !== undefined && (
-                                    <span>
+                                    <span className="text-slate-500">
                                       {activity.latitude.toFixed(5)},{" "}
                                       {activity.longitude.toFixed(5)}
                                     </span>
@@ -229,8 +228,8 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                               </div>
 
                               {activity.instructions && (
-                                <p className="ml-12 mt-4 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">
-                                  <strong>Good to know:</strong>{" "}
+                                <p className="ml-12 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2.5 text-xs leading-5 text-amber-200">
+                                  <strong className="text-amber-400">Good to know:</strong>{" "}
                                   {activity.instructions}
                                 </p>
                               )}
@@ -250,14 +249,14 @@ export default function TourItinerary({ days }: TourItineraryProps) {
           aria-labelledby="itinerary-roadmap-heading"
           className="min-w-0"
         >
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-24">
-            <div className="border-b border-slate-100 p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1116] shadow-xl xl:sticky xl:top-24">
+            <div className="border-b border-white/10 bg-[#121a22] p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-400">
                 Follow the route
               </p>
               <h3
                 id="itinerary-roadmap-heading"
-                className="mt-1 text-lg font-bold text-slate-900"
+                className="mt-1 text-lg font-bold text-white"
               >
                 Interactive roadmap
               </h3>
@@ -278,14 +277,14 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                 className="h-64 w-full border-0 sm:h-72"
               />
             ) : (
-              <div className="flex min-h-64 flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 px-6 py-8 text-center sm:min-h-72">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-xl text-emerald-700 shadow-sm">
+              <div className="flex min-h-64 flex-col items-center justify-center bg-gradient-to-br from-amber-500/10 to-[#0b1116] px-6 py-8 text-center sm:min-h-72">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl border border-amber-500/30 bg-[#121a22] text-xl text-amber-400 shadow-sm">
                   ⌖
                 </span>
-                <p className="mt-4 text-sm font-semibold text-slate-800">
+                <p className="mt-4 text-sm font-semibold text-white">
                   {selectedStop?.location || "Choose a stop"}
                 </p>
-                <p className="mt-2 max-w-xs text-xs leading-5 text-slate-600">
+                <p className="mt-2 max-w-xs text-xs leading-5 text-slate-400">
                   {selectedStop
                     ? "This stop has no precise coordinates. Search its location name on Google Maps."
                     : "Select an activity to view its location."}
@@ -295,7 +294,7 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                     href={getGoogleMapsSearchUrl(selectedStop.location)}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-800"
+                    className="mt-4 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-amber-400"
                   >
                     Open in Google Maps <span aria-hidden="true">↗</span>
                   </a>
@@ -303,7 +302,7 @@ export default function TourItinerary({ days }: TourItineraryProps) {
               </div>
             )}
 
-            <ol className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
+            <ol className="max-h-80 divide-y divide-white/10 overflow-y-auto">
               {stops.map((stop, index) => {
                 const selected = selectedStopKey === stop.key;
                 return (
@@ -318,26 +317,26 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                       }}
                       aria-current={selected ? "location" : undefined}
                       className={`flex w-full items-center gap-3 px-4 py-3 text-left transition ${
-                        selected ? "bg-emerald-50" : "hover:bg-slate-50"
+                        selected ? "bg-amber-500/15" : "hover:bg-white/[0.04]"
                       }`}
                     >
                       <span
                         className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-bold ${
                           selected
-                            ? "bg-emerald-700 text-white"
-                            : "bg-slate-100 text-slate-600"
+                            ? "bg-amber-500 text-slate-950"
+                            : "bg-[#121a22] text-slate-400"
                         }`}
                       >
                         {index + 1}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                        <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-400">
                           Day {stop.dayNumber} · {stop.activity.startTime}
                         </span>
-                        <span className="mt-0.5 block truncate text-xs font-semibold text-slate-800">
+                        <span className="mt-0.5 block truncate text-xs font-semibold text-white">
                           {stop.title}
                         </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-slate-500">
+                        <span className="mt-0.5 block truncate text-[11px] text-slate-400">
                           {stop.location}
                         </span>
                       </span>
@@ -348,7 +347,7 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                             ? "Coordinates available"
                             : "Coordinates unavailable"
                         }
-                        className="text-xs text-emerald-700"
+                        className="text-xs text-amber-400"
                       >
                         {stop.latitude !== undefined &&
                         stop.longitude !== undefined
@@ -360,7 +359,7 @@ export default function TourItinerary({ days }: TourItineraryProps) {
                 );
               })}
             </ol>
-            <p className="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">
+            <p className="border-t border-white/10 bg-[#121a22] px-4 py-3 text-[10px] leading-4 text-slate-500">
               Map data © OpenStreetMap contributors. Select any stop to focus
               its marker.
             </p>

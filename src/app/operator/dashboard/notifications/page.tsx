@@ -122,12 +122,14 @@ export default function OperatorNotificationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-teal-700">WAYORA PARTNER</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Notifications</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400">
+            ✦ WAYORA PARTNER
+          </p>
+          <h1 className="mt-2 text-3xl font-extrabold text-white">Notifications</h1>
+          <p className="mt-2 text-sm text-slate-400">
             Customer tour booking requests for your operator account.
           </p>
         </div>
@@ -135,7 +137,7 @@ export default function OperatorNotificationsPage() {
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#121a22] px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400 disabled:opacity-50"
         >
           <RefreshCw size={16} /> Refresh
         </button>
@@ -145,47 +147,47 @@ export default function OperatorNotificationsPage() {
         <div
           className={`rounded-xl border p-4 text-sm ${
             error
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-rose-500/35 bg-rose-500/10 text-rose-300"
+              : "border-emerald-500/35 bg-emerald-500/10 text-emerald-300"
           }`}
         >
           {error || success}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="border-b border-slate-100 p-5">
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#121a22] shadow-xl">
+        <div className="border-b border-white/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-bold text-slate-900">Booking requests</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="font-bold text-white">Booking requests</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 {loading
                   ? "Loading..."
                   : `${unreadCount} unread · ${notifications.length} total`}
               </p>
             </div>
-            <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+            <span className="rounded-full border border-amber-500/35 bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-300">
               Booking requests only
             </span>
           </div>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-sm text-slate-500">
+          <div className="p-12 text-center text-sm text-slate-400">
             Loading notifications...
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-12 text-center">
-            <Bell className="mx-auto text-slate-300" size={36} />
-            <p className="mt-3 font-semibold text-slate-800">
+            <Bell className="mx-auto text-slate-600" size={36} />
+            <p className="mt-3 font-semibold text-white">
               No booking request notifications
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-400">
               New customer booking requests will appear here.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-white/10">
             {notifications.map((notification) => {
               const booking = objectValue<BookingRef>(notification.booking);
               const tour = objectValue<TourRef>(notification.tour);
@@ -194,60 +196,60 @@ export default function OperatorNotificationsPage() {
               return (
                 <article
                   key={notification._id}
-                  className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-start ${
-                    unread ? "bg-teal-50/50" : "bg-white"
+                  className={`flex flex-col gap-4 p-5 transition sm:flex-row sm:items-start ${
+                    unread ? "bg-amber-500/[0.06]" : "bg-[#121a22]"
                   }`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold text-slate-900">
+                      <h3 className="font-bold text-white">
                         {notification.title || "Booking request"}
                       </h3>
                       {unread && (
-                        <span className="rounded-full bg-teal-700 px-2.5 py-1 text-[11px] font-semibold text-white">
+                        <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-extrabold text-slate-950">
                           New
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                    <p className="mt-1 text-sm leading-6 text-slate-300">
                       {notification.message}
                     </p>
 
-                    <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-2 text-sm text-slate-400 sm:grid-cols-2">
                       {tour?.title && (
                         <p>
-                          <span className="font-semibold text-slate-800">Tour:</span>{" "}
+                          <span className="font-semibold text-slate-200">Tour:</span>{" "}
                           {tour.title}
                           {tour.destination ? ` · ${tour.destination}` : ""}
                         </p>
                       )}
                       {booking?.customerName && (
                         <p>
-                          <span className="font-semibold text-slate-800">Customer:</span>{" "}
+                          <span className="font-semibold text-slate-200">Customer:</span>{" "}
                           {booking.customerName}
                         </p>
                       )}
                       {booking?.customerEmail && (
                         <p>
-                          <span className="font-semibold text-slate-800">Email:</span>{" "}
+                          <span className="font-semibold text-slate-200">Email:</span>{" "}
                           {booking.customerEmail}
                         </p>
                       )}
                       {booking?.customerPhone && (
                         <p>
-                          <span className="font-semibold text-slate-800">Phone:</span>{" "}
+                          <span className="font-semibold text-slate-200">Phone:</span>{" "}
                           {booking.customerPhone}
                         </p>
                       )}
                       {booking?.participants != null && (
                         <p>
-                          <span className="font-semibold text-slate-800">Travellers:</span>{" "}
+                          <span className="font-semibold text-slate-200">Travellers:</span>{" "}
                           {booking.participants}
                         </p>
                       )}
                     </div>
 
-                    <p className="mt-3 text-xs text-slate-400">
+                    <p className="mt-3 text-xs text-slate-500">
                       {formatDate(notification.createdAt)}
                     </p>
                   </div>
@@ -259,8 +261,8 @@ export default function OperatorNotificationsPage() {
                     title={unread ? "Mark as read" : "Already read"}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition ${
                       unread
-                        ? "border-teal-700 bg-teal-700 text-white hover:bg-teal-800"
-                        : "border-slate-200 bg-slate-50 text-slate-400"
+                        ? "border-amber-500 bg-amber-500 text-slate-950 hover:bg-amber-400"
+                        : "border-white/10 bg-[#0b1116] text-slate-500"
                     } disabled:opacity-60`}
                   >
                     <Check size={18} />

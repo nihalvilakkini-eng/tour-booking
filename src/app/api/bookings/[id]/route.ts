@@ -4,7 +4,7 @@ import Booking from "@/models/Booking";
 import { createNotification } from "@/lib/notifications";
 import Availability from "@/models/Availability";
 import Tour from "@/models/Tour";
-import { getRequestUser } from "@/lib/request-user";
+import { getRequestUser, getTokenFromRequest } from "@/lib/request-user";
 import {
   sendBookingAcceptedEmail,
   sendBookingRejectedEmail,
@@ -25,7 +25,7 @@ export async function GET(
   try {
     await connectDB();
 
-    const token = request.cookies.get("token")?.value;
+    const token = getTokenFromRequest(request);
 
     if (!token) {
       return NextResponse.json(
@@ -133,7 +133,7 @@ export async function PATCH(
   try {
     await connectDB();
 
-    const token = request.cookies.get("token")?.value;
+    const token = getTokenFromRequest(request);
 
     if (!token) {
       return NextResponse.json(
@@ -462,7 +462,7 @@ export async function DELETE(
   try {
     await connectDB();
 
-    const token = request.cookies.get("token")?.value;
+    const token = getTokenFromRequest(request);
 
     if (!token) {
       return NextResponse.json(

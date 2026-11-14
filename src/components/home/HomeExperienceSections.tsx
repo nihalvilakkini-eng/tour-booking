@@ -96,59 +96,64 @@ export default function HomeExperienceSections() {
         </div>
       </section>
 
-      {!loadError && <section className="section traveler-stories">
-        <div className="container">
-          <div className="traveler-stories-heading">
-            <div>
-              <span className="eyebrow">NOTES FROM THE ROAD</span>
-              <h2 className="section-heading">Experiences worth sharing.</h2>
+      {!loadError && (
+        <section className="section traveler-stories">
+          <div className="container">
+            <div className="traveler-stories-heading">
+              <div>
+                <span className="eyebrow">NOTES FROM THE ROAD</span>
+                <h2 className="section-heading">Experiences worth sharing.</h2>
+              </div>
             </div>
-          </div>
 
-          {loading ? (
-            <p className="section-description">Loading traveller reviews...</p>
-          ) : reviews.length > 0 ? (
-            <div className="traveler-review-grid">
-              {reviews.map((review, index) => (
-                <article className="traveler-review" key={review._id ?? index}>
-                  <div className="traveler-review-stars" aria-label={`${review.rating} out of 5 stars`}>
-                    {Array.from({ length: 5 }, (_, starIndex) => (
-                      <Star
-                        key={starIndex}
-                        size={15}
-                        fill={starIndex < review.rating ? "currentColor" : "none"}
-                        aria-hidden="true"
-                      />
-                    ))}
-                  </div>
-                  <p className="traveler-review-comment">“{review.comment}”</p>
-                  <div className="traveler-review-author">
-                    <strong>{reviewerName(review.user)}</strong>
-                    <span>{tourLabel(review.tour)}</span>
-                    {review.createdAt && (
-                      <time dateTime={review.createdAt}>
-                        {new Date(review.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </time>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="traveler-stories-empty">
-              Traveller reviews will appear here as guests share their experiences.
-            </p>
-          )}
-        </div>
-      </section>}
+            {loading ? (
+              <p className="section-description">Loading traveller reviews...</p>
+            ) : reviews.length > 0 ? (
+              <div className="traveler-review-grid">
+                {reviews.map((review, index) => (
+                  <article className="traveler-review" key={review._id ?? index}>
+                    <div
+                      className="traveler-review-stars"
+                      aria-label={`${review.rating} out of 5 stars`}
+                    >
+                      {Array.from({ length: 5 }, (_, starIndex) => (
+                        <Star
+                          key={starIndex}
+                          size={15}
+                          fill={starIndex < review.rating ? "currentColor" : "none"}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </div>
+                    <p className="traveler-review-comment">“{review.comment}”</p>
+                    <div className="traveler-review-author">
+                      <strong>{reviewerName(review.user)}</strong>
+                      <span>{tourLabel(review.tour)}</span>
+                      {review.createdAt && (
+                        <time dateTime={review.createdAt}>
+                          {new Date(review.createdAt).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </time>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="traveler-stories-empty">
+                Traveller reviews will appear here as guests share their experiences.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       <style jsx>{`
         .why-wayora {
-          background: #fbfcfa;
+          background: #0b1116;
         }
 
         .why-wayora-layout {
@@ -165,25 +170,27 @@ export default function HomeExperienceSections() {
         .eyebrow {
           display: block;
           margin-bottom: 12px;
-          color: #0e715d;
+          color: #f59e0b;
           font-size: 11px;
           font-weight: 800;
-          letter-spacing: 1.4px;
+          letter-spacing: 1.6px;
         }
 
         .why-wayora-intro .section-heading,
         .traveler-stories .section-heading {
           font-size: 32px;
+          color: #ffffff;
         }
 
         .why-wayora-intro .section-description {
           max-width: 350px;
+          color: #94a3b8;
         }
 
         .why-wayora-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          border-top: 1px solid #e1e8e3;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .why-wayora-item {
@@ -194,36 +201,38 @@ export default function HomeExperienceSections() {
 
         .why-wayora-item + .why-wayora-item {
           padding-left: 20px;
-          border-left: 1px solid #e1e8e3;
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .why-wayora-item > svg {
-          color: #0e715d;
+          color: #fbbf24;
         }
 
         .why-wayora-number {
           display: block;
           margin-bottom: 22px;
-          color: #b98550;
+          color: #f59e0b;
           font-size: 11px;
           font-weight: 800;
         }
 
         .why-wayora-item h3 {
           margin: 17px 0 8px;
+          color: #f8fafc;
           font-size: 16px;
           line-height: 1.4;
         }
 
         .why-wayora-item p {
           margin: 0;
-          color: #68786f;
+          color: #94a3b8;
           font-size: 13px;
           line-height: 1.7;
         }
 
         .traveler-stories {
-          background: #f2f6f3;
+          background: #0e151c;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .traveler-stories-heading {
@@ -236,7 +245,7 @@ export default function HomeExperienceSections() {
         .traveler-review-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 16px;
+          gap: 18px;
         }
 
         .traveler-review {
@@ -245,21 +254,21 @@ export default function HomeExperienceSections() {
           min-width: 0;
           min-height: 225px;
           padding: 24px;
-          border: 1px solid #e0e8e2;
-          border-radius: 8px;
-          background: #fff;
-          box-shadow: 0 8px 24px rgba(23, 45, 37, 0.045);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          background: #121a22;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
         }
 
         .traveler-review-stars {
           display: flex;
           gap: 3px;
-          color: #b98550;
+          color: #fbbf24;
         }
 
         .traveler-review-comment {
           margin: 18px 0 24px;
-          color: #30453b;
+          color: #e2e8f0;
           font-family: "Manrope", sans-serif;
           font-size: 15px;
           font-weight: 600;
@@ -274,27 +283,27 @@ export default function HomeExperienceSections() {
         }
 
         .traveler-review-author strong {
-          color: #1a2e27;
+          color: #ffffff;
           font-size: 13px;
         }
 
         .traveler-review-author span {
-          color: #78867e;
+          color: #fbbf24;
           font-size: 11px;
         }
 
         .traveler-review-author time {
           margin-top: 5px;
-          color: #9aa59f;
+          color: #64748b;
           font-size: 11px;
         }
 
         .traveler-stories-empty {
           padding: 28px;
-          border: 1px solid #e0e8e2;
-          border-radius: 8px;
-          background: #fff;
-          color: #68786f;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          background: #121a22;
+          color: #94a3b8;
           text-align: center;
         }
 
@@ -315,7 +324,7 @@ export default function HomeExperienceSections() {
           .why-wayora-item + .why-wayora-item {
             padding: 18px 0;
             border-left: 0;
-            border-bottom: 1px solid #e1e8e3;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           }
 
           .why-wayora-number {

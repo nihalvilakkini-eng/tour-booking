@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -12,16 +11,25 @@ export default function SiteShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const isOperatorPage = pathname.startsWith("/operator");
+  
+  const isSpecialPage = 
+    pathname.startsWith("/operator") || 
+    pathname.startsWith("/admin") || 
+    pathname.startsWith("/messages") || 
+    pathname.startsWith("/notifications");
 
-  if (isOperatorPage) {
-    return <div className="site-content flex flex-1 flex-col">{children}</div>;
+  if (isSpecialPage) {
+    return (
+      <div className="site-content flex min-h-screen flex-1 flex-col bg-slate-900 text-slate-100">
+        {children}
+      </div>
+    );
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-slate-900 text-slate-100">
       <Navbar />
-      <div className="site-content flex flex-1 flex-col">{children}</div>
+      <div className="site-content flex flex-1 flex-col bg-slate-900 text-slate-100">{children}</div>
       <Footer />
     </div>
   );

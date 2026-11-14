@@ -174,11 +174,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (totalSeats > tour.maxParticipants) {
-      return jsonError(
-        `Total seats cannot exceed maximum participants (${tour.maxParticipants})`,
-        400
-      );
+    // Dynamically adjust tour maximum participants if slot capacity is larger
+    if (totalSeats > (tour.maxParticipants || 0)) {
+      tour.maxParticipants = totalSeats;
+      await Tour.findByIdAndUpdate(tour._id, { $max: { maxParticipants: totalSeats } });
     }
 
     // Check for an existing slot on the same date and start time.
@@ -425,11 +424,10 @@ export async function PATCH(request: NextRequest) {
     if (!Number.isInteger(nextTotalSeats) || nextTotalSeats < 1) {
       return jsonError("Total seats must be at least 1", 400);
     }
-    if (nextTotalSeats > tour.maxParticipants) {
-      return jsonError(
-        `Total seats cannot exceed maximum participants (${tour.maxParticipants})`,
-        400
-      );
+    // Dynamically adjust tour maximum participants if slot capacity is larger
+    if (nextTotalSeats > (tour.maxParticipants || 0)) {
+      tour.maxParticipants = nextTotalSeats;
+      await Tour.findByIdAndUpdate(tour._id, { $max: { maxParticipants: nextTotalSeats } });
     }
     if (
       !Number.isInteger(nextAvailableSeats) ||

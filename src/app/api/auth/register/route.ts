@@ -521,6 +521,7 @@ export async function POST(request: NextRequest) {
         message: isOperator
           ? "Operator application submitted successfully and is pending review"
           : "Registration successful",
+        token,
         data: {
           id: user._id,
           name: user.name,
@@ -530,6 +531,7 @@ export async function POST(request: NextRequest) {
           profileImage: user.profileImage,
           role: user.role,
           operatorApplication: user.operatorApplication,
+          token,
         },
       },
       { status: 201 }

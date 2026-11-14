@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -78,7 +77,6 @@ export default function FeaturedTours({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch tours from existing API
   useEffect(() => {
     let active = true;
 
@@ -126,7 +124,6 @@ export default function FeaturedTours({
     };
   }, []);
 
-  // Filter tours based on destination and activity
   const filteredTours = useMemo(() => {
     const searchDestination = destination.toLowerCase().trim();
     const searchActivity = activity.toLowerCase().trim();
@@ -162,8 +159,6 @@ export default function FeaturedTours({
     });
   }, [tours, destination, activity]);
 
-  // Show all matching tours during search.
-  // Show only 6 tours on normal homepage.
   const displayedTours = isSearching
     ? filteredTours
     : filteredTours.slice(0, 6);
@@ -171,12 +166,10 @@ export default function FeaturedTours({
   return (
     <section className="section featured" id="tour-results">
       <div className="container">
-
-        {/* Section Heading */}
         <div className="section-top">
           <div>
             <span className="eyebrow">
-              {isSearching ? "FIND YOUR EXPERIENCE" : "TOUR PACKAGES"}
+              {isSearching ? "FIND YOUR EXPERIENCE" : "SIGNATURE EXPEDITIONS"}
             </span>
 
             <h2 className="section-heading">
@@ -197,14 +190,12 @@ export default function FeaturedTours({
           )}
         </div>
 
-        {/* Loading */}
         {loading && (
           <p className="status">
             Discovering amazing experiences...
           </p>
         )}
 
-        {/* Error */}
         {!loading && error && (
           <div className="status error">
             <p>We couldn’t load tours from the server.</p>
@@ -219,14 +210,12 @@ export default function FeaturedTours({
           </div>
         )}
 
-        {/* No Tours */}
         {!loading && !error && tours.length === 0 && (
           <p className="status">
             No tours available yet. Add a tour using your operator dashboard.
           </p>
         )}
 
-        {/* Browse Categories */}
         {!isSearching &&
           !loading &&
           !error &&
@@ -251,7 +240,6 @@ export default function FeaturedTours({
             </nav>
           )}
 
-        {/* Search Results Empty State */}
         {!loading &&
           !error &&
           tours.length > 0 &&
@@ -266,7 +254,6 @@ export default function FeaturedTours({
             </div>
           )}
 
-        {/* Tour Cards */}
         {!loading &&
           !error &&
           displayedTours.length > 0 && (
@@ -359,7 +346,9 @@ export default function FeaturedTours({
 
       <style jsx>{`
         .featured {
-          background: #f2f6f3;
+          background: #0e151c;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           scroll-margin-top: 30px;
         }
 
@@ -374,17 +363,30 @@ export default function FeaturedTours({
         .eyebrow {
           display: block;
           margin-bottom: 10px;
-          color: #087f6e;
+          color: #f59e0b;
           font-size: 11px;
           font-weight: 800;
-          letter-spacing: 1.4px;
+          letter-spacing: 1.6px;
+        }
+
+        .section-heading {
+          color: #ffffff;
+        }
+
+        .section-description {
+          color: #94a3b8;
         }
 
         .view-all {
           flex-shrink: 0;
-          color: #087f6e;
+          color: #fbbf24;
           font-weight: 700;
           font-size: 14px;
+          transition: color 0.18s ease;
+        }
+
+        .view-all:hover {
+          color: #fde68a;
         }
 
         .experience-categories {
@@ -392,11 +394,11 @@ export default function FeaturedTours({
           align-items: center;
           flex-wrap: wrap;
           gap: 12px 20px;
-          margin: 0 0 24px;
+          margin: 0 0 28px;
         }
 
         .experience-categories > span {
-          color: #64746b;
+          color: #94a3b8;
           font-size: 12px;
           font-weight: 700;
         }
@@ -412,11 +414,11 @@ export default function FeaturedTours({
           align-items: center;
           gap: 8px;
           min-height: 36px;
-          padding: 0 12px;
-          border: 1px solid #dfe8e2;
-          border-radius: 6px;
-          background: #fff;
-          color: #34574b;
+          padding: 0 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          background: #121a22;
+          color: #cbd5e1;
           font-size: 12px;
           font-weight: 600;
           transition: border-color 0.18s ease, color 0.18s ease,
@@ -424,30 +426,32 @@ export default function FeaturedTours({
         }
 
         .experience-categories a:hover {
-          border-color: #9dc8b6;
-          background: #f0f7f2;
-          color: #095443;
+          border-color: rgba(245, 158, 11, 0.45);
+          background: rgba(245, 158, 11, 0.1);
+          color: #fbbf24;
         }
 
         .tour-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 20px;
+          gap: 22px;
         }
 
         .tour-card {
           min-width: 0;
           overflow: hidden;
-          border: 1px solid #e1e8e3;
-          border-radius: 8px;
-          background: white;
-          box-shadow: 0 8px 22px rgba(23, 45, 37, 0.045);
-          transition: transform 0.22s ease, box-shadow 0.22s ease;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          background: #121a22;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+          transition: transform 0.22s ease, box-shadow 0.22s ease,
+            border-color 0.22s ease;
         }
 
         .tour-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 14px 28px rgba(23, 45, 37, 0.12);
+          transform: translateY(-4px);
+          border-color: rgba(245, 158, 11, 0.35);
+          box-shadow: 0 20px 38px rgba(0, 0, 0, 0.55);
         }
 
         .tour-image {
@@ -456,19 +460,21 @@ export default function FeaturedTours({
           width: 100%;
           height: 235px;
           overflow: hidden;
+          background: #0b1116;
         }
 
         .category-tag {
           position: absolute;
           top: 14px;
           left: 14px;
-          padding: 7px 11px;
-          border-radius: 6px;
-          background: white;
-          color: #087f6e;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(245, 158, 11, 0.3);
+          background: rgba(11, 17, 22, 0.82);
+          backdrop-filter: blur(8px);
+          color: #fbbf24;
           font-size: 11px;
           font-weight: 700;
-          box-shadow: 0 2px 8px rgba(12, 31, 25, 0.12);
         }
 
         .tour-content {
@@ -477,14 +483,20 @@ export default function FeaturedTours({
 
         .tour-location {
           margin: 0 0 10px;
-          color: #718079;
+          color: #94a3b8;
           font-size: 12px;
         }
 
         h3 {
           margin: 0 0 10px;
+          color: #ffffff;
           font-size: 19px;
           letter-spacing: 0;
+          transition: color 0.18s ease;
+        }
+
+        .tour-card:hover h3 {
+          color: #fbbf24;
         }
 
         .tour-description {
@@ -493,7 +505,7 @@ export default function FeaturedTours({
           overflow: hidden;
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 2;
-          color: #718079;
+          color: #94a3b8;
           font-size: 13px;
           line-height: 1.7;
         }
@@ -505,28 +517,29 @@ export default function FeaturedTours({
           gap: 10px;
           margin-top: 18px;
           padding-top: 16px;
-          border-top: 1px solid #edf0ed;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .price-label {
-          color: #718079;
+          color: #64748b;
           font-size: 11px;
         }
 
         .tour-price {
           margin: 5px 0 0;
+          color: #fbbf24;
           font-size: 19px;
           font-weight: 800;
         }
 
         .tour-price span {
-          color: #718079;
+          color: #94a3b8;
           font-size: 11px;
           font-weight: 400;
         }
 
         .rating {
-          color: #a46b00;
+          color: #fbbf24;
           font-size: 13px;
           font-weight: 700;
         }
@@ -540,58 +553,59 @@ export default function FeaturedTours({
         .view-details {
           display: inline-flex;
           align-items: center;
-          padding: 8px 12px;
-          border: 1px solid #dfe8e2;
-          border-radius: 8px;
-          background: #fff;
-          color: #087f6e;
+          padding: 9px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 9px;
+          background: rgba(255, 255, 255, 0.04);
+          color: #f8fafc;
           font-size: 12px;
-          font-weight: 800;
+          font-weight: 700;
           text-decoration: none;
           transition: border-color 0.18s ease, background-color 0.18s ease,
             color 0.18s ease;
         }
 
         .view-details:hover {
-          border-color: #9dc8b6;
-          background: #f0f7f2;
-          color: #095443;
+          border-color: #f59e0b;
+          background: #f59e0b;
+          color: #090d11;
         }
 
         .status {
           padding: 30px 0;
-          color: #718079;
+          color: #94a3b8;
           line-height: 1.8;
         }
 
         .error {
-          color: #a32929;
+          color: #fda4af;
         }
 
         .retry {
-          padding: 9px 14px;
-          border: 1px solid #087f6e;
+          padding: 9px 16px;
+          border: 1px solid #f59e0b;
           border-radius: 8px;
-          background: white;
-          color: #087f6e;
+          background: rgba(245, 158, 11, 0.1);
+          color: #fbbf24;
+          font-weight: 600;
           cursor: pointer;
         }
 
         .empty-results {
           padding: 40px 20px;
           text-align: center;
-          border: 1px dashed #cbdad0;
-          border-radius: 10px;
-          background: white;
+          border: 1px dashed rgba(255, 255, 255, 0.14);
+          border-radius: 14px;
+          background: #121a22;
         }
 
         .empty-results h3 {
-          color: #172b27;
+          color: #ffffff;
           margin-bottom: 8px;
         }
 
         .empty-results p {
-          color: #718079;
+          color: #94a3b8;
           font-size: 14px;
         }
 

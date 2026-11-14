@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ChatInterface, { ConversationItem } from "@/components/chat/ChatInterface";
-import { MessageSquare, AlertCircle, Compass } from "lucide-react";
+import { MessageSquare, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function CustomerMessagesPage() {
+export const dynamic = "force-dynamic";
+
+function CustomerMessagesContent() {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [currentUser, setCurrentUser] = useState<{ id: string; role: "user" } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,12 +65,12 @@ export default function CustomerMessagesPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-slate-900 py-10 px-4 text-slate-100 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="flex h-96 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex h-96 items-center justify-center rounded-2xl border border-slate-800 bg-slate-850 shadow-xl">
             <div className="text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-              <p className="mt-3 text-sm text-slate-500">Loading messaging center...</p>
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+              <p className="mt-3 text-sm text-slate-400">Loading messaging center...</p>
             </div>
           </div>
         </div>
@@ -78,14 +80,14 @@ export default function CustomerMessagesPage() {
 
   if (error || !currentUser) {
     return (
-      <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
-          <AlertCircle className="mx-auto h-8 w-8 text-red-600 mb-2" />
-          <h2 className="text-base font-bold text-red-900">Access Restricted</h2>
-          <p className="mt-1 text-sm text-red-700">{error || "Please sign in as a traveller."}</p>
+      <main className="min-h-screen bg-slate-900 py-10 px-4 text-slate-100 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-md rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center shadow-xl">
+          <AlertCircle className="mx-auto mb-2 h-8 w-8 text-rose-400" />
+          <h2 className="text-base font-bold text-white">Access Restricted</h2>
+          <p className="mt-1 text-sm text-rose-300">{error || "Please sign in as a traveller."}</p>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            className="mt-4 inline-block rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-amber-400"
           >
             Go to Login
           </Link>
@@ -95,21 +97,21 @@ export default function CustomerMessagesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 py-6 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-900 py-6 px-4 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <MessageSquare className="text-teal-700" size={24} />
+            <h1 className="flex items-center gap-2.5 text-2xl font-bold text-white">
+              <MessageSquare className="text-amber-400" size={24} />
               Messages
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="mt-0.5 text-xs text-slate-400">
               Direct and secure communication with tour operators assigned to your bookings.
             </p>
           </div>
           <Link
             href="/bookings"
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm"
+            className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:border-amber-500/40 hover:text-amber-400"
           >
             View Bookings
           </Link>
@@ -128,5 +130,24 @@ export default function CustomerMessagesPage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function CustomerMessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-900 py-10 px-4 text-slate-100 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl flex h-96 items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+              <p className="mt-3 text-sm text-slate-400">Loading messaging center...</p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <CustomerMessagesContent />
+    </Suspense>
   );
 }

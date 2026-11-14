@@ -44,8 +44,8 @@ const initialForm: PlaceForm = {
 };
 
 const inputClass =
-  "mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600";
-const labelClass = "text-sm font-semibold text-slate-700";
+  "mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-3 text-sm text-slate-100 outline-none focus:border-teal-500";
+const labelClass = "text-sm font-semibold text-slate-200";
 
 export default function AdminDestinationsPage() {
   const [places, setPlaces] = useState<Place[]>([]);
@@ -249,14 +249,14 @@ export default function AdminDestinationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#0b1116] p-4 text-slate-100 sm:p-6 lg:p-8 space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-teal-700">WAYORA ADMIN</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
+          <p className="text-sm font-semibold text-teal-400">WAYORA ADMIN</p>
+          <h1 className="mt-2 text-3xl font-bold text-white">
             Popular Destinations
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             Create and manage the destination cards shown on the homepage.
           </p>
         </div>
@@ -264,7 +264,7 @@ export default function AdminDestinationsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+            className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-500"
           >
             <Plus size={16} /> Create Place
           </button>
@@ -272,9 +272,9 @@ export default function AdminDestinationsPage() {
             type="button"
             onClick={() => void loadPlaces()}
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50"
           >
-            <RefreshCw size={16} /> Refresh
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
         </div>
       </header>
@@ -283,19 +283,19 @@ export default function AdminDestinationsPage() {
         <div
           className={`rounded-xl border p-4 text-sm ${
             error
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-rose-900 bg-rose-950/50 text-rose-300"
+              : "border-emerald-900 bg-emerald-950/50 text-emerald-300"
           }`}
         >
           {error || success}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+        <div className="flex flex-col justify-between gap-3 border-b border-slate-800 p-5 sm:flex-row sm:items-center">
           <div>
-            <h2 className="font-bold text-slate-900">Destination places</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="font-bold text-white">Destination places</h2>
+            <p className="mt-1 text-sm text-slate-400">
               {loading ? "Loading..." : `${places.length} place(s) found`}
             </p>
           </div>
@@ -306,27 +306,27 @@ export default function AdminDestinationsPage() {
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="animate-pulse overflow-hidden rounded-2xl border border-slate-200"
+                className="animate-pulse overflow-hidden rounded-2xl border border-slate-800 bg-slate-800/50"
               >
-                <div className="h-44 bg-slate-200" />
+                <div className="h-44 bg-slate-800" />
                 <div className="space-y-3 p-4">
-                  <div className="h-5 w-2/3 rounded bg-slate-200" />
-                  <div className="h-4 w-1/2 rounded bg-slate-200" />
-                  <div className="h-10 rounded bg-slate-200" />
+                  <div className="h-5 w-2/3 rounded bg-slate-800" />
+                  <div className="h-4 w-1/2 rounded bg-slate-800" />
+                  <div className="h-10 rounded bg-slate-800" />
                 </div>
               </div>
             ))}
           </div>
         ) : places.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="font-semibold text-slate-800">No places yet</p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="font-semibold text-slate-200">No places yet</p>
+            <p className="mt-2 text-sm text-slate-400">
               Create your first popular destination to show it on the website.
             </p>
             <button
               type="button"
               onClick={openCreate}
-              className="mt-5 rounded-xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+              className="mt-5 rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-500"
             >
               Create Place
             </button>
@@ -336,9 +336,9 @@ export default function AdminDestinationsPage() {
             {places.map((place) => (
               <article
                 key={place._id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
               >
-                <div className="relative h-44 overflow-hidden bg-slate-100">
+                <div className="relative h-44 overflow-hidden bg-slate-800">
                   <TourImage
                     images={[place.image]}
                     alt={place.name}
@@ -348,26 +348,26 @@ export default function AdminDestinationsPage() {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         place.isActive === false
-                          ? "bg-rose-100 text-rose-700"
-                          : "bg-emerald-100 text-emerald-700"
+                          ? "bg-rose-950 text-rose-300 border border-rose-800"
+                          : "bg-emerald-950 text-emerald-300 border border-emerald-800"
                       }`}
                     >
                       {place.isActive === false ? "Inactive" : "Active"}
                     </span>
-                    <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700">
+                    <span className="rounded-full bg-slate-900/90 border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
                       Order {place.order ?? 0}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-bold text-slate-900">{place.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <h3 className="font-bold text-white">{place.name}</h3>
+                  <p className="mt-1 text-sm text-slate-400">
                     {[place.city, place.state, place.country]
                       .filter(Boolean)
                       .join(", ") || place.country}
                   </p>
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-300">
                     {place.description}
                   </p>
 
@@ -375,7 +375,7 @@ export default function AdminDestinationsPage() {
                     <button
                       type="button"
                       onClick={() => openEdit(place)}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-teal-700 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-teal-700 bg-teal-950/40 px-3 py-2 text-sm font-semibold text-teal-300 hover:bg-teal-900/50"
                     >
                       <Pencil size={15} /> Edit
                     </button>
@@ -383,7 +383,7 @@ export default function AdminDestinationsPage() {
                       type="button"
                       onClick={() => void deletePlace(place)}
                       disabled={deletingId === place._id}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-rose-900 bg-rose-950/40 px-3 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-900/50 disabled:opacity-50"
                     >
                       <Trash2 size={15} />
                       {deletingId === place._id ? "Deleting..." : "Delete"}
@@ -397,24 +397,24 @@ export default function AdminDestinationsPage() {
       </section>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <form
             onSubmit={savePlace}
-            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl text-slate-100"
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-white">
                   {editing ? "Edit Place" : "Create Place"}
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-400">
                   This place will appear in the homepage Popular Destinations section.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeForm}
-                className="text-2xl text-slate-400 hover:text-slate-700"
+                className="text-2xl text-slate-400 hover:text-white"
               >
                 ×
               </button>
@@ -496,10 +496,10 @@ export default function AdminDestinationsPage() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="mt-2 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2.5 file:font-semibold file:text-teal-800"
+                  className="mt-2 block w-full text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-950 file:px-4 file:py-2.5 file:font-semibold file:text-teal-300"
                 />
                 {form.imageFile && (
-                  <span className="mt-2 block text-xs text-slate-500">
+                  <span className="mt-2 block text-xs text-slate-400">
                     Selected: {form.imageFile.name}
                   </span>
                 )}
@@ -508,7 +508,7 @@ export default function AdminDestinationsPage() {
               {!form.imageFile && form.imageUrl && (
                 <div className="sm:col-span-2">
                   <p className={labelClass}>Current image</p>
-                  <div className="relative mt-2 h-40 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                  <div className="relative mt-2 h-40 overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
                     <TourImage
                       images={[form.imageUrl]}
                       alt="Place preview"
@@ -529,12 +529,12 @@ export default function AdminDestinationsPage() {
                 />
               </label>
 
-              <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 sm:col-span-2">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 sm:col-span-2">
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(event) => updateField("isActive", event.target.checked)}
-                  className="h-4 w-4 accent-teal-700"
+                  className="h-4 w-4 accent-teal-500"
                 />
                 Active on website
               </label>
@@ -544,14 +544,14 @@ export default function AdminDestinationsPage() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
               >
                 {saving ? "Saving..." : editing ? "Save Changes" : "Create Place"}
               </button>

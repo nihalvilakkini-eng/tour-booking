@@ -6,6 +6,7 @@ import Booking from "@/models/Booking";
 import Tour from "@/models/Tour";
 import { createNotification } from "@/lib/notifications";
 import { getRequestUser } from "@/lib/request-user";
+import { sendPaymentReceiptEmail, sendPaymentFailedEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +87,21 @@ export async function POST(request: NextRequest) {
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
       .digest("hex");
 
+    // If signature does not match, trigger payment failed email
     if (!signaturesMatch(expectedSignature, razorpaySignature)) {
+      try {
+        const tour = await Tour.findById(booking.tour).select("title").lean();
+        await sendPaymentFailedEmail({
+          to: booking.customerEmail,
+          name: booking.customerName,
+          tourTitle: tour?.title || "your tour",
+          bookingId: booking._id.toString(),
+          errorMessage: "Invalid payment signature match (Security verification failed).",
+        });
+      } catch (err) {
+        console.error("Failed to send payment failure email:", err);
+      }
+
       return NextResponse.json(
         { success: false, message: "Invalid payment signature" },
         { status: 400 }
@@ -116,6 +131,8 @@ export async function POST(request: NextRequest) {
       try {
         const tour = await Tour.findById(updated.tour).select("title").lean();
         const tourTitle = tour?.title || "your tour";
+        
+        // 1. Create in-app / system notification
         await createNotification({
           user: updated.user,
           type: "booking_confirmed",
@@ -124,8 +141,26 @@ export async function POST(request: NextRequest) {
           booking: updated._id,
           tour: updated.tour,
         });
+
+        // 2. Automatically send Payment Receipt Email to Customer
+        await sendPaymentReceiptEmail({
+          to: updated.customerEmail,
+          name: updated.customerName,
+          tourTitle: tourTitle,
+          bookingDate: updated.bookingDate
+            ? new Date(updated.bookingDate).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : undefined,
+          amountPaid: updated.totalAmount,
+          currency: updated.currency || "INR",
+          bookingId: updated._id.toString(),
+        });
+
       } catch (notifyErr) {
-        console.error("Payment notification error:", notifyErr);
+        console.error("Payment notification or email error:", notifyErr);
       }
 
       return NextResponse.json(

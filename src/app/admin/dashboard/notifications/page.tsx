@@ -136,43 +136,43 @@ export default function AdminNotificationsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin/dashboard" className="text-sm font-semibold text-[#087f6e] hover:underline">
+        <Link href="/admin/dashboard" className="text-sm font-semibold text-teal-400 hover:underline">
           ← Back to Dashboard
         </Link>
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#087f6e]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-400">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Notifications</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="mt-2 text-3xl font-bold text-white">Notifications</h1>
+            <p className="mt-2 text-sm text-slate-400">
               Review platform updates and mark relevant notices as read.
             </p>
           </div>
 
-          <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
-            <p className="text-xs text-gray-500">Total notifications</p>
-            <p className="text-2xl font-bold">{notifications.length}</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 px-5 py-3 shadow-sm">
+            <p className="text-xs text-slate-400">Total notifications</p>
+            <p className="text-2xl font-bold text-white">{notifications.length}</p>
           </div>
         </div>
 
-        <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-7 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6">
           <div className="grid gap-3 md:grid-cols-2">
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search notifications or recipient..."
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             />
 
             <select
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             >
               <option value="all">All notifications</option>
               <option value="unread">Unread</option>
@@ -181,13 +181,13 @@ export default function AdminNotificationsPage() {
           </div>
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>
+            <p className="mt-4 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300">{error}</p>
           )}
 
           {loading ? (
-            <p className="py-12 text-center text-gray-500">Loading notifications...</p>
+            <p className="py-12 text-center text-slate-400">Loading notifications...</p>
           ) : filteredNotifications.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No notifications found.</p>
+            <p className="py-12 text-center text-slate-400">No notifications found.</p>
           ) : (
             <div className="mt-5 space-y-4">
               {filteredNotifications.map((notification) => {
@@ -198,20 +198,24 @@ export default function AdminNotificationsPage() {
                 return (
                   <article
                     key={notification._id}
-                    className={`rounded-2xl border p-5 ${notification.isRead ? "border-gray-100 bg-white" : "border-[#cfe7e0] bg-[#f6fbfa]"}`}
+                    className={`rounded-2xl border p-5 ${
+                      notification.isRead
+                        ? "border-slate-800 bg-slate-900/50"
+                        : "border-teal-900/50 bg-teal-950/20"
+                    }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h2 className="text-lg font-bold">{notification.title || "Notification"}</h2>
+                          <h2 className="text-lg font-bold text-white">{notification.title || "Notification"}</h2>
                           {!notification.isRead && (
-                            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                            <span className="rounded-full border border-amber-800 bg-amber-950 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-300">
                               Unread
                             </span>
                           )}
                         </div>
 
-                        <p className="mt-2 text-sm leading-6 text-gray-600">
+                        <p className="mt-2 text-sm leading-6 text-slate-300">
                           {notification.message || "No message provided."}
                         </p>
                       </div>
@@ -220,7 +224,7 @@ export default function AdminNotificationsPage() {
                         type="button"
                         disabled={updatingId === notification._id || notification.isRead}
                         onClick={() => void markAsRead(notification._id)}
-                        className="rounded-lg border border-[#087f6e] bg-white px-4 py-2 text-sm font-semibold text-[#087f6e] transition hover:bg-[#edf8f6] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg border border-teal-800 bg-teal-950/40 px-4 py-2 text-sm font-semibold text-teal-300 transition hover:bg-teal-900/50 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {updatingId === notification._id
                           ? "Updating..."
@@ -230,7 +234,7 @@ export default function AdminNotificationsPage() {
                       </button>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                       <span>
                         Recipient: {user?.name || user?.email || "Unknown user"}
                       </span>

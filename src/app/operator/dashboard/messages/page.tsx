@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import ChatInterface, { ConversationItem } from "@/components/chat/ChatInterface";
-import { MessageSquare, ShieldAlert, Plus, Loader2 } from "lucide-react";
+import { MessageSquare, ShieldAlert, Loader2 } from "lucide-react";
 
 export default function OperatorMessagesPage() {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -71,10 +71,10 @@ export default function OperatorMessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-2xl border border-slate-200 bg-white">
+      <div className="flex h-96 items-center justify-center rounded-2xl border border-white/10 bg-[#121a22]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-          <p className="mt-3 text-sm text-slate-500">Loading messages...</p>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
+          <p className="mt-3 text-sm text-slate-400">Loading messages...</p>
         </div>
       </div>
     );
@@ -82,21 +82,21 @@ export default function OperatorMessagesPage() {
 
   if (error || !currentUser) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700 text-sm">
+      <div className="rounded-2xl border border-rose-500/35 bg-rose-500/10 p-6 text-center text-sm text-rose-300">
         {error || "Unable to access operator messages."}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-100">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <MessageSquare className="text-teal-700" size={24} />
+          <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-white">
+            <MessageSquare className="text-amber-400" size={24} />
             Messages
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="mt-0.5 text-xs text-slate-400">
             Communicate with your booking customers and reach Wayora Admin directly.
           </p>
         </div>
@@ -104,10 +104,10 @@ export default function OperatorMessagesPage() {
         <button
           onClick={handleContactAdmin}
           disabled={startingAdminChat}
-          className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 transition"
+          className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2.5 text-xs font-bold text-amber-300 shadow-sm transition hover:bg-amber-500/25 disabled:opacity-50"
         >
           {startingAdminChat ? (
-            <Loader2 size={14} className="animate-spin" />
+            <Loader2 size={14} className="animate-spin text-amber-400" />
           ) : (
             <ShieldAlert size={14} className="text-amber-400" />
           )}

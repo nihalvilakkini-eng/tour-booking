@@ -67,12 +67,22 @@ export default function BookingDetailsPage() {
 
   const loadBooking = useCallback(async () => {
     try {
-      const response = await fetch("/api/bookings", {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("wayora_token") || localStorage.getItem("token")
+          : null;
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Try fetching single booking directly first
+      let response = await fetch(`/api/bookings/${bookingId}`, {
+        headers,
         credentials: "include",
         cache: "no-store",
       });
-
-      const result = await response.json().catch(() => null);
 
       if (response.status === 401) {
         router.push(
@@ -81,8 +91,32 @@ export default function BookingDetailsPage() {
         return;
       }
 
+      let result = await response.json().catch(() => null);
+
+      if (response.ok && result?.success && result?.data) {
+        setBooking(result.data);
+        setError("");
+        return;
+      }
+
+      // Fallback to list of user bookings
+      response = await fetch("/api/bookings?mine=true", {
+        headers,
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (response.status === 401) {
+        router.push(
+          `/login?redirect=${encodeURIComponent(`/bookings/${bookingId}`)}`
+        );
+        return;
+      }
+
+      result = await response.json().catch(() => null);
+
       if (!response.ok || result?.success !== true) {
-        throw new Error(result?.message || "Unable to load bookings.");
+        throw new Error(result?.message || "Unable to load booking details.");
       }
 
       const bookings: Booking[] = Array.isArray(result.data) ? result.data : [];
@@ -109,9 +143,9 @@ export default function BookingDetailsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-[60vh] items-center justify-center px-5 py-20 text-center text-gray-600">
-        <div className="flex items-center gap-3 rounded-2xl bg-white px-6 py-4 shadow-sm border">
-          <Clock className="h-5 w-5 animate-spin text-emerald-700" />
+      <main className="flex min-h-[60vh] items-center justify-center bg-slate-900 px-5 py-20 text-center text-slate-300">
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800 px-6 py-4 shadow-xl">
+          <Clock className="h-5 w-5 animate-spin text-amber-400" />
           <span>Loading your booking details...</span>
         </div>
       </main>
@@ -120,18 +154,18 @@ export default function BookingDetailsPage() {
 
   if (error || !booking) {
     return (
-      <main className="mx-auto max-w-xl px-5 py-20 text-center">
-        <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+      <main className="min-h-screen bg-slate-900 px-5 py-20 text-center text-slate-100">
+        <div className="mx-auto max-w-xl rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-xl">
+          <AlertCircle className="mx-auto h-12 w-12 text-rose-400" />
+          <h1 className="mt-4 text-2xl font-bold text-white">
             Booking details unavailable
           </h1>
-          <p className="mt-2 text-sm text-red-600">
+          <p className="mt-2 text-sm text-rose-300">
             {error || "Booking not found."}
           </p>
           <Link
             href="/bookings"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white transition hover:bg-emerald-800"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-400"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Return to My Bookings</span>
@@ -181,43 +215,43 @@ export default function BookingDetailsPage() {
     paymentStatus !== "refunded";
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-slate-900 px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6">
           <Link
             href="/bookings"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-emerald-700"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-amber-400"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to My Bookings</span>
           </Link>
         </div>
 
-        <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
+        <section className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-2xl sm:p-10">
           <div className="text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl text-emerald-700">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/15 text-3xl text-amber-400">
               ✓
             </div>
 
-            <p className="mt-4 text-xs font-bold uppercase tracking-widest text-emerald-700">
+            <p className="mt-4 text-xs font-bold uppercase tracking-widest text-amber-400">
               Wayora · Tour Booking
             </p>
 
-            <h1 className="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">
+            <h1 className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">
               Booking #{booking._id.slice(-8).toUpperCase()}
             </h1>
 
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-slate-400">
               Reservation details and real-time payment status.
             </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 p-4 border border-gray-200">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Booking Reference
               </p>
-              <p className="mt-1 font-mono text-sm font-bold text-gray-900 break-all">
+              <p className="mt-1 break-all font-mono text-sm font-bold text-white">
                 {booking._id}
               </p>
             </div>
@@ -226,10 +260,10 @@ export default function BookingDetailsPage() {
               <span
                 className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${
                   isAcceptedOrConfirmed
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
                     : isPending
-                      ? "bg-amber-50 border-amber-200 text-amber-800"
-                      : "bg-gray-100 border-gray-300 text-gray-700"
+                      ? "border-amber-500/40 bg-amber-500/15 text-amber-300"
+                      : "border-slate-600 bg-slate-700 text-slate-300"
                 }`}
               >
                 {bookingStatus}
@@ -237,10 +271,10 @@ export default function BookingDetailsPage() {
               <span
                 className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${
                   isPaid
-                    ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                    ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-300"
                     : paymentStatus === "failed"
-                      ? "bg-red-100 border-red-300 text-red-800"
-                      : "bg-gray-100 border-gray-300 text-gray-700"
+                      ? "border-rose-500/40 bg-rose-500/20 text-rose-300"
+                      : "border-slate-600 bg-slate-700 text-slate-300"
                 }`}
               >
                 {paymentStatus}
@@ -250,91 +284,91 @@ export default function BookingDetailsPage() {
 
           <div className="mt-8 space-y-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Tour Experience
               </p>
-              <h2 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">
+              <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">
                 {tourTitle}
               </h2>
-              <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-600">
-                <MapPin className="h-4 w-4 text-emerald-700 shrink-0" />
+              <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-400">
+                <MapPin className="h-4 w-4 shrink-0 text-amber-400" />
                 <span>{destination}</span>
               </div>
             </div>
 
-            <div className="grid gap-4 border-y border-gray-100 py-6 sm:grid-cols-2">
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-gray-500">
-                  <Calendar className="h-3.5 w-3.5 text-emerald-700" />
+            <div className="grid gap-4 border-y border-slate-700 py-6 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-slate-400">
+                  <Calendar className="h-3.5 w-3.5 text-amber-400" />
                   <span>Travel Date</span>
                 </div>
-                <p className="mt-1.5 text-base font-bold text-gray-900">
+                <p className="mt-1.5 text-base font-bold text-white">
                   {formattedDate}
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-gray-500">
-                  <Clock className="h-3.5 w-3.5 text-emerald-700" />
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-slate-400">
+                  <Clock className="h-3.5 w-3.5 text-amber-400" />
                   <span>Start Time</span>
                 </div>
-                <p className="mt-1.5 text-base font-bold text-gray-900">
+                <p className="mt-1.5 text-base font-bold text-white">
                   {time || "Not specified"}
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-gray-500">
-                  <Users className="h-3.5 w-3.5 text-emerald-700" />
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-slate-400">
+                  <Users className="h-3.5 w-3.5 text-amber-400" />
                   <span>Participants</span>
                 </div>
-                <p className="mt-1.5 text-base font-bold text-gray-900">
+                <p className="mt-1.5 text-base font-bold text-white">
                   {booking.participants ?? 1} Guests
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-emerald-50/70 p-4 border border-emerald-100">
-                <div className="text-xs font-semibold uppercase text-emerald-800">
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                <div className="text-xs font-semibold uppercase text-amber-300">
                   Total Amount
                 </div>
-                <p className="mt-1.5 text-xl font-extrabold text-emerald-800">
+                <p className="mt-1.5 text-xl font-extrabold text-amber-400">
                   {total}
                 </p>
               </div>
             </div>
 
             {booking.specialRequirements && (
-              <div className="rounded-2xl bg-gray-50 p-4 border">
-                <p className="text-xs font-semibold uppercase text-gray-500">
+              <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+                <p className="text-xs font-semibold uppercase text-slate-400">
                   Special requirements
                 </p>
-                <p className="mt-1 text-sm text-gray-800">
+                <p className="mt-1 text-sm text-slate-200">
                   {booking.specialRequirements}
                 </p>
               </div>
             )}
 
             {isPending && (
-              <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 border border-amber-200">
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
                 Your booking is currently <strong>Pending Operator Approval</strong>.
                 Once the tour operator accepts your request, online payment via Razorpay will be enabled.
               </div>
             )}
 
             {isAcceptedOrConfirmed && !isPaid && (
-              <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900 border border-emerald-200">
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200">
                 Your booking has been <strong>Accepted & Confirmed</strong> by the operator! Complete payment now using &quot;Pay Now&quot; to secure your booking.
               </div>
             )}
 
             {isPaid && (
-              <div className="flex items-center justify-between gap-2 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-900 border border-emerald-200">
+              <div className="flex items-center justify-between gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-200">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                   <span>Payment verified and booking confirmed!</span>
                 </div>
                 {booking.paidAt && (
-                  <span className="font-mono text-xs text-emerald-800">
+                  <span className="font-mono text-xs text-emerald-300">
                     Paid on {new Date(booking.paidAt).toLocaleDateString("en-IN")}
                   </span>
                 )}
@@ -343,10 +377,10 @@ export default function BookingDetailsPage() {
 
             {/* CONFIRMED + UNPAID → Pay Now enabled */}
             {isPayNowEnabled && (
-              <div className="rounded-2xl bg-emerald-50/50 p-6 border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 sm:flex-row sm:items-center">
                 <div>
-                  <h3 className="font-bold text-gray-900">Payment Due: {total}</h3>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <h3 className="font-bold text-white">Payment Due: {total}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">
                     Pay securely using Razorpay (UPI, Credit/Debit Cards, NetBanking).
                   </p>
                 </div>
@@ -367,12 +401,12 @@ export default function BookingDetailsPage() {
 
             {/* PENDING → Payment disabled button */}
             {isPending && (
-              <div className="rounded-2xl bg-gray-50 p-4 border border-gray-200 flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500">Payment opens upon operator acceptance</span>
+              <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+                <span className="text-sm text-slate-400">Payment opens upon operator acceptance</span>
                 <button
                   type="button"
                   disabled
-                  className="rounded-xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-400 cursor-not-allowed border"
+                  className="cursor-not-allowed rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-slate-500"
                 >
                   Pay Now
                 </button>
@@ -381,8 +415,8 @@ export default function BookingDetailsPage() {
 
             {/* CONFIRMED + PAID → Payment Completed */}
             {isPaid && (
-              <div className="flex items-center gap-2 rounded-xl bg-emerald-100 border border-emerald-300 px-5 py-3 text-sm font-bold text-emerald-800">
-                <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 px-5 py-3 text-sm font-bold text-emerald-300">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 <span>Payment Completed</span>
               </div>
             )}
@@ -391,7 +425,7 @@ export default function BookingDetailsPage() {
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             <Link
               href={`/messages?bookingId=${booking._id}`}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-teal-700 bg-teal-50 px-5 py-3 text-center font-semibold text-teal-800 shadow-sm transition hover:bg-teal-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/15 px-5 py-3 text-center font-semibold text-amber-300 shadow-sm transition hover:bg-amber-500/25"
             >
               <MessageSquare size={18} />
               <span>Message Operator</span>
@@ -399,14 +433,14 @@ export default function BookingDetailsPage() {
 
             <Link
               href="/bookings"
-              className="rounded-xl bg-gray-100 px-5 py-3 text-center font-semibold text-gray-800 transition hover:bg-gray-200"
+              className="rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 text-center font-semibold text-slate-200 transition hover:border-slate-600 hover:text-white"
             >
               View All Bookings
             </Link>
 
             <Link
               href="/tours"
-              className="rounded-xl border border-gray-300 px-5 py-3 text-center font-semibold text-gray-800 transition hover:bg-gray-50"
+              className="rounded-xl border border-slate-700 bg-slate-900 px-5 py-3 text-center font-semibold text-slate-200 transition hover:border-slate-600 hover:text-white"
             >
               Explore More Tours
             </Link>

@@ -19,11 +19,11 @@ type ReportData = {
 };
 
 const statusItems = [
-  { key: "completedBookings", label: "Completed", color: "bg-green-500" },
+  { key: "completedBookings", label: "Completed", color: "bg-emerald-500" },
   { key: "confirmedBookings", label: "Confirmed", color: "bg-blue-500" },
-  { key: "pendingBookings", label: "Pending", color: "bg-yellow-500" },
-  { key: "rejectedBookings", label: "Rejected", color: "bg-red-500" },
-  { key: "cancelledBookings", label: "Cancelled", color: "bg-gray-400" },
+  { key: "pendingBookings", label: "Pending", color: "bg-amber-500" },
+  { key: "rejectedBookings", label: "Rejected", color: "bg-rose-500" },
+  { key: "cancelledBookings", label: "Cancelled", color: "bg-slate-600" },
 ] as const;
 
 export default function ReportsPage() {
@@ -103,21 +103,21 @@ export default function ReportsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#087f6e]">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-teal-400">
               WAYORA ADMINISTRATION
             </p>
 
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold text-white">
               Reports
             </h1>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-400">
               View your platform statistics and booking performance.
             </p>
           </div>
@@ -125,17 +125,17 @@ export default function ReportsPage() {
           <button
             onClick={loadReports}
             disabled={loading}
-            className="rounded-xl bg-[#087f6e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#066354] disabled:opacity-50"
+            className="rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-teal-500 disabled:opacity-50"
           >
             {loading ? "Loading..." : "↻ Refresh"}
           </button>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
           <div>
-            <h2 className="font-bold">Platform Overview</h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <h2 className="font-bold text-white">Platform Overview</h2>
+            <p className="mt-1 text-sm text-slate-400">
               Select a period to view booking reports.
             </p>
           </div>
@@ -143,7 +143,7 @@ export default function ReportsPage() {
           <select
             value={range}
             onChange={(e) => setRange(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+            className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
           >
             <option value="7d">Last 7 Days</option>
             <option value="30d">Last 30 Days</option>
@@ -153,7 +153,7 @@ export default function ReportsPage() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-6 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300">
             {error}
             <button
               onClick={loadReports}
@@ -169,17 +169,17 @@ export default function ReportsPage() {
           {cards.map((card) => (
             <div
               key={card.title}
-              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+              className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-slate-400">
                   {card.title}
                 </p>
 
                 <span className="text-2xl">{card.icon}</span>
               </div>
 
-              <h3 className="mt-5 text-2xl font-bold text-[#087f6e]">
+              <h3 className="mt-5 text-2xl font-bold text-teal-400">
                 {loading ? "—" : card.value}
               </h3>
             </div>
@@ -187,12 +187,12 @@ export default function ReportsPage() {
         </section>
 
         {/* Booking Status */}
-        <section className="mb-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">
+        <section className="mb-8 rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-white">
             Booking Status
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-400">
             Booking breakdown for the selected period.
           </p>
 
@@ -208,16 +208,16 @@ export default function ReportsPage() {
               return (
                 <div key={item.key}>
                   <div className="mb-2 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">
+                    <span className="font-medium text-slate-300">
                       {item.label}
                     </span>
 
-                    <span className="font-bold text-gray-800">
+                    <span className="font-bold text-white">
                       {loading ? "—" : count}
                     </span>
                   </div>
 
-                  <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+                  <div className="h-3 overflow-hidden rounded-full bg-slate-800">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${item.color}`}
                       style={{
@@ -232,16 +232,16 @@ export default function ReportsPage() {
         </section>
 
         {/* Monthly Bookings */}
-        <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-white">
             Monthly Bookings
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-400">
             Booking activity over the last six months.
           </p>
 
-          <div className="mt-8 flex h-64 items-end justify-around gap-3 border-b border-gray-200 pb-2">
+          <div className="mt-8 flex h-64 items-end justify-around gap-3 border-b border-slate-800 pb-2">
             {(data?.monthlyBookings ?? []).map((item) => {
               const height = (item.total / maxBookings) * 100;
 
@@ -250,20 +250,20 @@ export default function ReportsPage() {
                   key={item.month}
                   className="flex h-full flex-1 flex-col items-center justify-end gap-2"
                 >
-                  <span className="text-xs font-bold text-gray-600">
+                  <span className="text-xs font-bold text-slate-300">
                     {loading ? "" : item.total}
                   </span>
 
                   <div className="flex h-full w-full items-end justify-center">
                     <div
-                      className="w-full max-w-12 rounded-t-lg bg-[#087f6e] transition-all duration-500"
+                      className="w-full max-w-12 rounded-t-lg bg-teal-600 transition-all duration-500"
                       style={{
                         height: `${loading ? 0 : Math.max(height, item.total > 0 ? 3 : 0)}%`,
                       }}
                     />
                   </div>
 
-                  <span className="text-xs font-medium text-gray-500">
+                  <span className="text-xs font-medium text-slate-400">
                     {item.month}
                   </span>
                 </div>
@@ -272,7 +272,7 @@ export default function ReportsPage() {
           </div>
         </section>
 
-        <p className="mt-6 text-center text-xs text-gray-400">
+        <p className="mt-6 text-center text-xs text-slate-500">
           Wayora Platform Reports · Data fetched from MongoDB
         </p>
       </div>

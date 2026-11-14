@@ -5,20 +5,28 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import cloudinary, { configureCloudinary } from "@/lib/cloudinary";
 import { getJwtSecret } from "@/lib/auth";
+import { getTokenFromRequest } from "@/lib/request-user";
 
 export const dynamic = "force-dynamic";
 
 function getUserIdFromToken(token: string): string {
   const decoded = jwt.verify(token, getJwtSecret());
 
-  if (
-    typeof decoded === "string" ||
-    typeof decoded.userId !== "string"
-  ) {
+  if (typeof decoded === "string" || !decoded) {
     throw new Error("Invalid token payload");
   }
 
-  return decoded.userId;
+  const payload = decoded as Record<string, unknown>;
+  const rawUserId = payload.userId || payload.id || payload._id || payload.sub;
+
+  const userId =
+    typeof rawUserId === "string" ? rawUserId : String(rawUserId || "");
+
+  if (!userId) {
+    throw new Error("Invalid token payload");
+  }
+
+  return userId;
 }
 
 function isTokenVerificationError(error: unknown): boolean {
@@ -41,7 +49,7 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const token = request.cookies.get("token")?.value;
+    const token = getTokenFromRequest(request);
 
     if (!token) {
       return NextResponse.json(
@@ -78,18 +86,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const profileData = {
+      id: String(user._id),
+      _id: String(user._id),
+      name: user.name,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      profileImage: user.profileImage,
+      role: user.role,
+    };
+
     return NextResponse.json(
       {
         success: true,
-        data: {
-          id: user._id,
-          name: user.name,
-          lastName: user.lastName,
-          email: user.email,
-          phone: user.phone,
-          profileImage: user.profileImage,
-          role: user.role,
-        },
+        data: profileData,
+        user: profileData,
       },
       { status: 200 }
     );
@@ -117,8 +129,8 @@ export async function PATCH(request: NextRequest) {
   try {
     await connectDB();
 
-    // Check token
-    const token = request.cookies.get("token")?.value;
+    // Check token from cookie or Authorization header
+    const token = getTokenFromRequest(request);
 
     if (!token) {
       return NextResponse.json(
@@ -294,19 +306,23 @@ export async function PATCH(request: NextRequest) {
     // RESPONSE
     // ==============================
 
+    const updatedData = {
+      id: String(existingUser._id),
+      _id: String(existingUser._id),
+      name: existingUser.name,
+      lastName: existingUser.lastName,
+      email: existingUser.email,
+      phone: existingUser.phone,
+      profileImage: existingUser.profileImage,
+      role: existingUser.role,
+    };
+
     return NextResponse.json(
       {
         success: true,
         message: "Profile updated successfully",
-        data: {
-          id: existingUser._id,
-          name: existingUser.name,
-          lastName: existingUser.lastName,
-          email: existingUser.email,
-          phone: existingUser.phone,
-          profileImage: existingUser.profileImage,
-          role: existingUser.role,
-        },
+        data: updatedData,
+        user: updatedData,
       },
       { status: 200 }
     );

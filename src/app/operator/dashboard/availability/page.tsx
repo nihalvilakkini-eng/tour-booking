@@ -346,22 +346,24 @@ export default function OperatorAvailabilityPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-teal-700">WAYORA PARTNER</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400">
+            ✦ WAYORA PARTNER
+          </p>
+          <h1 className="mt-2 text-3xl font-extrabold text-white">
             Availability Management
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             Manage dates, time slots, capacity and availability status for your tours.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+            className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
           >
             + Add Availability
           </button>
@@ -369,7 +371,7 @@ export default function OperatorAvailabilityPage() {
             type="button"
             onClick={() => void load()}
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#121a22] px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400 disabled:opacity-50"
           >
             <RefreshCw size={16} /> Refresh
           </button>
@@ -380,49 +382,49 @@ export default function OperatorAvailabilityPage() {
         <div
           className={`rounded-xl border p-4 text-sm ${
             error
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-rose-500/35 bg-rose-500/10 text-rose-300"
+              : "border-emerald-500/35 bg-emerald-500/10 text-emerald-300"
           }`}
         >
           {error || success}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#121a22] shadow-xl">
+        <div className="flex flex-col justify-between gap-4 border-b border-white/10 p-5 sm:flex-row sm:items-center">
           <div>
-            <h2 className="font-bold text-slate-900">Tour availability</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="font-bold text-white">Tour availability</h2>
+            <p className="mt-1 text-sm text-slate-400">
               {loading ? "Loading..." : `${filtered.length} availability record(s)`}
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
-            <Search size={17} className="text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#0b1116] px-3 py-2.5 focus-within:border-amber-500/50">
+            <Search size={17} className="text-amber-400" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search tours or dates..."
-              className="w-full bg-transparent text-sm outline-none sm:w-64"
+              className="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none sm:w-64"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-sm text-slate-500">
+          <div className="p-12 text-center text-sm text-slate-400">
             Loading availability...
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
-            <CalendarDays className="mx-auto text-slate-300" size={36} />
-            <p className="mt-3 font-semibold text-slate-800">
+            <CalendarDays className="mx-auto text-slate-600" size={36} />
+            <p className="mt-3 font-semibold text-white">
               No availability records found
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-400">
               Availability records for your tours will appear here.
             </p>
           </div>
         ) : (
-          <div className="grid gap-5 p-5 xl:grid-cols-2">
+          <div className="grid gap-5 p-5 2xl:grid-cols-2">
             {filtered.map((item) => {
               const tour = tourOf(item);
               const active = item.isAvailable !== false;
@@ -430,10 +432,10 @@ export default function OperatorAvailabilityPage() {
               return (
                 <article
                   key={item._id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1116] transition hover:border-amber-500/35"
                 >
                   <div className="flex flex-col sm:flex-row">
-                    <div className="relative h-40 w-full shrink-0 sm:h-auto sm:w-40">
+                    <div className="relative h-44 w-full shrink-0 sm:h-auto sm:w-40">
                       <TourImage
                         images={tour?.images}
                         alt={tour?.title || "Tour"}
@@ -443,18 +445,18 @@ export default function OperatorAvailabilityPage() {
                     <div className="min-w-0 flex-1 p-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="line-clamp-2 font-bold text-slate-900">
+                          <h3 className="line-clamp-2 font-bold text-white">
                             {tour?.title || "Tour"}
                           </h3>
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="mt-1 text-sm text-slate-400">
                             {tour?.destination || "Destination not available"}
                           </p>
                         </div>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${
                             active
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-slate-200 text-slate-600"
+                              ? "border-emerald-500/35 bg-emerald-500/15 text-emerald-300"
+                              : "border-white/15 bg-white/5 text-slate-400"
                           }`}
                         >
                           {active ? "Active" : "Deactive"}
@@ -462,36 +464,36 @@ export default function OperatorAvailabilityPage() {
                       </div>
 
                       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                        <div className="rounded-xl bg-slate-50 px-3 py-2">
-                          <p className="text-[11px] font-semibold uppercase text-slate-500">
+                        <div className="rounded-xl border border-white/10 bg-[#121a22] px-3 py-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Starting date
                           </p>
-                          <p className="mt-1 font-semibold text-slate-900">
+                          <p className="mt-1 font-semibold text-white">
                             {formatDate(item.date)}
                           </p>
                         </div>
-                        <div className="rounded-xl bg-slate-50 px-3 py-2">
-                          <p className="text-[11px] font-semibold uppercase text-slate-500">
+                        <div className="rounded-xl border border-white/10 bg-[#121a22] px-3 py-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Ending date
                           </p>
-                          <p className="mt-1 font-semibold text-slate-900">
+                          <p className="mt-1 font-semibold text-white">
                             {formatDate(item.endDate || item.date)}
                           </p>
                         </div>
-                        <div className="rounded-xl bg-slate-50 px-3 py-2">
-                          <p className="text-[11px] font-semibold uppercase text-slate-500">
+                        <div className="rounded-xl border border-white/10 bg-[#121a22] px-3 py-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Time
                           </p>
-                          <p className="mt-1 font-semibold text-slate-900">
+                          <p className="mt-1 font-semibold text-white">
                             {item.startTime || "—"}
                             {item.endTime ? ` - ${item.endTime}` : ""}
                           </p>
                         </div>
-                        <div className="rounded-xl bg-slate-50 px-3 py-2">
-                          <p className="text-[11px] font-semibold uppercase text-slate-500">
+                        <div className="rounded-xl border border-white/10 bg-[#121a22] px-3 py-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Available slots
                           </p>
-                          <p className="mt-1 font-semibold text-slate-900">
+                          <p className="mt-1 font-bold text-amber-400">
                             {item.availableSeats ?? 0} / {item.totalSeats ?? 0}
                           </p>
                         </div>
@@ -502,10 +504,10 @@ export default function OperatorAvailabilityPage() {
                           type="button"
                           onClick={() => void toggleAvailability(item)}
                           disabled={togglingId === item._id}
-                          className={`rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
+                          className={`rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${
                             active
-                              ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              ? "border-rose-500/35 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
+                              : "border-emerald-500/35 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
                           }`}
                         >
                           {togglingId === item._id
@@ -517,7 +519,7 @@ export default function OperatorAvailabilityPage() {
                         <button
                           type="button"
                           onClick={() => openEdit(item)}
-                          className="flex items-center gap-2 rounded-xl border border-teal-700 px-4 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"
+                          className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/25"
                         >
                           <Pencil size={15} /> Edit Availability
                         </button>
@@ -532,17 +534,17 @@ export default function OperatorAvailabilityPage() {
       </section>
 
       {(editing || creating) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <form
             onSubmit={saveAvailability}
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/15 bg-[#121a22] p-6 text-slate-100 shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-white">
                   {creating ? "Add Availability" : "Edit Availability"}
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-400">
                   {creating
                     ? tours.find((tour) => tour._id === form.tourId)?.title ||
                       "Select a tour to continue"
@@ -554,21 +556,21 @@ export default function OperatorAvailabilityPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="text-2xl text-slate-400 hover:text-slate-700"
+                className="text-2xl text-slate-400 hover:text-white"
               >
                 ×
               </button>
             </div>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+              <div className="mt-4 rounded-xl border border-rose-500/35 bg-rose-500/10 p-3 text-sm text-rose-300">
                 {error}
               </div>
             )}
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {creating && (
-                <label className="text-sm font-semibold text-slate-700 sm:col-span-2">
+                <label className="text-sm font-semibold text-slate-300 sm:col-span-2">
                   Tour *
                   <select
                     required
@@ -576,7 +578,7 @@ export default function OperatorAvailabilityPage() {
                     onChange={(event) =>
                       setForm({ ...form, tourId: event.target.value })
                     }
-                    className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                    className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                   >
                     <option value="">Select a tour</option>
                     {tours.map((tour) => (
@@ -587,33 +589,33 @@ export default function OperatorAvailabilityPage() {
                     ))}
                   </select>
                   {tours.length === 0 && (
-                    <span className="mt-2 block text-xs font-normal text-rose-600">
+                    <span className="mt-2 block text-xs font-normal text-rose-400">
                       No active tours are available for new availability.
                     </span>
                   )}
                 </label>
               )}
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 Starting date
                 <input
                   type="date"
                   required
                   value={form.date}
                   onChange={(event) => setForm({ ...form, date: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 Ending date
                 <input
                   type="date"
                   required
                   value={form.endDate}
                   onChange={(event) => setForm({ ...form, endDate: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 Start time
                 <div className="mt-2 flex gap-2">
                   <select
@@ -622,10 +624,12 @@ export default function OperatorAvailabilityPage() {
                       const { minute, period } = to12Hour(form.startTime);
                       setForm({ ...form, startTime: to24Hour(e.target.value, minute, period) });
                     }}
-                    className="flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                    className="flex-1 rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                   >
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
-                      <option key={h} value={String(h).padStart(2, "0")}>{String(h).padStart(2, "0")}</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                      <option key={h} value={String(h).padStart(2, "0")}>
+                        {String(h).padStart(2, "0")}
+                      </option>
                     ))}
                   </select>
                   <select
@@ -634,10 +638,12 @@ export default function OperatorAvailabilityPage() {
                       const { hour, period } = to12Hour(form.startTime);
                       setForm({ ...form, startTime: to24Hour(hour, e.target.value, period) });
                     }}
-                    className="flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                    className="flex-1 rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                   >
-                    {["00","05","10","15","20","25","30","35","40","45","50","55"].map(m => (
-                      <option key={m} value={m}>{m}</option>
+                    {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
                     ))}
                   </select>
                   <select
@@ -646,23 +652,23 @@ export default function OperatorAvailabilityPage() {
                       const { hour, minute } = to12Hour(form.startTime);
                       setForm({ ...form, startTime: to24Hour(hour, minute, e.target.value as "AM" | "PM") });
                     }}
-                    className="rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                    className="rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                   >
                     <option value="AM">AM</option>
                     <option value="PM">PM</option>
                   </select>
                 </div>
               </label>
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 End time
                 <input
                   type="time"
                   value={form.endTime}
                   onChange={(event) => setForm({ ...form, endTime: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 Total seats
                 <input
                   type="number"
@@ -670,10 +676,10 @@ export default function OperatorAvailabilityPage() {
                   required
                   value={form.totalSeats}
                   onChange={(event) => setForm({ ...form, totalSeats: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-300">
                 Available slots
                 <input
                   type="number"
@@ -681,15 +687,15 @@ export default function OperatorAvailabilityPage() {
                   required
                   value={form.availableSeats}
                   onChange={(event) => setForm({ ...form, availableSeats: event.target.value })}
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-teal-600"
+                  className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b1116] px-3 py-3 text-sm text-white outline-none focus:border-amber-500"
                 />
               </label>
-              <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 sm:col-span-2">
+              <label className="flex items-center gap-3 rounded-xl border border-white/15 bg-[#0b1116] px-4 py-3 text-sm font-semibold text-slate-200 sm:col-span-2">
                 <input
                   type="checkbox"
                   checked={form.isAvailable}
                   onChange={(event) => setForm({ ...form, isAvailable: event.target.checked })}
-                  className="h-4 w-4 accent-teal-700"
+                  className="h-4 w-4 accent-amber-500"
                 />
                 Active availability
               </label>
@@ -699,14 +705,14 @@ export default function OperatorAvailabilityPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                className="flex-1 rounded-xl border border-white/15 bg-[#0b1116] px-4 py-3 text-sm font-semibold text-slate-300 hover:text-white"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-amber-500 px-4 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-400 disabled:opacity-50"
               >
                 {saving
                   ? "Saving..."

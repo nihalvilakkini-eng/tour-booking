@@ -2,7 +2,7 @@
 import Link from "next/link";
 
 export default function Footer() {
-const year = new Date().getFullYear();
+  const year = new Date().getFullYear();
   return (
     <footer className="footer">
       <div className="container footer-inner">
@@ -29,9 +29,10 @@ const year = new Date().getFullYear();
 
       <style jsx>{`
         .footer {
-          background: #132a24;
-          color: white;
+          background: #080d11;
+          color: #f8fafc;
           padding: 50px 0 34px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .footer-inner {
@@ -45,17 +46,18 @@ const year = new Date().getFullYear();
         .footer-brand {
           font-size: 24px;
           font-weight: 800;
-          letter-spacing: 0;
+          letter-spacing: 0.08em;
+          color: #ffffff;
         }
 
         .footer-brand span {
-          color: #61d8b7;
+          color: #f59e0b;
         }
 
         p {
           max-width: 300px;
           margin: 10px 0 0;
-          color: #b8c9c2;
+          color: #94a3b8;
           font-size: 14px;
           line-height: 1.7;
         }
@@ -66,17 +68,22 @@ const year = new Date().getFullYear();
           gap: 22px;
           font-size: 13px;
           font-weight: 600;
+          color: #cbd5e1;
+        }
+
+        .footer-links a {
+          transition: color 0.2s ease;
         }
 
         .footer-links a:hover {
-          color: #9ee2c9;
+          color: #fbbf24;
         }
 
         .copyright {
           width: 100%;
           padding-top: 22px;
-          border-top: 1px solid rgba(255, 255, 255, 0.14);
-          color: #b8c9c2;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          color: #64748b;
           font-size: 13px;
         }
 

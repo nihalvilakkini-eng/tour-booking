@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -12,17 +11,17 @@ export default function HomePage() {
   const [destination, setDestination] = useState("");
   const [activity, setActivity] = useState("");
 
- function handleSearch(newDestination: string, newActivity: string) {
-  setDestination(newDestination);
-  setActivity(newActivity);
+  function handleSearch(newDestination: string, newActivity: string) {
+    setDestination(newDestination);
+    setActivity(newActivity);
 
-  setTimeout(() => {
-    document.getElementById("tour-results")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, 100);
-}
+    setTimeout(() => {
+      document.getElementById("tour-results")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  }
 
   function clearSearch() {
     setDestination("");
@@ -32,7 +31,7 @@ export default function HomePage() {
   const isSearching = Boolean(destination || activity);
 
   return (
-    <>
+    <main className="min-h-screen bg-[#0b1116] text-slate-100">
       <HeroSection
         onSearch={handleSearch}
         onClear={clearSearch}
@@ -58,6 +57,6 @@ export default function HomePage() {
       )}
 
       <HomeExperienceSections />
-    </>
+    </main>
   );
 }

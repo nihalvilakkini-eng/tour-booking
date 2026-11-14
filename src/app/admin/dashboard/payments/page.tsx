@@ -52,16 +52,16 @@ function statusTone(status?: string) {
 
   switch (normalized) {
     case "confirmed":
-      return "bg-green-100 text-green-700";
+      return "border border-emerald-800 bg-emerald-950 text-emerald-300";
     case "completed":
-      return "bg-blue-100 text-blue-700";
+      return "border border-blue-800 bg-blue-950 text-blue-300";
     case "cancelled":
     case "rejected":
-      return "bg-red-100 text-red-700";
+      return "border border-rose-900 bg-rose-950 text-rose-300";
     case "pending":
-      return "bg-amber-100 text-amber-700";
+      return "border border-amber-800 bg-amber-950 text-amber-300";
     default:
-      return "bg-gray-100 text-gray-600";
+      return "border border-slate-700 bg-slate-800 text-slate-300";
   }
 }
 
@@ -151,62 +151,62 @@ export default function AdminPaymentsPage() {
   }, [bookings]);
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin/dashboard" className="text-sm font-semibold text-[#087f6e] hover:underline">
+        <Link href="/admin/dashboard" className="text-sm font-semibold text-teal-400 hover:underline">
           ← Back to Dashboard
         </Link>
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#087f6e]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-400">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Payment Reports</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="mt-2 text-3xl font-bold text-white">Payment Reports</h1>
+            <p className="mt-2 text-sm text-slate-400">
               Review booking values and payment-related booking statuses.
             </p>
           </div>
 
-          <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
-            <p className="text-xs text-gray-500">Recorded bookings</p>
-            <p className="text-2xl font-bold text-[#087f6e]">{summary.totalBookings}</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 px-5 py-3 shadow-sm">
+            <p className="text-xs text-slate-400">Recorded bookings</p>
+            <p className="text-2xl font-bold text-teal-400">{summary.totalBookings}</p>
           </div>
         </div>
 
         <section className="mt-7 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Total bookings</p>
-            <p className="mt-2 text-3xl font-bold">{summary.totalBookings}</p>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+            <p className="text-sm text-slate-400">Total bookings</p>
+            <p className="mt-2 text-3xl font-bold text-white">{summary.totalBookings}</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Pending status</p>
-            <p className="mt-2 text-3xl font-bold text-amber-600">{summary.pending}</p>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+            <p className="text-sm text-slate-400">Pending status</p>
+            <p className="mt-2 text-3xl font-bold text-amber-400">{summary.pending}</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">Recorded gross value</p>
-            <p className="mt-2 text-3xl font-bold text-[#087f6e]">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+            <p className="text-sm text-slate-400">Recorded gross value</p>
+            <p className="mt-2 text-3xl font-bold text-teal-400">
               {formatCurrency(summary.grossValue, "INR")}
             </p>
           </div>
         </section>
 
-        <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-7 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6">
           <div className="grid gap-3 md:grid-cols-2">
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search customer, tour or booking ID..."
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             />
 
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             >
               <option value="all">All payment statuses</option>
               <option value="pending">Pending</option>
@@ -218,18 +218,18 @@ export default function AdminPaymentsPage() {
           </div>
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>
+            <p className="mt-4 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300">{error}</p>
           )}
 
           {loading ? (
-            <p className="py-12 text-center text-gray-500">Loading payment report...</p>
+            <p className="py-12 text-center text-slate-400">Loading payment report...</p>
           ) : filteredBookings.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No bookings match the selected filters.</p>
+            <p className="py-12 text-center text-slate-400">No bookings match the selected filters.</p>
           ) : (
             <div className="mt-5 overflow-x-auto">
               <table className="w-full min-w-[900px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-500">
+                  <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
                     <th className="px-4 py-4">Booking</th>
                     <th className="px-4 py-4">Customer</th>
                     <th className="px-4 py-4">Tour</th>
@@ -248,30 +248,30 @@ export default function AdminPaymentsPage() {
                     const status = booking.status || "pending";
 
                     return (
-                      <tr key={booking._id} className="border-b border-gray-50">
-                        <td className="px-4 py-5 font-mono text-xs">
+                      <tr key={booking._id} className="border-b border-slate-800/60 transition hover:bg-slate-800/40">
+                        <td className="px-4 py-5 font-mono text-xs text-slate-400">
                           {booking._id.slice(-8)}
                         </td>
 
                         <td className="px-4 py-5">
-                          <p className="font-semibold">
+                          <p className="font-semibold text-white">
                             {user?.name || user?.firstName || "Unknown customer"}
                           </p>
-                          <p className="mt-1 text-xs text-gray-500">
+                          <p className="mt-1 text-xs text-slate-400">
                             {user?.email || "No email on record"}
                           </p>
                         </td>
 
                         <td className="px-4 py-5">
-                          <p className="font-medium">
+                          <p className="font-medium text-slate-200">
                             {tour?.title || "Tour record unavailable"}
                           </p>
-                          <p className="mt-1 text-xs text-gray-500">
+                          <p className="mt-1 text-xs text-slate-400">
                             {tour?.destination || "Location unavailable"}
                           </p>
                         </td>
 
-                        <td className="px-4 py-5 font-semibold">
+                        <td className="px-4 py-5 font-semibold text-white">
                           {formatCurrency(booking.totalAmount, booking.currency || "INR")}
                         </td>
 
@@ -281,7 +281,7 @@ export default function AdminPaymentsPage() {
                           </span>
                         </td>
 
-                        <td className="px-4 py-5 text-gray-600">
+                        <td className="px-4 py-5 text-slate-300">
                           {date && !Number.isNaN(date.getTime())
                             ? date.toLocaleDateString("en-IN")
                             : "—"}

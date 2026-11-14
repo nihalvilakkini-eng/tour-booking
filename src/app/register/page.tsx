@@ -193,6 +193,12 @@ export default function RegisterPage() {
         throw new Error(result.message || "Registration failed");
       }
 
+      const authToken = result.token || result.data?.token;
+      if (authToken && typeof window !== "undefined") {
+        localStorage.setItem("wayora_token", authToken);
+        localStorage.setItem("token", authToken);
+      }
+
       if (accountType === "operator") {
         setOperatorSubmitted(true);
       } else {
@@ -207,7 +213,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main className="auth-page dark-auth-page">
       <div className="auth-background" />
 
       <Link href="/" className="auth-logo">
@@ -220,7 +226,7 @@ export default function RegisterPage() {
 
       <section className="auth-layout register-layout">
         <div className="auth-intro">
-          <span className="auth-tag">MAKE THE WORLD YOURS</span>
+          <span className="auth-tag">✦ MAKE THE WORLD YOURS</span>
 
           <h1>
             More places.
@@ -272,36 +278,36 @@ export default function RegisterPage() {
 
           {/* Operator Submission Success State */}
           {operatorSubmitted ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl text-emerald-700">
+            <div className="rounded-2xl border border-amber-500/30 bg-[#0b1116] p-6 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/40 bg-amber-500/15 text-2xl text-amber-400">
                 ✓
               </div>
-              <h3 className="mt-4 text-xl font-bold text-emerald-950">
+              <h3 className="mt-4 text-xl font-bold text-white">
                 Application Submitted!
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-emerald-900">
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">
                 Thank you for applying to become a verified operator on{" "}
-                <strong>WAYORA</strong>. Your business application has been
-                received and is currently <strong>Pending Admin Review</strong>.
+                <strong className="text-amber-400">WAYORA</strong>. Your business application has been
+                received and is currently <strong className="text-white">Pending Admin Review</strong>.
               </p>
 
-              <div className="my-5 rounded-xl border border-emerald-200 bg-white p-4 text-left text-xs text-gray-700">
+              <div className="my-5 rounded-xl border border-white/10 bg-[#121a22] p-4 text-left text-xs text-slate-300">
                 <p>
-                  <strong>What happens next?</strong>
+                  <strong className="text-white">What happens next?</strong>
                 </p>
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-gray-600">
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-400">
                   <li>Our admin team will review your business credentials.</li>
                   <li>You will receive an in-app notification once approved.</li>
                   <li>
                     Upon approval, your account role will be upgraded to{" "}
-                    <span className="font-semibold text-emerald-700">Operator</span> with full dashboard access.
+                    <span className="font-semibold text-amber-400">Operator</span> with full dashboard access.
                   </li>
                 </ul>
               </div>
 
               <Link
                 href="/login"
-                className="inline-flex w-full items-center justify-center rounded-xl bg-[#087f6e] py-3 text-sm font-bold text-white transition hover:bg-[#066354]"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-amber-500 py-3 text-sm font-extrabold text-slate-950 transition hover:bg-amber-400"
               >
                 Continue to Sign In →
               </Link>
@@ -587,7 +593,7 @@ export default function RegisterPage() {
                     </div>
                   </fieldset>
 
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-800">
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-300">
                     ℹ️ <strong>Note:</strong> Operator accounts require verification by an administrator. Once submitted, your application status will be <em>Pending</em> until approved.
                   </div>
                 </div>
@@ -634,6 +640,199 @@ export default function RegisterPage() {
           </p>
         </div>
       </section>
+
+      <style jsx>{`
+        .dark-auth-page {
+          background: #0b1116 !important;
+          color: #f1f5f9 !important;
+        }
+
+        .auth-background {
+          background: radial-gradient(
+            circle at 20% 20%,
+            rgba(245, 158, 11, 0.08),
+            transparent 50%
+          ),
+          linear-gradient(180deg, #0b1116 0%, #080d11 100%) !important;
+        }
+
+        .auth-logo {
+          color: #ffffff !important;
+        }
+
+        .auth-logo span {
+          color: #f59e0b !important;
+        }
+
+        .back-home {
+          color: #cbd5e1 !important;
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .back-home:hover {
+          color: #fbbf24 !important;
+          border-color: rgba(245, 158, 11, 0.4) !important;
+        }
+
+        .auth-tag {
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
+          background: rgba(245, 158, 11, 0.12) !important;
+          color: #fbbf24 !important;
+        }
+
+        .auth-intro h1 {
+          color: #ffffff !important;
+        }
+
+        .auth-intro h1 span {
+          color: #fbbf24 !important;
+        }
+
+        .auth-intro p {
+          color: #94a3b8 !important;
+        }
+
+        .travel-note {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .note-icon {
+          background: rgba(245, 158, 11, 0.15) !important;
+          color: #fbbf24 !important;
+        }
+
+        .travel-note strong {
+          color: #ffffff !important;
+        }
+
+        .travel-note small {
+          color: #94a3b8 !important;
+        }
+
+        .auth-card {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55) !important;
+        }
+
+        .card-icon {
+          background: rgba(245, 158, 11, 0.14) !important;
+          border: 1px solid rgba(245, 158, 11, 0.3) !important;
+          color: #fbbf24 !important;
+        }
+
+        .card-eyebrow {
+          color: #f59e0b !important;
+        }
+
+        .auth-card h2 {
+          color: #ffffff !important;
+        }
+
+        .card-description {
+          color: #94a3b8 !important;
+        }
+
+        .auth-card label {
+          color: #cbd5e1 !important;
+        }
+
+        .auth-card input,
+        .auth-card select,
+        .auth-card textarea {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          color: #f8fafc !important;
+        }
+
+        .auth-card input::placeholder,
+        .auth-card textarea::placeholder {
+          color: #64748b !important;
+        }
+
+        .auth-card input:focus,
+        .auth-card select:focus,
+        .auth-card textarea:focus {
+          border-color: #f59e0b !important;
+          box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18) !important;
+          outline: none;
+        }
+
+        .account-type-btn {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          color: #cbd5e1 !important;
+        }
+
+        .account-type-btn:hover {
+          border-color: rgba(245, 158, 11, 0.4) !important;
+        }
+
+        .account-type-btn.active {
+          background: rgba(245, 158, 11, 0.12) !important;
+          border-color: #f59e0b !important;
+        }
+
+        .account-type-title {
+          color: #ffffff !important;
+        }
+
+        .account-type-btn.active .account-type-title {
+          color: #fbbf24 !important;
+        }
+
+        .account-type-desc {
+          color: #94a3b8 !important;
+        }
+
+        .operator-fieldset {
+          background: rgba(11, 17, 22, 0.65) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .operator-legend {
+          color: #fbbf24 !important;
+          background: #121a22 !important;
+          border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        }
+
+        .show-password {
+          color: #fbbf24 !important;
+          background: transparent !important;
+        }
+
+        .auth-submit {
+          background: #f59e0b !important;
+          color: #090d11 !important;
+          font-weight: 800 !important;
+          box-shadow: 0 12px 28px rgba(245, 158, 11, 0.25) !important;
+        }
+
+        .auth-submit:hover:not(:disabled) {
+          background: #fbbf24 !important;
+        }
+
+        .auth-error {
+          background: rgba(225, 29, 72, 0.14) !important;
+          border: 1px solid rgba(225, 29, 72, 0.35) !important;
+          color: #fda4af !important;
+        }
+
+        .auth-switch {
+          color: #94a3b8 !important;
+        }
+
+        .auth-switch a {
+          color: #fbbf24 !important;
+          font-weight: 700 !important;
+        }
+
+        .auth-terms {
+          color: #64748b !important;
+        }
+      `}</style>
     </main>
   );
 }

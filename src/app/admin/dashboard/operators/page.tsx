@@ -113,66 +113,66 @@ export default function OperatorsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin/dashboard" className="text-sm font-semibold text-[#087f6e] hover:underline">
+        <Link href="/admin/dashboard" className="text-sm font-semibold text-teal-400 hover:underline">
           ← Back to Dashboard
         </Link>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#087f6e]">
+            <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Operators</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="mt-2 text-3xl font-bold text-white">Operators</h1>
+            <p className="mt-2 text-sm text-slate-400">
               View and manage registered tour operators.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/admin/dashboard/operator-applications"
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-amber-600"
+              className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-amber-500"
             >
               📋 Review Applications →
             </Link>
-            <div className="rounded-xl bg-white px-5 py-3 shadow-sm">
-              <p className="text-xs text-gray-500">Approved operators</p>
-              <p className="text-2xl font-bold text-[#087f6e]">{operators.length}</p>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 px-5 py-3 shadow-sm">
+              <p className="text-xs text-slate-400">Approved operators</p>
+              <p className="text-2xl font-bold text-teal-400">{operators.length}</p>
             </div>
           </div>
         </div>
 
-        <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-7 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6">
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search name, business name, email or phone..."
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+            className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
           />
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">
+            <p className="mt-4 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300">
               {error}
             </p>
           )}
 
           {success && (
-            <p className="mt-4 rounded-xl bg-green-50 p-4 text-sm text-green-700">
+            <p className="mt-4 rounded-xl border border-emerald-900 bg-emerald-950/50 p-4 text-sm text-emerald-300">
               {success}
             </p>
           )}
 
           {loading ? (
-            <p className="py-12 text-center text-gray-500">Loading operators...</p>
+            <p className="py-12 text-center text-slate-400">Loading operators...</p>
           ) : filtered.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No operators found.</p>
+            <p className="py-12 text-center text-slate-400">No operators found.</p>
           ) : (
             <div className="mt-5 overflow-x-auto">
               <table className="w-full min-w-[750px] text-left text-sm">
                 <thead>
-                  <tr className="border-b text-xs uppercase text-gray-500">
+                  <tr className="border-b border-slate-800 text-xs uppercase text-slate-400">
                     <th className="px-4 py-4">Operator</th>
                     <th className="px-4 py-4">Business</th>
                     <th className="px-4 py-4">Email</th>
@@ -191,16 +191,16 @@ export default function OperatorsPage() {
                     const isUpdating = updatingId === operator._id;
 
                     return (
-                      <tr key={operator._id} className="border-b border-gray-50">
-                        <td className="px-4 py-5 font-semibold">{name}</td>
-                        <td className="px-4 py-5 font-medium text-gray-700">
+                      <tr key={operator._id} className="border-b border-slate-800/60 transition hover:bg-slate-800/40">
+                        <td className="px-4 py-5 font-semibold text-white">{name}</td>
+                        <td className="px-4 py-5 font-medium text-slate-300">
                           {operator.operatorApplication?.businessName || "—"}
                         </td>
-                        <td className="px-4 py-5 text-gray-600">{operator.email}</td>
-                        <td className="px-4 py-5 text-gray-600">
+                        <td className="px-4 py-5 text-slate-300">{operator.email}</td>
+                        <td className="px-4 py-5 text-slate-300">
                           {operator.phone || "—"}
                         </td>
-                        <td className="px-4 py-5 text-gray-600">
+                        <td className="px-4 py-5 text-slate-400">
                           {operator.createdAt
                             ? new Date(operator.createdAt).toLocaleDateString()
                             : "—"}
@@ -210,7 +210,7 @@ export default function OperatorsPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => void handleDeactivateOperator(operator)}
-                            className="rounded-lg bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+                            className="rounded-lg border border-rose-900 bg-rose-950/40 px-3.5 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-900/50 disabled:opacity-50"
                           >
                             {isUpdating ? "Deactivating..." : "Deactivate"}
                           </button>

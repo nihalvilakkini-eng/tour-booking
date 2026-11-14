@@ -139,25 +139,25 @@ export default function NotificationsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#0b1116] py-10 px-4 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/35 bg-amber-500/15 text-amber-400 shadow-sm">
                 <Bell size={20} />
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-white sm:text-3xl">
                 Notifications
               </h1>
               {unreadCount > 0 && (
-                <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800">
+                <span className="rounded-full border border-amber-500/35 bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-300">
                   {unreadCount} unread
                 </span>
               )}
             </div>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1.5 text-sm text-slate-400">
               Stay updated on your tour bookings, operator responses, and payments.
             </p>
           </div>
@@ -165,7 +165,7 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => void fetchNotifications()}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#121a22] px-3.5 py-2 text-sm font-medium text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400"
               title="Refresh"
             >
               <RefreshCw size={15} />
@@ -176,7 +176,7 @@ export default function NotificationsPage() {
               <button
                 onClick={() => void markAllAsRead()}
                 disabled={markingAll}
-                className="flex items-center gap-1.5 rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-50"
               >
                 <CheckCheck size={16} />
                 <span>{markingAll ? "Marking..." : "Mark All as Read"}</span>
@@ -186,23 +186,23 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <div className="flex items-center gap-2 border-b border-white/10 pb-3">
           <button
             onClick={() => setActiveTab("all")}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
               activeTab === "all"
-                ? "bg-teal-700 text-white"
-                : "text-slate-600 hover:bg-slate-200/60"
+                ? "bg-amber-500 text-slate-950"
+                : "text-slate-400 hover:bg-white/5 hover:text-white"
             }`}
           >
             All ({notifications.length})
           </button>
           <button
             onClick={() => setActiveTab("unread")}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
               activeTab === "unread"
-                ? "bg-teal-700 text-white"
-                : "text-slate-600 hover:bg-slate-200/60"
+                ? "bg-amber-500 text-slate-950"
+                : "text-slate-400 hover:bg-white/5 hover:text-white"
             }`}
           >
             Unread ({unreadCount})
@@ -211,39 +211,39 @@ export default function NotificationsPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
+          <div className="flex h-64 items-center justify-center rounded-2xl border border-white/10 bg-[#121a22]">
             <div className="text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-              <p className="mt-3 text-sm text-slate-500">Loading notifications...</p>
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+              <p className="mt-3 text-sm text-slate-400">Loading notifications...</p>
             </div>
           </div>
         ) : error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-            <AlertCircle className="mx-auto h-8 w-8 text-red-600" />
-            <p className="mt-2 text-sm font-medium text-red-800">{error}</p>
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+            <AlertCircle className="mx-auto h-8 w-8 text-rose-400" />
+            <p className="mt-2 text-sm font-medium text-rose-200">{error}</p>
             <button
               onClick={() => void fetchNotifications()}
-              className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              className="mt-4 rounded-xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-slate-950 hover:bg-amber-400"
             >
               Try Again
             </button>
           </div>
         ) : filteredNotifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#121a22] py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
               <Bell size={28} />
             </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-900">
+            <h3 className="mt-4 text-base font-semibold text-white">
               {activeTab === "unread" ? "No unread notifications" : "No notifications yet"}
             </h3>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">
+            <p className="mt-1 max-w-sm text-sm text-slate-400">
               {activeTab === "unread"
                 ? "You are all caught up! Switch to 'All' to review previous updates."
                 : "You will receive updates here whenever you book a tour or an operator responds."}
             </p>
             <Link
               href="/bookings"
-              className="mt-5 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800"
+              className="mt-5 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-amber-400"
             >
               View My Bookings
             </Link>
@@ -269,20 +269,20 @@ export default function NotificationsPage() {
                   onClick={() => handleNotificationClick(n)}
                   className={`group relative flex cursor-pointer flex-col gap-3 rounded-2xl border p-5 transition sm:flex-row sm:items-start sm:justify-between ${
                     !n.isRead
-                      ? "border-teal-200 bg-teal-50/40 shadow-sm hover:border-teal-300 hover:bg-teal-50/70"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                      ? "border-amber-500/40 bg-[#121a22] shadow-lg hover:border-amber-400"
+                      : "border-white/10 bg-[#121a22]/70 hover:border-white/25"
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div
                       className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg ${
                         isConfirmed
-                          ? "bg-emerald-100 text-emerald-700"
+                          ? "bg-emerald-500/15 text-emerald-400"
                           : isRejected
-                          ? "bg-rose-100 text-rose-700"
+                          ? "bg-rose-500/15 text-rose-400"
                           : isCancelled
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-teal-100 text-teal-700"
+                          ? "bg-amber-500/15 text-amber-400"
+                          : "bg-amber-500/15 text-amber-400"
                       }`}
                     >
                       {isConfirmed ? (
@@ -296,17 +296,17 @@ export default function NotificationsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <h4
                           className={`text-base font-semibold ${
-                            !n.isRead ? "text-slate-900" : "text-slate-700"
+                            !n.isRead ? "text-white" : "text-slate-300"
                           }`}
                         >
                           {n.title}
                         </h4>
                         {!n.isRead && (
-                          <span className="h-2 w-2 rounded-full bg-teal-600" />
+                          <span className="h-2 w-2 rounded-full bg-amber-400" />
                         )}
                       </div>
 
-                      <p className="text-sm leading-relaxed text-slate-600">
+                      <p className="text-sm leading-relaxed text-slate-400">
                         {n.message}
                       </p>
 
@@ -320,14 +320,14 @@ export default function NotificationsPage() {
                         </span>
 
                         {n.booking && (
-                          <span className="flex items-center gap-1 font-medium text-teal-700">
+                          <span className="flex items-center gap-1 font-medium text-amber-400">
                             <Calendar size={13} />
                             Booking #{n.booking._id.slice(-6).toUpperCase()}
                           </span>
                         )}
 
                         {n.tour?.destination && (
-                          <span className="flex items-center gap-1 text-slate-500">
+                          <span className="flex items-center gap-1 text-slate-400">
                             <MapPin size={13} />
                             {n.tour.destination}
                           </span>
@@ -343,14 +343,14 @@ export default function NotificationsPage() {
                           e.stopPropagation();
                           void markAsRead(n._id);
                         }}
-                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                        className="rounded-lg border border-white/15 bg-[#0b1116] px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:border-amber-500/40 hover:text-amber-400"
                       >
                         Mark as read
                       </button>
                     )}
 
                     {(n.booking?._id || n.tour?._id) && (
-                      <span className="flex items-center gap-1 text-xs font-medium text-teal-700 group-hover:underline">
+                      <span className="flex items-center gap-1 text-xs font-semibold text-amber-400 group-hover:underline">
                         <span>View</span>
                         <ExternalLink size={12} />
                       </span>

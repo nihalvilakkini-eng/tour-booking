@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -132,62 +131,62 @@ export default function AdminToursPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 sm:px-6 lg:px-10">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 sm:px-6 lg:px-10 text-slate-100">
       <div className="mx-auto max-w-7xl">
         <Link
           href="/admin/dashboard"
-          className="mb-6 inline-flex text-sm font-semibold text-[#087f6e] hover:underline"
+          className="mb-6 inline-flex text-sm font-semibold text-teal-400 hover:underline"
         >
           ← Back to Admin Dashboard
         </Link>
 
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#087f6e]">
+            <p className="mb-2 text-sm font-bold uppercase tracking-wider text-teal-400">
               WAYORA Admin
             </p>
 
-            <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold text-white sm:text-4xl">
               Manage Tours
             </h1>
 
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-slate-400">
               View and manage tours available on your platform.
             </p>
           </div>
 
           <Link
             href="/admin/dashboard/tours/create"
-            className="inline-flex items-center justify-center rounded-xl bg-[#087f6e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#066354]"
+            className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-teal-500"
           >
             + Create New Tour
           </Link>
         </div>
 
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-400">
               Active Tours Returned
             </p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+            <p className="mt-2 text-3xl font-bold text-white">
               {loading ? "—" : tours.length}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-400">
               Search Results
             </p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+            <p className="mt-2 text-3xl font-bold text-white">
               {loading ? "—" : filteredTours.length}
             </p>
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm">
           <label
             htmlFor="tour-search"
-            className="mb-2 block text-sm font-semibold text-gray-700"
+            className="mb-2 block text-sm font-semibold text-slate-200"
           >
             Search tours
           </label>
@@ -198,14 +197,14 @@ export default function AdminToursPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by title, destination or activity..."
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-[#087f6e] focus:ring-2 focus:ring-teal-100"
+            className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-950"
           />
         </div>
 
         {error && (
           <div
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300"
           >
             {error}
 
@@ -220,20 +219,20 @@ export default function AdminToursPage() {
         )}
 
         {loading ? (
-          <div className="rounded-2xl bg-white p-12 text-center text-gray-600 shadow-sm">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center text-slate-400 shadow-sm">
             Loading tours...
           </div>
         ) : filteredTours.length === 0 ? (
-          <div className="rounded-2xl border border-gray-100 bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-2xl">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-6 py-16 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-teal-900 bg-teal-950 text-2xl">
               🧭
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-white">
               {search ? "No matching tours found" : "No tours available yet"}
             </h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
               {search
                 ? "Try a different search term."
                 : "Create your first tour to get started with WAYORA."}
@@ -242,7 +241,7 @@ export default function AdminToursPage() {
             {!search && (
               <Link
                 href="/admin/dashboard/tours/create"
-                className="mt-6 inline-flex rounded-xl bg-[#087f6e] px-5 py-3 text-sm font-bold text-white hover:bg-[#066354]"
+                className="mt-6 inline-flex rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white hover:bg-teal-500"
               >
                 Create Your First Tour
               </Link>
@@ -259,74 +258,74 @@ export default function AdminToursPage() {
               return (
                 <article
                   key={tour._id}
-                  className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div className="relative h-48 bg-gray-100">
+                  <div className="relative h-48 bg-slate-800">
                     <TourImage
                       images={tour.images}
                       alt={tour.title}
                       className="object-cover"
                     />
 
-                    <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-[#087f6e]">
+                    <span className="absolute left-3 top-3 rounded-full border border-slate-700 bg-slate-900/95 px-3 py-1 text-xs font-bold text-teal-300">
                       {tour.activityType}
                     </span>
                   </div>
 
                   <div className="space-y-4 p-5">
                     <div>
-                      <h2 className="line-clamp-2 text-lg font-bold text-gray-900">
+                      <h2 className="line-clamp-2 text-lg font-bold text-white">
                         {tour.title}
                       </h2>
 
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-slate-400">
                         📍 {tour.destination}
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 rounded-xl bg-[#f5f8f7] p-3">
+                    <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-800 bg-slate-800/40 p-3">
                       <div>
-                        <p className="text-xs text-gray-500">Price</p>
-                        <p className="mt-1 font-bold text-[#087f6e]">
+                        <p className="text-xs text-slate-400">Price</p>
+                        <p className="mt-1 font-bold text-teal-400">
                           {formatPrice(tour.price, tour.currency)}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-gray-500">Duration</p>
-                        <p className="mt-1 text-sm font-semibold text-gray-800">
+                        <p className="text-xs text-slate-400">Duration</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-200">
                           {tour.duration} {tour.durationUnit}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-slate-400">
                           Max participants
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-gray-800">
+                        <p className="mt-1 text-sm font-semibold text-slate-200">
                           {tour.maxParticipants}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-gray-500">Owner</p>
-                        <p className="mt-1 truncate text-sm font-semibold text-gray-800">
+                        <p className="text-xs text-slate-400">Owner</p>
+                        <p className="mt-1 truncate text-sm font-semibold text-slate-200">
                           {operator || "Tour owner"}
                         </p>
                       </div>
                     </div>
 
-                    <p className="line-clamp-2 text-sm text-gray-600">
+                    <p className="line-clamp-2 text-sm text-slate-300">
                       Meeting point: {tour.meetingPoint}
                     </p>
 
                     <div className="flex items-center gap-3">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tour.isActive === false ? "bg-slate-200 text-slate-600" : "bg-green-50 text-green-700"}`}>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tour.isActive === false ? "border border-slate-700 bg-slate-800 text-slate-300" : "border border-emerald-800 bg-emerald-950 text-emerald-300"}`}>
                         {tour.isActive === false ? "Inactive" : "Active"}
                       </span>
                       <Link
                         href={`/admin/dashboard/tours/${tour._id}/edit`}
-                        className="rounded-lg border border-teal-200 px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
+                        className="rounded-lg border border-teal-800 bg-teal-950/40 px-4 py-2 text-sm font-semibold text-teal-300 transition hover:bg-teal-900/50"
                       >
                         Edit
                       </Link>
@@ -334,7 +333,7 @@ export default function AdminToursPage() {
                         type="button"
                         disabled={deletingId === tour._id || tour.isActive === false}
                         onClick={() => void handleDelete(tour)}
-                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-rose-900 bg-rose-950/40 px-4 py-2 text-sm font-semibold text-rose-300 transition hover:bg-rose-900/50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {deletingId === tour._id
                           ? "Deactivating..."

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -371,16 +370,16 @@ export default function AdminAvailabilityPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 text-gray-900 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-[#0b1116] p-4 text-slate-100 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <header>
-          <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
+          <p className="text-sm font-semibold uppercase tracking-wider text-teal-400">
             Admin Dashboard
           </p>
-          <h1 className="mt-2 text-3xl font-bold">
+          <h1 className="mt-2 text-3xl font-bold text-white">
             Availability Management
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-slate-400">
             Create tour dates and manage the number of available seats.
           </p>
         </header>
@@ -388,7 +387,7 @@ export default function AdminAvailabilityPage() {
         {error && (
           <div
             role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-300"
           >
             {error}
           </div>
@@ -397,15 +396,16 @@ export default function AdminAvailabilityPage() {
         {success && (
           <div
             role="status"
-            className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700"
+            className="rounded-lg border border-emerald-900 bg-emerald-950/50 p-4 text-sm text-emerald-300"
           >
             {success}
           </div>
         )}
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-          <h2 className="text-xl font-semibold">Add Availability</h2>
-          <p className="mt-1 text-sm text-gray-500">
+        {/* Add Availability Section */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-white">Add Availability</h2>
+          <p className="mt-1 text-sm text-slate-400">
             Select a tour, date, time and seat capacity.
           </p>
 
@@ -413,7 +413,7 @@ export default function AdminAvailabilityPage() {
             <div>
               <label
                 htmlFor="tourId"
-                className="mb-2 block text-sm font-medium"
+                className="mb-2 block text-sm font-medium text-slate-200"
               >
                 Select Tour *
               </label>
@@ -423,7 +423,7 @@ export default function AdminAvailabilityPage() {
                 onChange={(event) => setTourId(event.target.value)}
                 required
                 disabled={loading || tours.length === 0}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
               >
                 <option value="">Choose a tour</option>
                 {tours.map((tour) => (
@@ -435,7 +435,7 @@ export default function AdminAvailabilityPage() {
               </select>
 
               {!loading && tours.length === 0 && (
-                <p className="mt-2 text-sm text-amber-700">
+                <p className="mt-2 text-sm text-amber-400">
                   No tours were returned. Create a tour first, and check
                   that the tours API returns tours available for scheduling.
                 </p>
@@ -446,7 +446,7 @@ export default function AdminAvailabilityPage() {
               <div>
                 <label
                   htmlFor="date"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   Availability Date *
                 </label>
@@ -457,14 +457,14 @@ export default function AdminAvailabilityPage() {
                   min={new Date().toLocaleDateString("en-CA")}
                   onChange={(event) => setDate(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="endDate"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   Ending Date *
                 </label>
@@ -475,14 +475,14 @@ export default function AdminAvailabilityPage() {
                   min={date || new Date().toLocaleDateString("en-CA")}
                   onChange={(event) => setEndDate(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="totalSeats"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   Total Seats *
                 </label>
@@ -494,14 +494,14 @@ export default function AdminAvailabilityPage() {
                   value={totalSeats}
                   onChange={(event) => setTotalSeats(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="availableSeats"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   Available Seats *
                 </label>
@@ -513,14 +513,14 @@ export default function AdminAvailabilityPage() {
                   value={availableSeats}
                   onChange={(event) => setAvailableSeats(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="startTime"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   Start Time *
                 </label>
@@ -530,14 +530,14 @@ export default function AdminAvailabilityPage() {
                   value={startTime}
                   onChange={(event) => setStartTime(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="endTime"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-slate-200"
                 >
                   End Time
                 </label>
@@ -546,17 +546,17 @@ export default function AdminAvailabilityPage() {
                   type="time"
                   value={endTime}
                   onChange={(event) => setEndTime(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                 />
               </div>
             </div>
 
-            <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-300">
               <input
                 type="checkbox"
                 checked={slotIsAvailable}
                 onChange={(event) => setSlotIsAvailable(event.target.checked)}
-                className="h-4 w-4 accent-teal-700"
+                className="h-4 w-4 accent-teal-500"
               />
               Active availability
             </label>
@@ -564,18 +564,19 @@ export default function AdminAvailabilityPage() {
             <button
               type="submit"
               disabled={saving || loading || tours.length === 0}
-              className="inline-flex items-center justify-center rounded-lg bg-teal-700 px-5 py-3 font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-lg bg-teal-600 px-5 py-3 font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? "Creating..." : "Create Availability"}
             </button>
           </form>
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-5 sm:p-6">
+        {/* Scheduled Availability Section */}
+        <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 p-5 sm:p-6">
             <div>
-              <h2 className="text-xl font-semibold">Scheduled Availability</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-xl font-semibold text-white">Scheduled Availability</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 Dates and remaining seats returned by the availability API.
               </p>
             </div>
@@ -584,42 +585,42 @@ export default function AdminAvailabilityPage() {
               type="button"
               onClick={() => void loadData()}
               disabled={loading}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
+              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-60"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
           </div>
 
           {loading ? (
-            <p className="p-6 text-gray-500">Loading availability...</p>
+            <p className="p-6 text-slate-400">Loading availability...</p>
           ) : availability.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="font-medium">No availability found</p>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="font-medium text-slate-200">No availability found</p>
+              <p className="mt-2 text-sm text-slate-400">
                 Create an availability slot using the form above.
               </p>
             </div>
           ) : (
             <>
               <div className="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
-                <div className="rounded-xl bg-teal-50 p-4">
-                  <p className="text-sm text-teal-800">Slots returned</p>
-                  <p className="mt-1 text-2xl font-bold text-teal-900">
+                <div className="rounded-xl border border-teal-900/50 bg-teal-950/30 p-4">
+                  <p className="text-sm text-teal-400">Slots returned</p>
+                  <p className="mt-1 text-2xl font-bold text-teal-200">
                     {availability.length}
                   </p>
                 </div>
-                <div className="rounded-xl bg-blue-50 p-4">
-                  <p className="text-sm text-blue-800">Total seats</p>
-                  <p className="mt-1 text-2xl font-bold text-blue-900">
+                <div className="rounded-xl border border-blue-900/50 bg-blue-950/30 p-4">
+                  <p className="text-sm text-blue-400">Total seats</p>
+                  <p className="mt-1 text-2xl font-bold text-blue-200">
                     {availability.reduce(
                       (sum, item) => sum + item.totalSeats,
                       0
                     )}
                   </p>
                 </div>
-                <div className="rounded-xl bg-amber-50 p-4">
-                  <p className="text-sm text-amber-800">Seats available</p>
-                  <p className="mt-1 text-2xl font-bold text-amber-900">
+                <div className="rounded-xl border border-amber-900/50 bg-amber-950/30 p-4">
+                  <p className="text-sm text-amber-400">Seats available</p>
+                  <p className="mt-1 text-2xl font-bold text-amber-200">
                     {availability.reduce(
                       (sum, item) => sum + item.availableSeats,
                       0
@@ -629,8 +630,8 @@ export default function AdminAvailabilityPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left text-sm">
-                  <thead className="bg-gray-50 text-gray-600">
+                <table className="w-full min-w-[760px] text-left text-sm text-slate-300">
+                  <thead className="border-b border-slate-800 bg-slate-950 text-slate-400">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Tour</th>
                       <th className="px-5 py-3 font-semibold">Date</th>
@@ -641,10 +642,10 @@ export default function AdminAvailabilityPage() {
                       <th className="px-5 py-3 font-semibold">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-slate-800">
                     {availability.map((item) => (
-                      <tr key={item._id} className="hover:bg-gray-50">
-                        <td className="px-5 py-4 font-medium">
+                      <tr key={item._id} className="hover:bg-slate-800/50">
+                        <td className="px-5 py-4 font-medium text-white">
                           {getTourTitle(item)}
                         </td>
                         <td className="px-5 py-4">
@@ -660,8 +661,8 @@ export default function AdminAvailabilityPage() {
                           <span
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                               item.isAvailable && item.availableSeats > 0
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-600"
+                                ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
+                                : "bg-slate-800 text-slate-400 border border-slate-700"
                             }`}
                           >
                             {item.isAvailable && item.availableSeats > 0
@@ -675,7 +676,7 @@ export default function AdminAvailabilityPage() {
                               type="button"
                               onClick={() => openEditSlot(item)}
                               disabled={saving}
-                              className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50"
                             >
                               Edit
                             </button>
@@ -683,7 +684,7 @@ export default function AdminAvailabilityPage() {
                               type="button"
                               onClick={() => void toggleAvailability(item)}
                               disabled={saving}
-                              className="rounded-lg border border-teal-200 px-3 py-2 text-xs font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-50"
+                              className="rounded-lg border border-teal-800 bg-teal-950/40 px-3 py-2 text-xs font-semibold text-teal-300 hover:bg-teal-900/50 disabled:opacity-50"
                             >
                               {item.isAvailable ? "Deactivate" : "Activate"}
                             </button>
@@ -691,7 +692,7 @@ export default function AdminAvailabilityPage() {
                               type="button"
                               onClick={() => void deleteSlot(item)}
                               disabled={saving}
-                              className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                              className="rounded-lg border border-red-900 bg-red-950/40 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-900/50 disabled:opacity-50"
                             >
                               Remove
                             </button>
@@ -706,18 +707,19 @@ export default function AdminAvailabilityPage() {
           )}
         </section>
 
+        {/* Edit Modal */}
         {editing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
-              <h2 className="text-xl font-semibold">Edit Availability</h2>
-              <p className="mt-1 text-sm text-gray-500">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl text-slate-100">
+              <h2 className="text-xl font-semibold text-white">Edit Availability</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 {getTourTitle(editing)} — {getDateString(editing.date)}
               </p>
 
               <form onSubmit={saveEditSlot} className="mt-6 space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-date">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-date">
                       Starting Date *
                     </label>
                     <input
@@ -729,12 +731,12 @@ export default function AdminAvailabilityPage() {
                         setEditForm((current) => ({ ...current, date: event.target.value }))
                       }
                       required
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-endDate">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-endDate">
                       Ending Date *
                     </label>
                     <input
@@ -746,12 +748,12 @@ export default function AdminAvailabilityPage() {
                         setEditForm((current) => ({ ...current, endDate: event.target.value }))
                       }
                       required
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-startTime">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-startTime">
                       Start Time *
                     </label>
                     <input
@@ -762,12 +764,12 @@ export default function AdminAvailabilityPage() {
                         setEditForm((current) => ({ ...current, startTime: event.target.value }))
                       }
                       required
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-endTime">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-endTime">
                       End Time
                     </label>
                     <input
@@ -777,12 +779,12 @@ export default function AdminAvailabilityPage() {
                       onChange={(event) =>
                         setEditForm((current) => ({ ...current, endTime: event.target.value }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-totalSeats">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-totalSeats">
                       Total Seats *
                     </label>
                     <input
@@ -795,12 +797,12 @@ export default function AdminAvailabilityPage() {
                         setEditForm((current) => ({ ...current, totalSeats: event.target.value }))
                       }
                       required
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium" htmlFor="edit-availableSeats">
+                    <label className="mb-2 block text-sm font-medium text-slate-200" htmlFor="edit-availableSeats">
                       Available Seats *
                     </label>
                     <input
@@ -813,19 +815,19 @@ export default function AdminAvailabilityPage() {
                         setEditForm((current) => ({ ...current, availableSeats: event.target.value }))
                       }
                       required
-                      className="w-full rounded-lg border border-gray-300 px-3 py-3 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-900"
                     />
                   </div>
                 </div>
 
-                <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                <label className="flex items-center gap-3 text-sm font-medium text-slate-300">
                   <input
                     type="checkbox"
                     checked={editForm.isAvailable}
                     onChange={(event) =>
                       setEditForm((current) => ({ ...current, isAvailable: event.target.checked }))
                     }
-                    className="h-4 w-4 accent-teal-700"
+                    className="h-4 w-4 accent-teal-500"
                   />
                   Active availability
                 </label>
@@ -835,14 +837,14 @@ export default function AdminAvailabilityPage() {
                     type="button"
                     onClick={() => setEditing(null)}
                     disabled={saving}
-                    className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-3 font-semibold text-slate-300 hover:bg-slate-700 disabled:opacity-60"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-lg bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
+                    className="rounded-lg bg-teal-600 px-5 py-3 font-semibold text-white hover:bg-teal-500 disabled:opacity-60"
                   >
                     {saving ? "Saving..." : "Save Changes"}
                   </button>

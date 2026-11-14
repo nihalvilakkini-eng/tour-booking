@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -46,7 +45,18 @@ export default function Navbar() {
 
     async function checkAuthentication() {
       try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("wayora_token") || localStorage.getItem("token")
+            : null;
+
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const response = await fetch("/api/auth/profile", {
+          headers,
           credentials: "include",
           cache: "no-store",
         });
@@ -197,6 +207,11 @@ export default function Navbar() {
       setUnreadMessages(0);
       setMenuOpen(false);
 
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("wayora_token");
+        localStorage.removeItem("token");
+      }
+
       window.dispatchEvent(new Event("wayora-auth-change"));
 
       router.replace("/");
@@ -279,14 +294,14 @@ export default function Navbar() {
       <div className="nav-inner container">
         <Link
           href="/"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2.5"
           onClick={() => setMenuOpen(false)}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
             <Compass size={24} />
           </div>
 
-          <span className="text-2xl font-bold tracking-wide text-emerald-900">
+          <span className="text-2xl font-bold tracking-widest text-white">
             WAYORA
           </span>
         </Link>
@@ -311,7 +326,11 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
               className={`nav-item ${
                 item.label === "Register" ? "nav-register" : ""
-              } ${item.icon ? "nav-icon-only" : ""}`}
+              } ${item.icon ? "nav-icon-only" : ""} ${
+                pathname === item.href && item.label !== "Register"
+                  ? "nav-active"
+                  : ""
+              }`}
             >
               {item.icon ? (
                 renderIcon(item.icon)
@@ -344,10 +363,10 @@ export default function Navbar() {
           position: sticky;
           top: 0;
           z-index: 50;
-          background: rgba(251, 252, 250, 0.94);
-          border-bottom: 1px solid #e1e8e3;
-          box-shadow: 0 4px 18px rgba(23, 45, 37, 0.045);
-          backdrop-filter: blur(16px);
+          background: rgba(11, 17, 22, 0.88);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(18px);
         }
 
         .nav-inner {
@@ -364,6 +383,7 @@ export default function Navbar() {
           gap: 23px;
           font-size: 13px;
           font-weight: 600;
+          color: #cbd5e1;
         }
 
         .nav-item {
@@ -375,26 +395,40 @@ export default function Navbar() {
           transition: color 0.18s ease;
         }
 
-        .nav-item:hover {
-          color: #087f6e;
+        .nav-item:hover,
+        .nav-active {
+          color: #fbbf24;
         }
 
         .nav-icon-only {
           justify-content: center;
           padding: 7px;
+          border-radius: 10px;
+          transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .nav-icon-only:hover {
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .nav-register {
-          padding: 11px 17px;
-          border-radius: 8px;
-          background: #087f6e;
-          color: white !important;
+          padding: 10px 18px;
+          border-radius: 10px;
+          background: #f59e0b;
+          color: #090d11 !important;
+          font-weight: 700;
+          transition: background 0.18s ease, transform 0.18s ease;
+        }
+
+        .nav-register:hover {
+          background: #fbbf24;
         }
 
         .logout-button {
           border: none;
           cursor: pointer;
           font: inherit;
+          font-weight: 700;
         }
 
         .notification-badge {
@@ -405,18 +439,20 @@ export default function Navbar() {
           height: 18px;
           padding: 0 5px;
           border-radius: 999px;
-          background: #e11d48;
-          color: white;
+          background: #f59e0b;
+          color: #090d11;
+          font-weight: 800;
           font-size: 10px;
         }
 
         .menu-toggle {
           display: none;
           padding: 8px 10px;
-          border: 1px solid #e1e8e3;
-          border-radius: 8px;
-          background: transparent;
-          font-size: 22px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.04);
+          color: #f8fafc;
+          font-size: 20px;
         }
 
         @media (max-width: 900px) {
@@ -435,8 +471,8 @@ export default function Navbar() {
             left: 0;
             right: 0;
             padding: 18px 24px 22px;
-            background: #fbfcfa;
-            border-bottom: 1px solid #e1e8e3;
+            background: #0f171e;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             flex-direction: column;
             align-items: stretch;
             gap: 17px;

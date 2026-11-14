@@ -70,43 +70,43 @@ export default function AdminReviewsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin/dashboard" className="text-sm font-semibold text-[#087f6e] hover:underline">
+        <Link href="/admin/dashboard" className="text-sm font-semibold text-teal-400 hover:underline">
           ← Back to Dashboard
         </Link>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#087f6e]">
+            <p className="text-sm font-semibold uppercase tracking-widest text-teal-400">
               WAYORA Admin
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Reviews Management</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="mt-2 text-3xl font-bold text-white">Reviews Management</h1>
+            <p className="mt-2 text-sm text-slate-400">
               Review customer feedback across tours.
             </p>
           </div>
 
-          <div className="rounded-xl bg-white px-5 py-4 shadow-sm">
-            <p className="text-sm text-gray-500">Total reviews</p>
-            <p className="text-2xl font-bold text-[#087f6e]">{reviews.length}</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 px-5 py-4 shadow-sm">
+            <p className="text-sm text-slate-400">Total reviews</p>
+            <p className="text-2xl font-bold text-teal-400">{reviews.length}</p>
           </div>
         </div>
 
-        <section className="mt-7 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-7 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6">
           <div className="grid gap-3 sm:grid-cols-2">
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search customer, tour or review..."
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             />
 
             <select
               value={ratingFilter}
               onChange={(event) => setRatingFilter(event.target.value)}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#087f6e]"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-teal-500"
             >
               <option value="all">All ratings</option>
               <option value="5">5 stars</option>
@@ -118,15 +118,15 @@ export default function AdminReviewsPage() {
           </div>
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">
+            <p className="mt-4 rounded-xl border border-rose-900 bg-rose-950/50 p-4 text-sm text-rose-300">
               {error}
             </p>
           )}
 
           {loading ? (
-            <p className="py-12 text-center text-gray-500">Loading reviews...</p>
+            <p className="py-12 text-center text-slate-400">Loading reviews...</p>
           ) : filtered.length === 0 ? (
-            <p className="py-12 text-center text-gray-500">No reviews found.</p>
+            <p className="py-12 text-center text-slate-400">No reviews found.</p>
           ) : (
             <div className="mt-5 space-y-4">
               {filtered.map((review) => {
@@ -138,22 +138,22 @@ export default function AdminReviewsPage() {
                 return (
                   <article
                     key={review._id}
-                    className="rounded-xl border border-gray-100 p-5 transition hover:border-[#c6e4dd]"
+                    className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 transition hover:border-teal-900/50"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h2 className="font-bold">
+                        <h2 className="font-bold text-white">
                           {tour?.title || tour?.name ||
                             (typeof review.tour === "string" ? review.tour : "Tour review")}
                         </h2>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-slate-400">
                           By {user?.name ||
                             (typeof review.user === "string" ? review.user : "Unknown user")}
                           {user?.email ? ` · ${user.email}` : ""}
                         </p>
                       </div>
 
-                      <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
+                      <div className="rounded-lg border border-amber-800 bg-amber-950/40 px-3 py-2 text-sm font-semibold text-amber-300">
                         {"★".repeat(Math.max(0, Math.min(5, review.rating ?? 0)))}
                         {"☆".repeat(5 - Math.max(0, Math.min(5, review.rating ?? 0)))}
                         <span className="ml-2">{review.rating ?? "—"}/5</span>
@@ -161,14 +161,14 @@ export default function AdminReviewsPage() {
                     </div>
 
                     {review.title && (
-                      <h3 className="mt-4 font-semibold">{review.title}</h3>
+                      <h3 className="mt-4 font-semibold text-slate-200">{review.title}</h3>
                     )}
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-300">
                       {review.comment || review.review || "No written feedback."}
                     </p>
 
-                    <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-400">
+                    <div className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-500">
                       {review.createdAt
                         ? new Date(review.createdAt).toLocaleDateString()
                         : "Date unavailable"}

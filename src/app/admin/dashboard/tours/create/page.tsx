@@ -13,9 +13,9 @@ import TourItineraryBuilder, {
 } from "@/components/forms/TourItineraryBuilder";
 
 const inputClass =
-  "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-100";
+  "w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
 
-const labelClass = "mb-2 block text-sm font-semibold text-gray-700";
+const labelClass = "mb-2 block text-sm font-semibold text-slate-200";
 
 const initialForm = {
   title: "",
@@ -26,7 +26,7 @@ const initialForm = {
   durationUnit: "hours",
   price: "",
   currency: "INR",
-  maxParticipants: "10",
+  maxParticipants: "20",
   meetingPoint: "",
   itinerary: "",
   highlights: "",
@@ -56,8 +56,8 @@ const emptyAvailabilitySlot: AvailabilitySlot = {
   endDate: "",
   startTime: "09:00",
   endTime: "",
-  totalSeats: "10",
-  availableSeats: "10",
+  totalSeats: "20",
+  availableSeats: "20",
   isAvailable: true,
 };
 
@@ -187,9 +187,7 @@ export default function AdminCreateTourPage() {
       return;
     }
 
-    const duration = Number(form.duration);
-    const price = Number(form.price);
-    const maxParticipants = Number(form.maxParticipants);
+    let effectiveMaxParticipants = Number(form.maxParticipants);
 
     if (!Number.isFinite(duration) || duration < 1) {
       setError("Duration must be at least 1.");
@@ -201,7 +199,7 @@ export default function AdminCreateTourPage() {
       return;
     }
 
-    if (!Number.isInteger(maxParticipants) || maxParticipants < 1) {
+    if (!Number.isInteger(effectiveMaxParticipants) || effectiveMaxParticipants < 1) {
       setError("Maximum participants must be at least 1.");
       return;
     }
@@ -241,12 +239,15 @@ export default function AdminCreateTourPage() {
         setError(`${label} end time must be after start time.`);
         return;
       }
-      if (!Number.isInteger(total) || total < 1 || total > maxParticipants) {
-        setError(`${label} total seats must be between 1 and ${maxParticipants}.`);
+      if (!Number.isInteger(total) || total < 1) {
+        setError(`${label} total seats must be a whole number greater than 0.`);
         return;
       }
+      if (total > effectiveMaxParticipants) {
+        effectiveMaxParticipants = total;
+      }
       if (!Number.isInteger(available) || available < 0 || available > total) {
-        setError(`${label} available seats are invalid.`);
+        setError(`${label} available seats must be between 0 and total seats.`);
         return;
       }
       if (seenSlots.has(key)) {
@@ -266,7 +267,7 @@ export default function AdminCreateTourPage() {
     data.append("durationUnit", form.durationUnit);
     data.append("price", String(price));
     data.append("currency", form.currency);
-    data.append("maxParticipants", String(maxParticipants));
+    data.append("maxParticipants", String(effectiveMaxParticipants));
     data.append("meetingPoint", form.meetingPoint.trim());
 
     // Selected operator
@@ -349,26 +350,26 @@ export default function AdminCreateTourPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 sm:px-6 lg:px-10">
+    <main className="min-h-screen bg-slate-900 px-4 py-8 text-slate-100 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-5xl">
         <button
           type="button"
           onClick={() => router.push("/admin/dashboard")}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#087f6e] hover:underline"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-amber-400 hover:text-amber-300"
         >
           ← Back to Admin Dashboard
         </button>
 
         <div className="mb-8">
-          <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#087f6e]">
+          <p className="mb-2 text-sm font-bold uppercase tracking-wider text-amber-400">
             WAYORA Admin
           </p>
 
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Create a New Tour
           </h1>
 
-          <p className="mt-3 text-gray-600">
+          <p className="mt-3 text-slate-400">
             Add tour information, assign an operator, pricing,
             activities and images.
           </p>
@@ -376,12 +377,12 @@ export default function AdminCreateTourPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8"
+          className="space-y-8 rounded-2xl border border-slate-800 bg-slate-850 p-5 shadow-2xl sm:p-8"
         >
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"
             >
               {error}
             </div>
@@ -390,14 +391,14 @@ export default function AdminCreateTourPage() {
           {success && (
             <div
               role="status"
-              className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700"
+              className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300"
             >
               {success}
             </div>
           )}
 
           <section>
-            <h2 className="mb-5 text-xl font-bold text-gray-900">
+            <h2 className="mb-5 text-xl font-bold text-white">
               1. Basic Information
             </h2>
 
@@ -528,10 +529,10 @@ export default function AdminCreateTourPage() {
             </div>
           </section>
 
-          <hr className="border-gray-100" />
+          <hr className="border-slate-800" />
 
           <section>
-            <h2 className="mb-5 text-xl font-bold text-gray-900">
+            <h2 className="mb-5 text-xl font-bold text-white">
               2. Duration and Pricing
             </h2>
 
@@ -646,17 +647,17 @@ export default function AdminCreateTourPage() {
             </div>
           </section>
 
-          <hr className="border-gray-100" />
+          <hr className="border-slate-800" />
 
           <TourItineraryBuilder days={itineraryDays} onChange={setItineraryDays} />
 
           <section>
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-white">
                   Tour Availability
                 </h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-400">
                   Add one or more bookable date slots. These are saved with the tour.
                 </p>
               </div>
@@ -668,7 +669,7 @@ export default function AdminCreateTourPage() {
                     { ...emptyAvailabilitySlot },
                   ])
                 }
-                className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-100"
+                className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-400 hover:bg-amber-500/20"
               >
                 + Add Slot
               </button>
@@ -678,10 +679,10 @@ export default function AdminCreateTourPage() {
               {availabilitySlots.map((slot, index) => (
                 <div
                   key={index}
-                  className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4"
+                  className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4"
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-bold text-slate-200">
                       Slot {index + 1}
                     </p>
                     <button
@@ -691,7 +692,7 @@ export default function AdminCreateTourPage() {
                           previous.filter((_, slotIndex) => slotIndex !== index)
                         )
                       }
-                      className="text-sm font-semibold text-red-600 hover:underline"
+                      className="text-sm font-semibold text-rose-400 hover:underline"
                     >
                       Remove
                     </button>
@@ -831,14 +832,14 @@ export default function AdminCreateTourPage() {
             </div>
           </section>
 
-          <hr className="border-gray-100" />
+          <hr className="border-slate-800" />
 
           <section>
-            <h2 className="mb-2 text-xl font-bold text-gray-900">
+            <h2 className="mb-2 text-xl font-bold text-white">
               4. Tour Images
             </h2>
 
-            <p className="mb-5 text-sm text-gray-500">
+            <p className="mb-5 text-sm text-slate-400">
               Upload up to 10 images. Each image must be smaller
               than 10 MB. Uploading images requires valid
               Cloudinary configuration.
@@ -853,7 +854,7 @@ export default function AdminCreateTourPage() {
               type="file"
               accept="image/*"
               multiple
-              className={`${inputClass} file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:font-semibold file:text-teal-800`}
+              className={`${inputClass} file:mr-4 file:rounded-lg file:border-0 file:bg-amber-500/15 file:px-4 file:py-2 file:font-semibold file:text-amber-400 hover:file:bg-amber-500/25`}
               onChange={(e) => {
                 setImages(Array.from(e.target.files ?? []));
                 setError("");
@@ -861,18 +862,18 @@ export default function AdminCreateTourPage() {
             />
 
             {images.length > 0 && (
-              <p className="mt-3 text-sm text-gray-600">
+              <p className="mt-3 text-sm text-slate-400">
                 {images.length} image(s) selected:{" "}
                 {images.map((image) => image.name).join(", ")}
               </p>
             )}
           </section>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-800 pt-6 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => router.push("/admin/dashboard")}
-              className="rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700"
               disabled={loading}
             >
               Cancel
@@ -885,7 +886,7 @@ export default function AdminCreateTourPage() {
                 operatorsLoading ||
                 operators.length === 0
               }
-              className="rounded-xl bg-[#087f6e] px-7 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#066354] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl bg-amber-500 px-7 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Creating Tour..." : "Create Tour"}
             </button>

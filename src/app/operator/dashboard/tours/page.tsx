@@ -86,54 +86,56 @@ export default function OperatorToursPage() {
   }, [tours, search]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-teal-700">WAYORA PARTNER</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">My Tours</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400">
+            ✦ WAYORA PARTNER
+          </p>
+          <h1 className="mt-2 text-3xl font-extrabold text-white">My Tours</h1>
+          <p className="mt-2 text-sm text-slate-400">
             Manage the tour experiences created by your operator account.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2.5">
           <button
             type="button"
             onClick={() => void loadTours()}
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#121a22] px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400 disabled:opacity-50"
           >
             <RefreshCw size={16} /> Refresh
           </button>
           <Link
             href="/operator/tour/add"
-            className="rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+            className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
           >
-            Add Tour
+            + Add Tour
           </Link>
         </div>
       </header>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="rounded-xl border border-rose-500/35 bg-rose-500/10 p-4 text-sm text-rose-300">
           {error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <section className="rounded-2xl border border-white/10 bg-[#121a22] p-5 shadow-lg">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h2 className="font-bold text-slate-900">Your tour listings</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="font-bold text-white">Your tour listings</h2>
+            <p className="mt-1 text-sm text-slate-400">
               {loading ? "Loading..." : `${filteredTours.length} tour(s) found`}
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
-            <Search size={17} className="text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#0b1116] px-3 py-2.5 focus-within:border-amber-500/50">
+            <Search size={17} className="text-amber-400" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search tours..."
-              className="w-full bg-transparent text-sm outline-none sm:w-64"
+              className="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none sm:w-64"
             />
           </div>
         </div>
@@ -142,22 +144,25 @@ export default function OperatorToursPage() {
       {loading ? (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="animate-pulse overflow-hidden rounded-2xl border border-slate-200">
-              <div className="h-52 bg-slate-200" />
+            <div
+              key={item}
+              className="animate-pulse overflow-hidden rounded-2xl border border-white/10 bg-[#121a22]"
+            >
+              <div className="h-52 bg-white/5" />
               <div className="space-y-3 p-5">
-                <div className="h-5 w-3/4 rounded bg-slate-200" />
-                <div className="h-4 w-1/2 rounded bg-slate-200" />
-                <div className="h-10 rounded bg-slate-200" />
+                <div className="h-5 w-3/4 rounded bg-white/10" />
+                <div className="h-4 w-1/2 rounded bg-white/10" />
+                <div className="h-10 rounded bg-white/10" />
               </div>
             </div>
           ))}
         </div>
       ) : filteredTours.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-          <p className="font-semibold text-slate-800">
+        <div className="rounded-2xl border border-white/10 bg-[#121a22] p-12 text-center">
+          <p className="font-semibold text-white">
             {search ? "No matching tours" : "No tours yet"}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             {search
               ? "Try a different search term."
               : "Create your first tour to start receiving bookings."}
@@ -165,7 +170,7 @@ export default function OperatorToursPage() {
           {!search && (
             <Link
               href="/operator/tour/add"
-              className="mt-5 inline-flex rounded-xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800"
+              className="mt-5 inline-flex rounded-xl bg-amber-500 px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-400"
             >
               Create Your First Tour
             </Link>
@@ -176,17 +181,17 @@ export default function OperatorToursPage() {
           {filteredTours.map((tour) => (
             <article
               key={tour._id}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121a22] shadow-xl transition hover:-translate-y-1 hover:border-amber-500/40"
             >
-              <div className="relative h-52 shrink-0 overflow-hidden bg-slate-100">
+              <div className="relative h-52 shrink-0 overflow-hidden bg-[#0b1116]">
                 <TourImage
                   images={tour.images}
                   image={tour.images?.[0]}
                   alt={tour.title}
-                  className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                  className="object-cover transition duration-300 group-hover:scale-[1.03]"
                 />
                 {tour.activityType && (
-                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm">
+                  <span className="absolute left-3 top-3 rounded-full border border-amber-500/35 bg-[#0b1116]/90 px-3 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-md">
                     {tour.activityType}
                   </span>
                 )}
@@ -195,11 +200,11 @@ export default function OperatorToursPage() {
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h3 className="line-clamp-2 text-lg font-bold text-slate-900">
+                    <h3 className="line-clamp-2 text-lg font-bold text-white">
                       {tour.title}
                     </h3>
-                    <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
-                      <MapPin size={14} className="shrink-0" />
+                    <p className="mt-1 flex items-center gap-1 text-sm text-slate-400">
+                      <MapPin size={14} className="shrink-0 text-amber-400" />
                       <span className="truncate">
                         {tour.destination || "Destination not specified"}
                       </span>
@@ -207,47 +212,47 @@ export default function OperatorToursPage() {
                   </div>
                 </div>
 
-                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">
                   {tour.description || "No description provided."}
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
-                  <span className="rounded-lg bg-slate-100 px-3 py-2">
+                <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
+                  <span className="rounded-lg border border-white/10 bg-[#0b1116] px-3 py-1.5">
                     {tour.duration ?? "—"} {tour.durationUnit || "hours"}
                   </span>
                   {tour.maxParticipants != null && (
-                    <span className="rounded-lg bg-slate-100 px-3 py-2">
+                    <span className="rounded-lg border border-white/10 bg-[#0b1116] px-3 py-1.5">
                       Up to {tour.maxParticipants} guests
                     </span>
                   )}
                   <span
-                    className={`rounded-lg px-3 py-2 ${
+                    className={`rounded-lg border px-3 py-1.5 font-semibold ${
                       tour.isActive === false
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-emerald-100 text-emerald-700"
+                        ? "border-rose-500/35 bg-rose-500/15 text-rose-300"
+                        : "border-emerald-500/35 bg-emerald-500/15 text-emerald-300"
                     }`}
                   >
                     {tour.isActive === false ? "Inactive" : "Active"}
                   </span>
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
                   <div>
                     <p className="text-xs text-slate-500">Price</p>
-                    <p className="mt-0.5 text-lg font-bold text-teal-700">
+                    <p className="mt-0.5 text-lg font-extrabold text-amber-400">
                       {formatPrice(tour)}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link
                       href={`/operator/dashboard/tours/${tour._id}`}
-                      className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#0b1116] px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400"
                     >
                       View Details
                     </Link>
                     <Link
                       href={`/operator/tours/${tour._id}/edit`}
-                      className="flex items-center gap-1.5 rounded-xl bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-800"
+                      className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-amber-400"
                     >
                       <Pencil size={14} /> Edit Tour
                     </Link>

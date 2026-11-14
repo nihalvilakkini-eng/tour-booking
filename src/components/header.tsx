@@ -15,7 +15,18 @@ export default function Header() {
   useEffect(() => {
     async function loadProfile() {
       try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("wayora_token") || localStorage.getItem("token")
+            : null;
+
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const response = await fetch("/api/auth/profile", {
+          headers,
           credentials: "include",
           cache: "no-store",
         });
@@ -26,7 +37,7 @@ export default function Header() {
         }
 
         const data = await response.json();
-        setUser(data.user ?? data.profile ?? null);
+        setUser(data.data ?? data.user ?? data.profile ?? null);
       } catch {
         setUser(null);
       }
@@ -42,6 +53,10 @@ export default function Header() {
         credentials: "include",
       });
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("wayora_token");
+        localStorage.removeItem("token");
+      }
       setUser(null);
       window.location.href = "/login";
     }

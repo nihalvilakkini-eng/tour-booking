@@ -192,38 +192,38 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f5f8f7] px-4 py-8 text-[#172b27] sm:px-8">
+    <main className="min-h-screen bg-[#0b1116] px-4 py-8 text-slate-100 sm:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Dashboard header */}
         <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#087f6e]">
-              WAYORA Administration
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-amber-400">
+              ✦ WAYORA ADMINISTRATION
             </p>
 
-            <h1 className="text-3xl font-bold sm:text-4xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Admin Dashboard
             </h1>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-400">
               Manage tours, operators, applications, customers and bookings from one place.
             </p>
           </div>
 
           <Link
             href="/"
-            className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold transition hover:border-[#087f6e]"
+            className="rounded-xl border border-white/15 bg-[#121a22] px-5 py-3 text-sm font-semibold text-slate-200 shadow-sm transition hover:border-amber-500/50 hover:text-amber-400"
           >
             View Website ↗
           </Link>
         </header>
 
         {/* Quick actions */}
-        <section className="mb-8 rounded-2xl border border-[#d6eae5] bg-white p-5 shadow-sm sm:p-6">
+        <section className="mb-8 rounded-2xl border border-white/10 bg-[#121a22] p-5 shadow-xl sm:p-6">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-xl font-bold">Quick Actions</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-xl font-bold text-white">Quick Actions</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 Review applications, create tours and manage your platform.
               </p>
             </div>
@@ -231,21 +231,21 @@ export default function AdminDashboardPage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/admin/dashboard/operator-applications"
-                className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-600"
+                className="inline-flex items-center justify-center rounded-xl bg-amber-500 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
               >
                 📋 Review Applications ({loading ? "…" : stats.applications})
               </Link>
 
               <Link
                 href="/admin/dashboard/tours/create"
-                className="inline-flex items-center justify-center rounded-xl bg-[#087f6e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#066354]"
+                className="inline-flex items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/15 px-5 py-3 text-sm font-bold text-amber-300 transition hover:bg-amber-500/25"
               >
                 + Create Tour
               </Link>
 
               <Link
                 href="/admin/dashboard/tours"
-                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold transition hover:border-[#087f6e] hover:text-[#087f6e]"
+                className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-[#0b1116] px-5 py-3 text-sm font-bold text-slate-200 transition hover:border-amber-500/40 hover:text-amber-400"
               >
                 Manage Tours →
               </Link>
@@ -255,9 +255,9 @@ export default function AdminDashboardPage() {
 
         {/* API errors */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
-            <p className="mt-1 text-xs">
+          <div className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
+            <p className="font-semibold text-white">{error}</p>
+            <p className="mt-1 text-xs text-rose-300">
               Check your admin dashboard API and make sure you are logged in with an admin account.
             </p>
           </div>
@@ -265,33 +265,35 @@ export default function AdminDashboardPage() {
 
         {/* Statistics */}
         <section>
-          <h2 className="mb-4 text-xl font-bold">Platform Overview</h2>
+          <h2 className="mb-4 text-xl font-bold text-white">Platform Overview</h2>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {sections.map((section) => (
               <Link
                 key={section.key}
                 href={section.href}
-                className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-[#b9dfd7] hover:shadow-md"
+                className="group rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-lg transition hover:-translate-y-1 hover:border-amber-500/45 hover:shadow-2xl"
               >
                 <div className="mb-5 flex items-center justify-between">
-                  <span className="text-3xl">{section.icon}</span>
-                  <span className="text-sm text-gray-400 transition group-hover:text-[#087f6e]">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10 text-2xl">
+                    {section.icon}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-400 transition group-hover:text-amber-400">
                     Open →
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold">{section.title}</h3>
+                <h3 className="text-lg font-bold text-white">{section.title}</h3>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-400">
                   {section.description}
                 </p>
 
-                <p className="mt-5 text-2xl font-bold text-[#087f6e]">
+                <p className="mt-5 text-3xl font-extrabold text-amber-400">
                   {loading ? "—" : stats[section.key]}
                 </p>
 
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">
                   {section.countLabel}
                 </p>
               </Link>
@@ -301,24 +303,28 @@ export default function AdminDashboardPage() {
 
         {/* Additional management modules */}
         <section className="mt-10">
-          <h2 className="mb-4 text-xl font-bold">More Management</h2>
+          <h2 className="mb-4 text-xl font-bold text-white">More Management</h2>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {managementLinks.map((item) => (
               <Link
                 key={item.title}
                 href={item.href}
-                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-[#b9dfd7] hover:shadow-md"
+                className="group rounded-2xl border border-white/10 bg-[#121a22] p-5 shadow-lg transition hover:-translate-y-0.5 hover:border-amber-500/40"
               >
-                <span className="text-2xl">{item.icon}</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#0b1116] text-xl">
+                  {item.icon}
+                </span>
 
-                <h3 className="mt-4 font-bold">{item.title}</h3>
+                <h3 className="mt-4 font-bold text-white group-hover:text-amber-300 transition">
+                  {item.title}
+                </h3>
 
-                <p className="mt-2 text-sm leading-5 text-gray-500">
+                <p className="mt-2 text-sm leading-5 text-slate-400">
                   {item.description}
                 </p>
 
-                <p className="mt-4 text-sm font-semibold text-[#087f6e]">
+                <p className="mt-4 text-sm font-semibold text-amber-400">
                   Open module →
                 </p>
               </Link>
@@ -327,23 +333,23 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Footer banner */}
-        <section className="mt-10 rounded-2xl bg-[#087f6e] p-6 text-white sm:p-8">
-          <p className="text-sm font-medium text-white/75">
-            WAYORA Platform Management
+        <section className="mt-10 rounded-3xl border border-amber-500/30 bg-gradient-to-br from-[#121a22] via-[#16202a] to-[#0b1116] p-6 text-white shadow-2xl sm:p-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-amber-400">
+            ✦ WAYORA PLATFORM MANAGEMENT
           </p>
 
-          <h2 className="mt-2 text-2xl font-bold">
+          <h2 className="mt-2 text-2xl font-extrabold text-white">
             Manage your travel marketplace
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
             Review incoming operator applications, create tours, manage operators, review bookings and monitor activity
             across your travel booking platform.
           </p>
 
           <Link
             href="/admin/dashboard/operator-applications"
-            className="mt-5 inline-flex rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#087f6e] transition hover:bg-gray-100"
+            className="mt-5 inline-flex rounded-xl bg-amber-500 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
           >
             Review Operator Applications →
           </Link>

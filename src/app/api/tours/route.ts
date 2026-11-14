@@ -160,7 +160,7 @@ if (role === "admin") {
 
     const duration = Number(durationValue);
     const price = Number(priceValue);
-    const maxParticipants = Number(maxParticipantsValue);
+    let maxParticipants = Number(maxParticipantsValue);
     const currency = priceCurrency || "INR";
 
     // Convert comma-separated values into arrays
@@ -416,14 +416,9 @@ if (role === "admin") {
           );
         }
 
+        // Dynamically adjust tour maximum participants if slot capacity is larger
         if (slotTotalSeats > maxParticipants) {
-          return NextResponse.json(
-            {
-              success: false,
-              message: `${label} cannot exceed maximum participants (${maxParticipants})`,
-            },
-            { status: 400 }
-          );
+          maxParticipants = slotTotalSeats;
         }
 
         if (

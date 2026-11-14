@@ -6,14 +6,14 @@
 :root {
   --primary: #0e715d;
   --primary-dark: #095443;
-  --text: #1a2e27;
-  --muted: #68786f;
-  --background: #fcfdfb;
-  --soft-bg: #f2f6f3;
-  --border: #e0e8e2;
-  --accent: #bd8751;
-  --surface: #ffffff;
-  --shadow-card: 0 10px 28px rgba(23, 45, 37, 0.075);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --background: #0f172a;
+  --soft-bg: #1e293b;
+  --border: #334155;
+  --accent: #f59e0b;
+  --surface: #1e293b;
+  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.45);
   --site-content-max: 1500px;
   --site-gutter: 64px;
 }
@@ -25,12 +25,13 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--text);
+  background-color: #0f172a;
+  color: #f1f5f9;
   font-family: "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -42,7 +43,7 @@ h2,
 h3,
 h4 {
   font-family: "Manrope", sans-serif;
-  color: var(--text);
+  color: #f8fafc;
 }
 
 a {
@@ -2987,4 +2988,342 @@ body {
 .operator-dashboard-shell .min-h-screen,
 .admin-shell .min-h-screen {
   min-height: 0;
+}
+/* === Model 2 Dark Luxury Overrides for Destinations, Experiences & SearchBar === */
+.destinations {
+  background: #0b1116 !important;
+  color: #f8fafc !important;
+}
+
+.destinations .eyebrow {
+  color: #f59e0b !important;
+}
+
+.destinations .section-heading {
+  color: #ffffff !important;
+}
+
+.destinations .section-description {
+  color: #94a3b8 !important;
+}
+
+.destination-card {
+  background: #121a22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+/* Prevent White/Teal Flash on Initial Load */
+html,
+body {
+  background-color: #0b1116 !important;
+  color: #f1f5f9 !important;
+}
+
+.hero,
+.tours-hero {
+  background-color: #0b1116 !important;
+  background-image: none !important;
+}
+
+.tours-hero {
+  background-image: url("https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=2000&q=85") !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.search-box {
+  background: rgba(18, 26, 34, 0.88) !important;
+  border: 1px solid rgba(245, 158, 11, 0.28) !important;
+  color: #f8fafc !important;
+}
+/* Replace all remaining Dark Green (#172b27) & Teal (#087f6e) colors globally */
+h1,
+h2,
+h3,
+h4,
+.tour-detail-title,
+.tour-header h1 {
+  color: #ffffff !important;
+}
+
+/* Override any hardcoded dark green text (#172b27) */
+[style*="#172b27"],
+.text-\[\#172b27\] {
+  color: #f8fafc !important;
+}
+
+/* Override Teal / Emerald text classes to Golden Amber */
+.text-\[\#087f6e\],
+.text-teal-600,
+.text-teal-700,
+.text-teal-800,
+.text-emerald-600,
+.text-emerald-700,
+.text-emerald-800 {
+  color: #fbbf24 !important;
+}
+
+/* Override Teal / Emerald buttons & backgrounds to Golden Amber */
+.bg-\[\#087f6e\],
+.bg-teal-600,
+.bg-teal-700,
+.bg-teal-800,
+.bg-emerald-600,
+.bg-emerald-700,
+.bg-emerald-800 {
+  background-color: #f59e0b !important;
+  color: #090d11 !important;
+}
+
+/* Override light green/teal badge backgrounds */
+.bg-teal-50,
+.bg-emerald-50,
+.bg-\[\#f5f8f7\],
+.bg-\[\#F7FAF8\] {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Override green borders */
+.border-\[\#087f6e\],
+.border-\[\#d6eae5\],
+.border-\[\#b9dfd7\],
+.border-teal-200,
+.border-emerald-200 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+/* Force Dark Luxury Theme on Operator & Admin Sidebars and Shells */
+.operator-dashboard-shell aside,
+.admin-shell aside {
+  background-color: #121a22 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+.operator-dashboard-shell,
+.admin-shell {
+  background-color: #0b1116 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Fix dark green headings inside dashboards */
+.operator-dashboard-shell h1,
+.operator-dashboard-shell h2,
+.operator-dashboard-shell h3,
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3 {
+  color: #ffffff !important;
+}
+
+/* Convert white cards inside operator/admin dashboards to dark cards */
+.operator-dashboard-shell .bg-white,
+.admin-shell .bg-white {
+  background-color: #121a22 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Convert light gray inner boxes (like Starting Date / Time boxes) to #0b1116 */
+.operator-dashboard-shell .bg-slate-50,
+.operator-dashboard-shell .bg-gray-50,
+.operator-dashboard-shell .bg-slate-100,
+.operator-dashboard-shell .bg-gray-100,
+.admin-shell .bg-slate-50,
+.admin-shell .bg-gray-50 {
+  background-color: #0b1116 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+}
+
+/* Fix dark text inside cards */
+.operator-dashboard-shell .text-gray-900,
+.operator-dashboard-shell .text-slate-900,
+.operator-dashboard-shell .text-gray-800,
+.operator-dashboard-shell .text-slate-800,
+.admin-shell .text-gray-900,
+.admin-shell .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.operator-dashboard-shell .text-gray-600,
+.operator-dashboard-shell .text-gray-500,
+.operator-dashboard-shell .text-slate-600,
+.operator-dashboard-shell .text-slate-500 {
+  color: #94a3b8 !important;
+}
+/* Fix dim/dark text inside dark luxury cards globally */
+.operator-dashboard-shell article p,
+.operator-dashboard-shell span,
+.operator-dashboard-shell a,
+.admin-shell article p,
+.admin-shell span,
+.admin-shell a {
+  color: #e2e8f0;
+}
+
+/* Fix dim View Details / View Tour / Edit Tour links in dark cards */
+article a[href*="tours"],
+article button,
+.group a {
+  color: #f8fafc !important;
+}
+
+/* Ensure secondary action buttons/links have clean borders and visible text */
+.operator-dashboard-shell article a.border,
+.operator-dashboard-shell article button.border {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #f1f5f9 !important;
+}
+
+.operator-dashboard-shell article a.border:hover,
+.operator-dashboard-shell article button.border:hover {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+/* === Global Dark Slate Theme Enforcements (bg-slate-900 text-slate-100) === */
+html,
+body,
+.site-content,
+main {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* Operator Portal header & main container overrides */
+.operator-header {
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+.operator-brand {
+  color: #f8fafc !important;
+}
+
+.operator-brand strong {
+  color: #f8fafc !important;
+}
+
+.operator-brand small {
+  color: #94a3b8 !important;
+}
+
+.operator-nav-link {
+  color: #cbd5e1 !important;
+}
+
+.operator-nav-link:hover,
+.operator-nav-active {
+  background: #1e293b !important;
+  color: #fbbf24 !important;
+}
+
+.operator-menu-toggle {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.operator-main {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+/* Profile page global dark overrides */
+.profile-page {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+.profile-sidebar,
+.profile-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Tours page global dark overrides */
+.tours-page {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+.tours-heading h2 {
+  color: #f8fafc !important;
+}
+
+.tours-heading p {
+  color: #94a3b8 !important;
+}
+
+.tour-count {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #fbbf24 !important;
+}
+
+.tour-filter-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+.filter-field label {
+  color: #cbd5e1 !important;
+}
+
+.filter-field select,
+.filter-field input {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.tour-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
+}
+
+.tour-card-body h3 a {
+  color: #f8fafc !important;
+}
+
+.tour-description {
+  color: #94a3b8 !important;
+}
+
+.tour-location {
+  color: #cbd5e1 !important;
+}
+
+.tour-card-meta {
+  color: #94a3b8 !important;
+}
+
+.tour-card-footer {
+  border-top-color: #334155 !important;
+}
+
+.tour-price small {
+  color: #94a3b8 !important;
+}
+
+.tour-price strong {
+  color: #fbbf24 !important;
+}
+
+.tour-search {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.tour-search input {
+  color: #f8fafc !important;
+}
+
+.tour-search input::placeholder {
+  color: #64748b !important;
 }

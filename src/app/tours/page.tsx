@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -158,24 +157,31 @@ export default function ToursPage() {
   }
 
   return (
-    <main className="tours-page">
-      <section className="tours-hero">
+    <main className="tours-page dark-tours-page">
+      <section
+        className="tours-hero"
+        style={{
+          backgroundImage: `url("https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=2000&q=85")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="tours-hero-overlay" />
 
         <div className="tours-hero-content">
           <span className="tours-eyebrow">
-            DISCOVER YOUR NEXT JOURNEY
+            ✦ SIGNATURE EXPEDITIONS &amp; GOLDEN HORIZONS
           </span>
 
           <h1>
-            Find your next
+            Follow the golden trail
             <br />
-            <span>great escape.</span>
+            <span>to extraordinary places.</span>
           </h1>
 
           <p>
-            Discover amazing destinations, unforgettable activities
-            and experiences around the world.
+            From sweeping desert dunes to private cultural odysseys, explore
+            curated journeys designed for unforgettable moments.
           </p>
 
           <div className="tour-search">
@@ -183,7 +189,7 @@ export default function ToursPage() {
 
             <input
               type="search"
-              placeholder="Search destinations or experiences..."
+              placeholder="Search destinations, desert safaris, or experiences..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search tours"
@@ -193,7 +199,7 @@ export default function ToursPage() {
           </div>
 
           <small className="public-browse-note">
-            Explore tours freely. No login required.
+            Browse all curated expeditions freely. No login required.
           </small>
         </div>
       </section>
@@ -202,13 +208,14 @@ export default function ToursPage() {
         <div className="tours-heading">
           <div>
             <span className="section-eyebrow">
-              EXPLORE EXPERIENCES
+              CURATED COLLECTION
             </span>
 
-            <h2>Discover amazing tours</h2>
+            <h2>Signature expeditions &amp; tours</h2>
 
             <p>
-              Find the right experience for your next adventure.
+              Filter by destination, activity, or budget to tailor your next
+              adventure.
             </p>
           </div>
 
@@ -438,6 +445,244 @@ export default function ToursPage() {
           </div>
         )}
       </section>
+
+      <style jsx>{`
+        .dark-tours-page {
+          background: #0b1116 !important;
+          color: #f1f5f9 !important;
+          min-height: 100vh;
+        }
+
+      .tours-hero {
+          position: relative;
+          background-color: #0b1116 !important;
+          border-bottom: none !important;
+          overflow: hidden;
+        }
+
+        .tours-hero-overlay {
+          inset: -2px !important;
+          background: linear-gradient(
+            180deg,
+            rgba(11, 17, 22, 0.5) 0%,
+            rgba(11, 17, 22, 0.82) 65%,
+            #0b1116 98%,
+            #0b1116 100%
+          ) !important;
+        }
+
+        .tours-content {
+          position: relative;
+          background-color: #0b1116 !important;
+          border-top: none !important;
+          margin-top: -2px;
+        }
+
+        .tours-eyebrow,
+        .section-eyebrow {
+          color: #f59e0b !important;
+          letter-spacing: 0.14em;
+        }
+
+        .tours-hero-content h1,
+        .tours-heading h2 {
+          color: #ffffff !important;
+        }
+
+        .tours-hero-content h1 span {
+          color: #fbbf24 !important;
+        }
+
+        .tours-hero-content p,
+        .tours-heading p,
+        .public-browse-note {
+          color: #cbd5e1 !important;
+        }
+
+        .tour-search {
+          background: rgba(18, 26, 34, 0.85) !important;
+          border: 1px solid rgba(245, 158, 11, 0.25) !important;
+          backdrop-filter: blur(14px);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        .tour-search span {
+          color: #fbbf24 !important;
+        }
+
+        .tour-search input {
+          background: transparent !important;
+          color: #f8fafc !important;
+        }
+
+        .tour-search input::placeholder {
+          color: #94a3b8 !important;
+        }
+
+        .tour-search a {
+          background: #f59e0b !important;
+          color: #090d11 !important;
+          font-weight: 800 !important;
+        }
+
+        .tour-search a:hover {
+          background: #fbbf24 !important;
+        }
+
+        .tour-count {
+          background: rgba(245, 158, 11, 0.12) !important;
+          border: 1px solid rgba(245, 158, 11, 0.3) !important;
+          color: #fbbf24 !important;
+        }
+
+        .tour-filter-panel {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        .filter-field label {
+          color: #cbd5e1 !important;
+        }
+
+        .filter-field select,
+        .filter-field input {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          color: #f8fafc !important;
+        }
+
+        .filter-field select:focus,
+        .filter-field input:focus {
+          border-color: #f59e0b !important;
+          outline: none;
+        }
+
+        .reset-filters {
+          background: rgba(245, 158, 11, 0.12) !important;
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
+          color: #fbbf24 !important;
+          font-weight: 700 !important;
+        }
+
+        .reset-filters:hover {
+          background: #f59e0b !important;
+          color: #090d11 !important;
+        }
+
+        .tours-message {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          color: #94a3b8 !important;
+        }
+
+        .tours-message h3 {
+          color: #ffffff !important;
+        }
+
+        .tour-spinner {
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          border-top-color: #f59e0b !important;
+        }
+
+        .tour-card {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.4) !important;
+          transition: transform 0.22s ease, border-color 0.22s ease !important;
+        }
+
+        .tour-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(245, 158, 11, 0.38) !important;
+        }
+
+        .tour-category {
+          background: rgba(11, 17, 22, 0.85) !important;
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
+          color: #fbbf24 !important;
+          backdrop-filter: blur(8px);
+        }
+
+        .tour-location,
+        .tour-description,
+        .tour-card-meta {
+          color: #94a3b8 !important;
+        }
+
+        .tour-card-meta span:last-child {
+          color: #fbbf24 !important;
+        }
+
+        .tour-card-body h3 a {
+          color: #ffffff !important;
+          transition: color 0.18s ease;
+        }
+
+        .tour-card:hover .tour-card-body h3 a {
+          color: #fbbf24 !important;
+        }
+
+        .tour-card-footer {
+          border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .tour-price small {
+          color: #64748b !important;
+        }
+
+        .tour-price strong {
+          color: #fbbf24 !important;
+        }
+
+        .tour-view-button {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.14) !important;
+          color: #f8fafc !important;
+          font-weight: 700 !important;
+        }
+
+        .tour-view-button:hover {
+          background: #f59e0b !important;
+          border-color: #f59e0b !important;
+          color: #090d11 !important;
+        }
+          .tours-hero-content h1 {
+          font-size: clamp(2.35rem, 4.4vw, 3.65rem) !important;
+          line-height: 1.08 !important;
+          letter-spacing: -0.03em !important;
+          max-width: 720px;
+        }
+
+        .tours-hero-content p {
+          font-size: 1.02rem !important;
+          line-height: 1.6 !important;
+          max-width: 540px !important;
+          margin-top: 14px !important;
+        }
+
+        .tour-search {
+          max-width: 640px !important;
+          height: 56px !important;
+          padding: 6px 6px 6px 18px !important;
+          border-radius: 16px !important;
+          margin-top: 28px !important;
+        }
+
+        .tour-search input {
+          font-size: 0.95rem !important;
+        }
+
+        .tour-search a {
+          height: 42px !important;
+          padding: 0 22px !important;
+          border-radius: 11px !important;
+          font-size: 0.9rem !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+      `}</style>
     </main>
   );
 }

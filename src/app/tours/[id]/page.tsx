@@ -107,6 +107,7 @@ export default function TourDetailsPage() {
   const [guests, setGuests] = useState(1);
 
   const [bookingError, setBookingError] = useState("");
+  const [submittingBooking, setSubmittingBooking] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -281,10 +282,10 @@ export default function TourDetailsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-[60vh] items-center justify-center">
+      <main className="flex min-h-[60vh] items-center justify-center bg-[#0b1116]">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700" />
-          <p className="mt-4 text-gray-600">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-amber-500" />
+          <p className="mt-4 text-slate-400">
             Loading your adventure...
           </p>
         </div>
@@ -294,17 +295,17 @@ export default function TourDetailsPage() {
 
   if (error || !tour) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center bg-[#0b1116]">
         <div className="text-5xl">🏞️</div>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">
+        <h1 className="mt-4 text-3xl font-bold text-white">
           Tour unavailable
         </h1>
-        <p className="mt-3 text-gray-600">
+        <p className="mt-3 text-slate-400">
           {error || "We could not find this tour."}
         </p>
         <button
           onClick={() => router.push("/tours")}
-          className="mt-6 rounded-xl bg-emerald-700 px-6 py-3 font-semibold text-white hover:bg-emerald-800"
+          className="mt-6 rounded-xl bg-amber-500 px-6 py-3 font-bold text-slate-950 hover:bg-amber-400"
         >
           Explore Tours
         </button>
@@ -350,7 +351,7 @@ export default function TourDetailsPage() {
     setGuests(1);
   }
 
-  function handleBooking() {
+  async function handleBooking() {
     setBookingError("");
 
     if (!selectedSlot) {
@@ -365,70 +366,109 @@ export default function TourDetailsPage() {
       return;
     }
 
-    const query = new URLSearchParams({
-      tourId: id,
-      availabilityId: selectedSlot._id,
-      participants: String(guests),
-      guests: String(guests),
-      date: selectedDate,
-    });
+    try {
+      setSubmittingBooking(true);
 
-    router.push(`/bookings?${query.toString()}`);
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("wayora_token") || localStorage.getItem("token")
+          : null;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          availabilityId: selectedSlot._id,
+          participants: guests,
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        router.push(
+          `/login?redirect=${encodeURIComponent(`/tours/${id}`)}`
+        );
+        return;
+      }
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Booking could not be created.");
+      }
+
+      window.dispatchEvent(new Event("wayora-booking-change"));
+
+      router.push("/bookings");
+    } catch (err) {
+      setBookingError(
+        err instanceof Error ? err.message : "Failed to create booking."
+      );
+    } finally {
+      setSubmittingBooking(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-[#F7FAF8] pb-16">
+    <main className="min-h-screen bg-[#0b1116] pb-16 text-slate-100">
       <div className="mx-auto max-w-7xl px-5 pt-8 sm:px-8">
-        <nav className="text-sm text-gray-500">
+        <nav className="text-sm text-slate-400">
           <button
             onClick={() => router.push("/")}
-            className="hover:text-emerald-700"
+            className="transition hover:text-amber-400"
           >
             Home
           </button>
-          <span className="mx-2">/</span>
+          <span className="mx-2 text-slate-600">/</span>
           <button
             onClick={() => router.push("/tours")}
-            className="hover:text-emerald-700"
+            className="transition hover:text-amber-400"
           >
             Tours
           </button>
-          <span className="mx-2">/</span>
-          <span className="text-gray-800">{title}</span>
+          <span className="mx-2 text-slate-600">/</span>
+          <span className="text-slate-200">{title}</span>
         </nav>
 
         <div className="mt-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             {tour.category && (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-400">
                 {tour.category}
               </span>
             )}
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {title}
             </h1>
 
-            <p className="mt-3 flex items-center gap-2 text-gray-600">
+            <p className="mt-3 flex items-center gap-2 text-slate-400">
               <span className="text-lg">📍</span>
               {destination}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start rounded-xl bg-white px-4 py-3 shadow-sm sm:self-auto">
-              <span className="text-xl text-amber-500">★</span>
-              <span className="font-bold text-gray-900">
-                {(tour.rating ?? 0).toFixed(1)}
-              </span>
-              <span className="text-sm text-gray-500">
-                {tour.reviewCount ?? reviews.length}{" "}
-                {(tour.reviewCount ?? reviews.length) === 1 ? "review" : "reviews"}
-              </span>
+          <div className="flex items-center gap-2 self-start rounded-xl border border-white/10 bg-[#121a22] px-4 py-3 shadow-lg sm:self-auto">
+            <span className="text-xl text-amber-400">★</span>
+            <span className="font-bold text-white">
+              {(tour.rating ?? 0).toFixed(1)}
+            </span>
+            <span className="text-sm text-slate-400">
+              {tour.reviewCount ?? reviews.length}{" "}
+              {(tour.reviewCount ?? reviews.length) === 1 ? "review" : "reviews"}
+            </span>
           </div>
         </div>
 
         <section className="mt-7 grid gap-3 md:grid-cols-[1.7fr_1fr]">
-          <div className="overflow-hidden rounded-2xl bg-gray-200">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121a22]">
             <img
               src={getTourImage(tour, selectedImage)}
               alt={title}
@@ -446,10 +486,10 @@ export default function TourDetailsPage() {
               <button
                 key={index}
                 onClick={() => setSelectedImage(index + 1)}
-                className={`overflow-hidden rounded-2xl bg-gray-200 text-left ring-2 transition ${
+                className={`overflow-hidden rounded-2xl border border-white/10 bg-[#121a22] text-left ring-2 transition ${
                   selectedImage === index + 1
-                    ? "ring-emerald-600"
-                    : "ring-transparent"
+                    ? "ring-amber-500"
+                    : "ring-transparent hover:ring-amber-500/40"
                 }`}
                 aria-label={`Show tour image ${index + 2}`}
               >
@@ -470,25 +510,29 @@ export default function TourDetailsPage() {
 
         <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1fr_360px]">
           <section className="space-y-7">
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-xl sm:p-8">
+              <h2 className="text-2xl font-bold text-white">
                 About this experience
               </h2>
-              <p className="mt-4 whitespace-pre-line leading-8 text-gray-600">
+              <p className="mt-4 whitespace-pre-line leading-8 text-slate-300">
                 {tour.description ||
                   "Explore this destination and discover a memorable travel experience."}
               </p>
 
-              <div className="mt-6 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-2">
-                <div className="rounded-xl bg-emerald-50 p-4">
-                  <p className="text-sm text-gray-500">Destination</p>
-                  <p className="mt-1 font-semibold text-gray-900">
+              <div className="mt-6 grid gap-4 border-t border-white/10 pt-6 sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-[#0b1116] p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                    Destination
+                  </p>
+                  <p className="mt-1 font-semibold text-white">
                     {destination}
                   </p>
                 </div>
-                <div className="rounded-xl bg-emerald-50 p-4">
-                  <p className="text-sm text-gray-500">Duration</p>
-                  <p className="mt-1 font-semibold text-gray-900">
+                <div className="rounded-xl border border-white/10 bg-[#0b1116] p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                    Duration
+                  </p>
+                  <p className="mt-1 font-semibold text-white">
                     {tour.duration
                       ? typeof tour.duration === "number"
                         ? `${tour.duration} hours`
@@ -504,14 +548,14 @@ export default function TourDetailsPage() {
             )}
 
             {tour.highlights && tour.highlights.length > 0 && (
-              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-xl sm:p-8">
+                <h2 className="text-2xl font-bold text-white">
                   Highlights
                 </h2>
                 <ul className="mt-5 space-y-3">
                   {tour.highlights.map((item, index) => (
-                    <li key={index} className="flex gap-3 text-gray-600">
-                      <span className="font-bold text-emerald-700">✓</span>
+                    <li key={index} className="flex gap-3 text-slate-300">
+                      <span className="font-bold text-amber-400">✓</span>
                       {item}
                     </li>
                   ))}
@@ -520,14 +564,14 @@ export default function TourDetailsPage() {
             )}
 
             {tour.included && tour.included.length > 0 && (
-              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-xl sm:p-8">
+                <h2 className="text-2xl font-bold text-white">
                   What&apos;s included
                 </h2>
                 <ul className="mt-5 space-y-3">
                   {tour.included.map((item, index) => (
-                    <li key={index} className="flex gap-3 text-gray-600">
-                      <span className="font-bold text-emerald-700">✓</span>
+                    <li key={index} className="flex gap-3 text-slate-300">
+                      <span className="font-bold text-amber-400">✓</span>
                       {item}
                     </li>
                   ))}
@@ -537,20 +581,20 @@ export default function TourDetailsPage() {
 
             <section
               id="customer-reviews"
-              className="scroll-mt-24 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
+              className="scroll-mt-24 rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-xl sm:p-8"
             >
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-emerald-700">
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
                     Guest feedback
                   </p>
-                  <h2 className="mt-1 text-2xl font-bold text-gray-900">
+                  <h2 className="mt-1 text-2xl font-bold text-white">
                     Traveller reviews
                   </h2>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Star size={18} fill="currentColor" className="text-amber-500" aria-hidden="true" />
-                  <span className="font-bold text-gray-900">
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Star size={18} fill="currentColor" className="text-amber-400" aria-hidden="true" />
+                  <span className="font-bold text-white">
                     {(tour.rating ?? 0).toFixed(1)}
                   </span>
                   <span>·</span>
@@ -559,20 +603,20 @@ export default function TourDetailsPage() {
               </div>
 
               {reviewsLoading ? (
-                <p className="mt-6 text-sm text-gray-500">
+                <p className="mt-6 text-sm text-slate-400">
                   Loading customer reviews...
                 </p>
               ) : reviewsError ? (
-                <p role="alert" className="mt-6 text-sm text-red-700">
+                <p role="alert" className="mt-6 text-sm text-rose-400">
                   {reviewsError}
                 </p>
               ) : reviews.length === 0 ? (
-                <p className="mt-6 rounded-xl bg-emerald-50 px-5 py-6 text-center text-sm text-gray-600">
+                <p className="mt-6 rounded-xl border border-white/10 bg-[#0b1116] px-5 py-6 text-center text-sm text-slate-400">
                   No reviews yet. Be the first to share your experience after
                   completing this tour.
                 </p>
               ) : (
-                <div className="mt-6 divide-y divide-gray-100">
+                <div className="mt-6 divide-y divide-white/10">
                   {reviews.map((review) => {
                     const customerName = [
                       review.user?.name,
@@ -585,11 +629,11 @@ export default function TourDetailsPage() {
                       <article key={review._id} className="py-5 first:pt-0 last:pb-0">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
-                            <h3 className="font-semibold text-gray-900">
+                            <h3 className="font-semibold text-white">
                               {customerName || "Wayora traveller"}
                             </h3>
                             <time
-                              className="mt-1 block text-xs text-gray-500"
+                              className="mt-1 block text-xs text-slate-500"
                               dateTime={review.createdAt}
                             >
                               {new Date(review.createdAt).toLocaleDateString(
@@ -603,7 +647,7 @@ export default function TourDetailsPage() {
                             </time>
                           </div>
                           <div
-                            className="flex gap-0.5 text-amber-500"
+                            className="flex gap-0.5 text-amber-400"
                             aria-label={`${review.rating} out of 5 stars`}
                           >
                             {Array.from({ length: 5 }, (_, index) => (
@@ -616,7 +660,7 @@ export default function TourDetailsPage() {
                             ))}
                           </div>
                         </div>
-                        <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+                        <p className="mt-3 whitespace-pre-line leading-7 text-slate-300">
                           {review.comment}
                         </p>
                       </article>
@@ -627,31 +671,31 @@ export default function TourDetailsPage() {
             </section>
           </section>
 
-          <aside className="sticky top-24 rounded-2xl border border-gray-100 bg-white p-6 shadow-lg">
-            <p className="text-sm text-gray-500">Starting from</p>
+          <aside className="sticky top-24 rounded-2xl border border-white/10 bg-[#121a22] p-6 shadow-2xl">
+            <p className="text-sm text-slate-400">Starting from</p>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-extrabold text-amber-400">
                 {validPrice ? formatPrice(price, currency) : "Contact us"}
               </span>
-              <span className="text-sm text-gray-500">/ person</span>
+              <span className="text-sm text-slate-400">/ person</span>
             </div>
 
             <div className="mt-6 space-y-5">
               <div>
                 <label
                   htmlFor="booking-date"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-slate-200"
                 >
                   Available date
                 </label>
 
                 {availabilityLoading ? (
-                  <p className="rounded-xl bg-emerald-50 p-4 text-sm text-gray-600">
+                  <p className="rounded-xl border border-white/10 bg-[#0b1116] p-4 text-sm text-slate-400">
                     Loading available dates...
                   </p>
                 ) : availabilityError ? (
                   <div className="space-y-3">
-                    <p className="text-sm text-red-600">
+                    <p className="text-sm text-rose-400">
                       {availabilityError}
                     </p>
                     <button
@@ -661,13 +705,13 @@ export default function TourDetailsPage() {
                         setAvailabilityError("");
                         void fetchAvailability();
                       }}
-                      className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800"
+                      className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-400 hover:bg-amber-500 hover:text-slate-950"
                     >
                       Try again
                     </button>
                   </div>
                 ) : dates.length === 0 ? (
-                  <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+                  <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
                     No available dates at the moment. Please check again later.
                   </p>
                 ) : (
@@ -675,7 +719,7 @@ export default function TourDetailsPage() {
                     id="booking-date"
                     value={selectedDate}
                     onChange={(event) => handleDateChange(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    className="w-full rounded-xl border border-white/15 bg-[#0b1116] px-4 py-3 text-slate-100 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   >
                     {dates.map((value) => (
                       <option key={value} value={value}>
@@ -690,7 +734,7 @@ export default function TourDetailsPage() {
                 <div>
                   <label
                     htmlFor="booking-slot"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
+                    className="mb-2 block text-sm font-semibold text-slate-200"
                   >
                     Available time
                   </label>
@@ -702,7 +746,7 @@ export default function TourDetailsPage() {
                       setGuests(1);
                       setBookingError("");
                     }}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    className="w-full rounded-xl border border-white/15 bg-[#0b1116] px-4 py-3 text-slate-100 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   >
                     {slotsForDate.map((slot) => (
                       <option key={slot._id} value={slot._id}>
@@ -717,11 +761,11 @@ export default function TourDetailsPage() {
               )}
 
               {selectedSlot && (
-                <div className="rounded-xl bg-emerald-50 p-4">
-                  <p className="text-sm font-semibold text-emerald-900">
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+                  <p className="text-sm font-semibold text-amber-300">
                     {selectedSlot.availableSeats} seats available
                   </p>
-                  <p className="mt-1 text-xs text-gray-600">
+                  <p className="mt-1 text-xs text-slate-400">
                     Total capacity: {selectedSlot.totalSeats}
                   </p>
                 </div>
@@ -730,7 +774,7 @@ export default function TourDetailsPage() {
               <div>
                 <label
                   htmlFor="guests"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-slate-200"
                 >
                   Number of guests
                 </label>
@@ -739,7 +783,7 @@ export default function TourDetailsPage() {
                   value={guests}
                   disabled={!selectedSlot}
                   onChange={(event) => setGuests(Number(event.target.value))}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 disabled:bg-gray-100"
+                  className="w-full rounded-xl border border-white/15 bg-[#0b1116] px-4 py-3 text-slate-100 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50"
                 >
                   {Array.from(
                     { length: selectedSlot?.availableSeats ?? 0 },
@@ -752,18 +796,18 @@ export default function TourDetailsPage() {
                 </select>
               </div>
 
-              <div className="rounded-xl bg-emerald-50 p-4">
+              <div className="rounded-xl border border-white/10 bg-[#0b1116] p-4">
                 <div className="flex justify-between gap-3 text-sm">
-                  <span className="text-gray-600">Price per person</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-slate-400">Price per person</span>
+                  <span className="font-medium text-slate-100">
                     {validPrice ? formatPrice(price, currency) : "Unavailable"}
                   </span>
                 </div>
-                <div className="mt-3 flex justify-between gap-3 border-t border-emerald-100 pt-3">
-                  <span className="font-semibold text-gray-800">
+                <div className="mt-3 flex justify-between gap-3 border-t border-white/10 pt-3">
+                  <span className="font-semibold text-slate-200">
                     Estimated total
                   </span>
-                  <span className="font-bold text-emerald-800">
+                  <span className="font-bold text-amber-400">
                     {validPrice
                       ? formatPrice(price * guests, currency)
                       : "Contact us"}
@@ -772,7 +816,7 @@ export default function TourDetailsPage() {
               </div>
 
               {bookingError && (
-                <p role="alert" className="text-sm text-red-600">
+                <p role="alert" className="text-sm text-rose-400">
                   {bookingError}
                 </p>
               )}
@@ -781,17 +825,18 @@ export default function TourDetailsPage() {
                 type="button"
                 onClick={handleBooking}
                 disabled={
+                  submittingBooking ||
                   !validPrice ||
                   availabilityLoading ||
                   !selectedSlot ||
                   guests > (selectedSlot?.availableSeats ?? 0)
                 }
-                className="w-full rounded-xl bg-emerald-700 px-5 py-4 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-amber-500 px-5 py-4 font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Book Now →
+                {submittingBooking ? "Booking..." : "Book Now →"}
               </button>
 
-              <p className="text-center text-xs leading-5 text-gray-500">
+              <p className="text-center text-xs leading-5 text-slate-500">
                 Availability is checked again when the booking is submitted.
               </p>
             </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -184,21 +183,47 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="profile-state">
+      <main className="profile-state dark-profile-state">
         <div className="profile-loader" />
         <p>Loading your profile...</p>
+        <style jsx>{`
+          .dark-profile-state {
+            background: #0b1116 !important;
+            color: #94a3b8 !important;
+            min-height: 70vh;
+          }
+          .profile-loader {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            border-top-color: #f59e0b !important;
+          }
+        `}</style>
       </main>
     );
   }
 
   if (!profile) {
     return (
-      <main className="profile-state">
+      <main className="profile-state dark-profile-state">
         <h2>Unable to load profile</h2>
         <p>{error || "Please log in and try again."}</p>
         <button onClick={() => router.push("/login")}>
           Go to Login
         </button>
+        <style jsx>{`
+          .dark-profile-state {
+            background: #0b1116 !important;
+            color: #94a3b8 !important;
+            min-height: 70vh;
+          }
+          h2 {
+            color: #ffffff !important;
+          }
+          button {
+            background: #f59e0b !important;
+            color: #090d11 !important;
+            font-weight: 800 !important;
+          }
+        `}</style>
       </main>
     );
   }
@@ -206,10 +231,10 @@ export default function ProfilePage() {
   const avatar = preview || profile.profileImage;
 
   return (
-    <main className="profile-page">
+    <main className="profile-page dark-profile-page">
       <section className="profile-hero">
         <div className="profile-hero-content">
-          <span className="profile-eyebrow">YOUR WAYORA ACCOUNT</span>
+          <span className="profile-eyebrow">✦ YOUR WAYORA ACCOUNT</span>
           <h1>Your Profile</h1>
           <p>Manage your details and keep track of your adventures.</p>
         </div>
@@ -418,80 +443,239 @@ export default function ProfilePage() {
           </section>
 
           {profile.role !== "operator" && (
-          <section className="profile-panel" id="my-bookings">
-            <div className="profile-panel-heading">
-              <div>
-                <span className="profile-section-label">YOUR JOURNEYS</span>
-                <h2>My Bookings</h2>
-                <p>Your tour booking requests in one place.</p>
-              </div>
+            <section className="profile-panel" id="my-bookings">
+              <div className="profile-panel-heading">
+                <div>
+                  <span className="profile-section-label">YOUR JOURNEYS</span>
+                  <h2>My Bookings</h2>
+                  <p>Your tour booking requests in one place.</p>
+                </div>
 
-              <button
-                className="profile-edit-button"
-                onClick={() => router.push("/tours")}
-              >
-                Explore Tours
-              </button>
-            </div>
-
-            {bookings.length === 0 ? (
-              <div className="profile-empty">
-                <div className="profile-empty-icon">✦</div>
-                <h3>No bookings yet</h3>
-                <p>Your next adventure could be just around the corner.</p>
                 <button
-                  className="profile-save-button"
+                  className="profile-edit-button"
                   onClick={() => router.push("/tours")}
                 >
-                  Discover Tours
+                  Explore Tours
                 </button>
               </div>
-            ) : (
-              <div className="profile-bookings">
-                {bookings.map((booking) => (
-                  <article className="profile-booking-card" key={booking._id}>
-                    <div className="profile-booking-image">
-                      <TourImage
-                        images={booking.tour?.images}
-                        alt={booking.tour?.title || "Tour"}
-                        className="object-cover"
-                      />
-                    </div>
 
-                    <div className="profile-booking-info">
-                      <h3>{booking.tour?.title || "Tour booking"}</h3>
-                      <p>{booking.tour?.destination || "Destination not available"}</p>
-                      <p>
-                        {booking.availability?.date
-                          ? new Date(booking.availability.date).toLocaleDateString()
-                          : "Date pending"}
-                        {booking.availability?.startTime
-                          ? ` · ${booking.availability.startTime}`
-                          : ""}
-                      </p>
-                      <p>Participants: {booking.participants ?? 1}</p>
-                    </div>
+              {bookings.length === 0 ? (
+                <div className="profile-empty">
+                  <div className="profile-empty-icon">✦</div>
+                  <h3>No bookings yet</h3>
+                  <p>Your next adventure could be just around the corner.</p>
+                  <button
+                    className="profile-save-button"
+                    onClick={() => router.push("/tours")}
+                  >
+                    Discover Tours
+                  </button>
+                </div>
+              ) : (
+                <div className="profile-bookings">
+                  {bookings.map((booking) => (
+                    <article className="profile-booking-card" key={booking._id}>
+                      <div className="profile-booking-image">
+                        <TourImage
+                          images={booking.tour?.images}
+                          alt={booking.tour?.title || "Tour"}
+                          className="object-cover"
+                        />
+                      </div>
 
-                    <div className="profile-booking-meta">
-                      <strong>
-                        {typeof booking.totalAmount === "number"
-                          ? `₹${booking.totalAmount.toLocaleString("en-IN")}`
-                          : "Amount pending"}
-                      </strong>
-                      <span
-                        className={`profile-booking-status ${(booking.status || "pending").toLowerCase()}`}
-                      >
-                        {booking.status || "pending"}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+                      <div className="profile-booking-info">
+                        <h3>{booking.tour?.title || "Tour booking"}</h3>
+                        <p>{booking.tour?.destination || "Destination not available"}</p>
+                        <p>
+                          {booking.availability?.date
+                            ? new Date(booking.availability.date).toLocaleDateString()
+                            : "Date pending"}
+                          {booking.availability?.startTime
+                            ? ` · ${booking.availability.startTime}`
+                            : ""}
+                        </p>
+                        <p>Participants: {booking.participants ?? 1}</p>
+                      </div>
+
+                      <div className="profile-booking-meta">
+                        <strong>
+                          {typeof booking.totalAmount === "number"
+                            ? `₹${booking.totalAmount.toLocaleString("en-IN")}`
+                            : "Amount pending"}
+                        </strong>
+                        <span
+                          className={`profile-booking-status ${(booking.status || "pending").toLowerCase()}`}
+                        >
+                          {booking.status || "pending"}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        .dark-profile-page {
+          background: #0b1116 !important;
+          color: #f1f5f9 !important;
+          min-height: 100vh;
+        }
+
+        .profile-hero {
+          background: linear-gradient(180deg, #121a22 0%, #0b1116 100%) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .profile-eyebrow,
+        .profile-section-label {
+          color: #f59e0b !important;
+        }
+
+        .profile-hero h1,
+        .profile-panel h2,
+        .profile-sidebar h2 {
+          color: #ffffff !important;
+        }
+
+        .profile-hero p,
+        .profile-panel p,
+        .profile-email {
+          color: #94a3b8 !important;
+        }
+
+        .profile-sidebar,
+        .profile-panel {
+          background: #121a22 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .profile-avatar,
+        .profile-upload-avatar {
+          background: rgba(245, 158, 11, 0.15) !important;
+          border: 2px solid rgba(245, 158, 11, 0.45) !important;
+          color: #fbbf24 !important;
+        }
+
+        .profile-role {
+          background: rgba(245, 158, 11, 0.14) !important;
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
+          color: #fbbf24 !important;
+        }
+
+        .profile-sidebar-divider {
+          background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .profile-menu-button {
+          background: transparent !important;
+          color: #cbd5e1 !important;
+        }
+
+        .profile-menu-button span {
+          color: #f59e0b !important;
+        }
+
+        .profile-menu-button:hover,
+        .profile-menu-button.active {
+          background: rgba(245, 158, 11, 0.12) !important;
+          color: #fbbf24 !important;
+        }
+
+        .profile-logout {
+          background: rgba(225, 29, 72, 0.12) !important;
+          border: 1px solid rgba(225, 29, 72, 0.3) !important;
+          color: #fda4af !important;
+        }
+
+        .profile-logout:hover {
+          background: rgba(225, 29, 72, 0.22) !important;
+        }
+
+        .profile-edit-button,
+        .profile-cancel-button {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.15) !important;
+          color: #f1f5f9 !important;
+        }
+
+        .profile-edit-button:hover {
+          border-color: #f59e0b !important;
+          color: #fbbf24 !important;
+        }
+
+        .profile-save-button {
+          background: #f59e0b !important;
+          color: #090d11 !important;
+          font-weight: 800 !important;
+        }
+
+        .profile-save-button:hover:not(:disabled) {
+          background: #fbbf24 !important;
+        }
+
+        .profile-text-button {
+          color: #fbbf24 !important;
+        }
+
+        .profile-field,
+        .profile-upload,
+        .profile-empty,
+        .profile-booking-card {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .profile-field span,
+        .profile-form label,
+        .profile-upload p,
+        .profile-booking-info p {
+          color: #94a3b8 !important;
+        }
+
+        .profile-field strong,
+        .profile-upload strong,
+        .profile-empty h3,
+        .profile-booking-info h3 {
+          color: #ffffff !important;
+        }
+
+        .profile-form input {
+          background: #0b1116 !important;
+          border: 1px solid rgba(255, 255, 255, 0.15) !important;
+          color: #f8fafc !important;
+        }
+
+        .profile-form input:focus {
+          border-color: #f59e0b !important;
+          outline: none;
+        }
+
+        .profile-booking-meta strong {
+          color: #fbbf24 !important;
+        }
+
+        .profile-empty-icon {
+          background: rgba(245, 158, 11, 0.14) !important;
+          color: #fbbf24 !important;
+        }
+
+        .profile-success {
+          background: rgba(16, 185, 129, 0.14) !important;
+          border: 1px solid rgba(16, 185, 129, 0.35) !important;
+          color: #6ee7b7 !important;
+        }
+
+        .profile-error {
+          background: rgba(225, 29, 72, 0.14) !important;
+          border: 1px solid rgba(225, 29, 72, 0.35) !important;
+          color: #fda4af !important;
+        }
+      `}</style>
     </main>
   );
 }
