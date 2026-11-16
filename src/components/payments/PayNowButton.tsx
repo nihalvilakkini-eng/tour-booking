@@ -161,6 +161,9 @@ export default function PayNowButton({
             ? `Tour: ${tourTitle}`
             : `Booking #${bookingId.slice(-8).toUpperCase()}`,
           order_id: orderData.orderId,
+          notes: {
+            bookingId,
+          },
           prefill: {
             name: customerName,
             email: customerEmail,
@@ -180,19 +183,19 @@ export default function PayNowButton({
                     },
                   ],
                 },
+                cards: {
+                  name: "Cards (Credit / Debit)",
+                  instruments: [
+                    {
+                      method: "card",
+                    },
+                  ],
+                },
                 banks: {
                   name: "Netbanking",
                   instruments: [
                     {
                       method: "netbanking",
-                    },
-                  ],
-                },
-                cards: {
-                  name: "Domestic Cards",
-                  instruments: [
-                    {
-                      method: "card",
                     },
                   ],
                 },
@@ -211,7 +214,7 @@ export default function PayNowButton({
               },
             },
           },
-          handler: async (response) => {
+          handler: async (response: any) => {
             // 4. Server-side payment verification
             try {
               setPaymentPhase("verifying");
@@ -285,23 +288,28 @@ export default function PayNowButton({
           },
         });
 
-        razorpayInstance.on("payment.failed", (failedResponse) => {
-          if (settled) return;
+        razorpayInstance.on("payment.failed", (failedResponse: any) => {
           const rawReason =
             failedResponse?.error?.description ||
             failedResponse?.error?.reason ||
             "Payment attempt failed.";
 
           let failMsg = `Payment failed: ${rawReason}. You can retry payment.`;
-          if (rawReason.toLowerCase().includes("international card")) {
+          if (
+            rawReason.toLowerCase().includes("international card") ||
+            rawReason.toLowerCase().includes("international")
+          ) {
             failMsg =
-              "Payment failed: International cards are not enabled on this merchant account. Please pay using UPI, Netbanking, or a domestic Indian Debit/Credit card.";
+              "Payment failed: International cards are not enabled on this merchant account. In Test Mode, please use Indian Domestic test cards (e.g. 4012 0000 0000 0002), UPI, or Netbanking. For Live Mode, activate International Payments in your Razorpay Dashboard.";
           }
 
           setError(failMsg);
           onError?.(failMsg);
           void notifyPaymentFailure(rawReason);
-          settleOnce(new Error(failMsg));
+          // Note: Do not call settleOnce here because Razorpay modal remains open
+          // with retry options (Netbanking, Cards, Wallets). If customer retries
+          // and succeeds, handler() will verify and settle. If customer closes,
+          // modal.ondismiss() will settle.
         });
 
         razorpayInstance.open();
@@ -386,11 +394,12 @@ export default function PayNowButton({
             <span>{error}</span>
           </div>
           {error.toLowerCase().includes("international") && (
-            <div className="mt-1 rounded-lg bg-white/80 p-2.5 text-[11px] text-slate-700 border border-red-100 space-y-1">
-              <p className="font-semibold text-slate-900">💡 To complete payment in Test Mode:</p>
-              <p>• Click <strong>Retry Payment</strong> above.</p>
-              <p>• Click <strong>Netbanking</strong> → Select any bank (e.g. HDFC/SBI) → Click <strong>Success</strong>.</p>
-              <p>• Or click <strong>Cards</strong> and use domestic test card: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono">4111 1111 1111 1111</code> (Expiry: 12/28, CVV: 123).</p>
+            <div className="mt-1 rounded-lg bg-white/80 p-2.5 text-[11px] text-slate-700 border border-red-100 space-y-1.5">
+              <p className="font-semibold text-slate-900">💡 How to test payment in Razorpay Test Mode:</p>
+              <p>• <strong>UPI:</strong> Select UPI → Enter UPI ID: <code className="bg-slate-100 px-1 py-0.5 rounded text-emerald-800 font-mono font-semibold">success@razorpay</code></p>
+              <p>• <strong>Netbanking:</strong> Select Netbanking → Pick any bank (SBI, HDFC, ICICI) → Click <strong>Success</strong></p>
+              <p>• <strong>Domestic Cards:</strong> Use Indian test card <code className="bg-slate-100 px-1 py-0.5 rounded text-emerald-800 font-mono font-semibold">4012 0000 0000 0002</code> (or RuPay <code className="bg-slate-100 px-1 py-0.5 rounded text-emerald-800 font-mono font-semibold">6527 6589 0000 1005</code>), Expiry: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono">12/28</code>, CVV: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono">123</code></p>
+              <p className="pt-1 text-[10px] text-slate-500 border-t border-slate-200">ℹ️ Note: For Live International cards, request activation via Razorpay Dashboard (Account &amp; Settings → International Payments).</p>
             </div>
           )}
         </div>

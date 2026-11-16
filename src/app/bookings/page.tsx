@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import CancelBookingButton from "@/components/CancelBookingButton";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
@@ -562,6 +563,16 @@ export default function MyBookingsPage() {
                         <span>Pay Now</span>
                       </button>
                     ) : null}
+
+                    {/* --- CANCEL BOOKING BUTTON INTEGRATION --- */}
+                    {bookingStatus !== "cancelled" && (bookingStatus === "confirmed" || bookingStatus === "accepted") && (
+                      <CancelBookingButton
+                        bookingId={booking._id}
+                        bookingDate={dateValue || ""}
+                        startTime={booking.availability?.startTime || booking.startTime || "10:00"}
+                      />
+                    )}
+                    {/* ------------------------------------------- */}
 
                     <Link
                       href={`/bookings/${booking._id}`}
