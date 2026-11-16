@@ -313,7 +313,7 @@ export default function RegisterPage() {
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleRegister}>
+            <form onSubmit={handleRegister} autoComplete="off">
               {/* Account Type Selector */}
               <label>Choose Account Type</label>
               <div className="account-type-grid">
@@ -356,28 +356,31 @@ export default function RegisterPage() {
               <label htmlFor="fullName">Full Name</label>
               <input
                 id="fullName"
+                name="fullName"
                 type="text"
                 placeholder="e.g. John Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                autoComplete="name"
+                autoComplete="off"
                 required
               />
 
               <label htmlFor="registerEmail">Email address</label>
               <input
                 id="registerEmail"
+                name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                autoComplete="off"
                 required
               />
 
               <label htmlFor="registerPhone">Phone Number</label>
               <input
                 id="registerPhone"
+                name="phone"
                 type="tel"
                 inputMode="numeric"
                 placeholder="10-digit mobile number"
@@ -385,7 +388,7 @@ export default function RegisterPage() {
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
-                autoComplete="tel"
+                autoComplete="off"
                 required
               />
 
@@ -393,8 +396,9 @@ export default function RegisterPage() {
               <div className="password-box">
                 <input
                   id="registerPassword"
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="At least 8 characters"
+                  placeholder="Enter your password (min. 8 characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
@@ -405,6 +409,7 @@ export default function RegisterPage() {
                   type="button"
                   className="show-password"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -414,6 +419,7 @@ export default function RegisterPage() {
               <div className="password-box">
                 <input
                   id="confirmPassword"
+                  name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Re-enter your password"
                   value={confirmPassword}
@@ -426,6 +432,7 @@ export default function RegisterPage() {
                   type="button"
                   className="show-password"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
                   {showConfirmPassword ? "Hide" : "Show"}
                 </button>
@@ -645,19 +652,36 @@ export default function RegisterPage() {
         .dark-auth-page {
           background: #0b1116 !important;
           color: #f1f5f9 !important;
+          min-height: 100vh;
+          position: relative;
         }
 
         .auth-background {
-          background: radial-gradient(
-            circle at 20% 20%,
-            rgba(245, 158, 11, 0.08),
-            transparent 50%
-          ),
-          linear-gradient(180deg, #0b1116 0%, #080d11 100%) !important;
+          position: fixed;
+          inset: 0;
+          z-index: -2;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(11, 17, 22, 0.90) 0%,
+              rgba(11, 17, 22, 0.72) 45%,
+              rgba(11, 17, 22, 0.92) 100%
+            ),
+            url("/images/maldives.jpg") center / cover no-repeat !important;
+          transform: scale(1.02);
+          filter: saturate(1.15);
         }
 
         .auth-logo {
           color: #ffffff !important;
+          font-weight: 800;
+          letter-spacing: -0.5px;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+          transition: transform 0.2s ease;
+        }
+
+        .auth-logo:hover {
+          transform: translateY(-1px);
         }
 
         .auth-logo span {
@@ -666,23 +690,36 @@ export default function RegisterPage() {
 
         .back-home {
           color: #cbd5e1 !important;
-          background: rgba(255, 255, 255, 0.05) !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          background: rgba(18, 26, 34, 0.65) !important;
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          border-radius: 9999px !important;
+          padding: 8px 16px !important;
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          transition: all 0.2s ease !important;
         }
 
         .back-home:hover {
           color: #fbbf24 !important;
+          background: rgba(245, 158, 11, 0.15) !important;
           border-color: rgba(245, 158, 11, 0.4) !important;
+          transform: translateX(-2px);
         }
 
         .auth-tag {
           border: 1px solid rgba(245, 158, 11, 0.35) !important;
           background: rgba(245, 158, 11, 0.12) !important;
+          backdrop-filter: blur(8px) !important;
           color: #fbbf24 !important;
+          padding: 6px 12px !important;
+          border-radius: 9999px !important;
         }
 
         .auth-intro h1 {
           color: #ffffff !important;
+          text-shadow: 0 3px 20px rgba(0, 0, 0, 0.6);
         }
 
         .auth-intro h1 span {
@@ -690,16 +727,29 @@ export default function RegisterPage() {
         }
 
         .auth-intro p {
-          color: #94a3b8 !important;
+          color: #cbd5e1 !important;
+          text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
         }
 
         .travel-note {
-          background: #121a22 !important;
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          background: rgba(18, 26, 34, 0.72) !important;
+          backdrop-filter: blur(14px) !important;
+          -webkit-backdrop-filter: blur(14px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 16px !important;
+          padding: 14px 18px !important;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+          transition: all 0.25s ease !important;
+        }
+
+        .travel-note:hover {
+          border-color: rgba(245, 158, 11, 0.35) !important;
+          background: rgba(18, 26, 34, 0.85) !important;
         }
 
         .note-icon {
-          background: rgba(245, 158, 11, 0.15) !important;
+          background: rgba(245, 158, 11, 0.18) !important;
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
           color: #fbbf24 !important;
         }
 
@@ -712,15 +762,25 @@ export default function RegisterPage() {
         }
 
         .auth-card {
-          background: #121a22 !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55) !important;
+          background: rgba(18, 26, 34, 0.82) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          border-radius: 24px !important;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 1px 1px rgba(255, 255, 255, 0.08) inset !important;
+          transition: all 0.3s ease !important;
+        }
+
+        .auth-card:hover {
+          border-color: rgba(245, 158, 11, 0.28) !important;
+          box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), 0 0 1px 1px rgba(245, 158, 11, 0.12) inset !important;
         }
 
         .card-icon {
-          background: rgba(245, 158, 11, 0.14) !important;
-          border: 1px solid rgba(245, 158, 11, 0.3) !important;
+          background: rgba(245, 158, 11, 0.16) !important;
+          border: 1px solid rgba(245, 158, 11, 0.35) !important;
           color: #fbbf24 !important;
+          border-radius: 14px !important;
         }
 
         .card-eyebrow {
@@ -737,14 +797,18 @@ export default function RegisterPage() {
 
         .auth-card label {
           color: #cbd5e1 !important;
+          font-size: 13px !important;
+          font-weight: 600 !important;
         }
 
         .auth-card input,
         .auth-card select,
         .auth-card textarea {
-          background: #0b1116 !important;
+          background: rgba(11, 17, 22, 0.75) !important;
           border: 1px solid rgba(255, 255, 255, 0.12) !important;
           color: #f8fafc !important;
+          border-radius: 12px !important;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .auth-card input::placeholder,
@@ -756,27 +820,33 @@ export default function RegisterPage() {
         .auth-card select:focus,
         .auth-card textarea:focus {
           border-color: #f59e0b !important;
-          box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18) !important;
+          background: rgba(11, 17, 22, 0.95) !important;
+          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22) !important;
           outline: none;
         }
 
         .account-type-btn {
-          background: #0b1116 !important;
+          background: rgba(11, 17, 22, 0.7) !important;
           border: 1px solid rgba(255, 255, 255, 0.1) !important;
           color: #cbd5e1 !important;
+          border-radius: 14px !important;
+          transition: all 0.2s ease !important;
         }
 
         .account-type-btn:hover {
           border-color: rgba(245, 158, 11, 0.4) !important;
+          background: rgba(18, 26, 34, 0.8) !important;
         }
 
         .account-type-btn.active {
-          background: rgba(245, 158, 11, 0.12) !important;
+          background: rgba(245, 158, 11, 0.14) !important;
           border-color: #f59e0b !important;
+          box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3) !important;
         }
 
         .account-type-title {
           color: #ffffff !important;
+          font-weight: 700 !important;
         }
 
         .account-type-btn.active .account-type-title {
@@ -789,35 +859,53 @@ export default function RegisterPage() {
 
         .operator-fieldset {
           background: rgba(11, 17, 22, 0.65) !important;
+          backdrop-filter: blur(10px) !important;
           border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 16px !important;
         }
 
         .operator-legend {
           color: #fbbf24 !important;
           background: #121a22 !important;
           border: 1px solid rgba(245, 158, 11, 0.3) !important;
+          border-radius: 8px !important;
         }
 
         .show-password {
           color: #fbbf24 !important;
           background: transparent !important;
+          font-weight: 600 !important;
+          transition: color 0.15s ease !important;
+        }
+
+        .show-password:hover {
+          color: #f59e0b !important;
         }
 
         .auth-submit {
-          background: #f59e0b !important;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
           color: #090d11 !important;
           font-weight: 800 !important;
-          box-shadow: 0 12px 28px rgba(245, 158, 11, 0.25) !important;
+          border-radius: 12px !important;
+          box-shadow: 0 12px 28px rgba(245, 158, 11, 0.3) !important;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .auth-submit:hover:not(:disabled) {
-          background: #fbbf24 !important;
+          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 16px 36px rgba(245, 158, 11, 0.42) !important;
+        }
+
+        .auth-submit:active:not(:disabled) {
+          transform: translateY(0);
         }
 
         .auth-error {
           background: rgba(225, 29, 72, 0.14) !important;
           border: 1px solid rgba(225, 29, 72, 0.35) !important;
           color: #fda4af !important;
+          border-radius: 10px !important;
         }
 
         .auth-switch {
@@ -827,6 +915,12 @@ export default function RegisterPage() {
         .auth-switch a {
           color: #fbbf24 !important;
           font-weight: 700 !important;
+          transition: color 0.15s ease !important;
+        }
+
+        .auth-switch a:hover {
+          color: #f59e0b !important;
+          text-decoration: underline;
         }
 
         .auth-terms {
