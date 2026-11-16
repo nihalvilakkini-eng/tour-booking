@@ -71,19 +71,23 @@ export default function Navbar() {
           return;
         }
 
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
 
         if (
           response.status === 403 &&
-          result.message?.toLowerCase().includes("deactivated")
+          result?.message?.toLowerCase().includes("deactivated")
         ) {
           setRole(null);
           router.push("/login?reason=account-deactivated");
           return;
         }
 
-        if (!response.ok || !result.success) {
-          throw new Error(result.message || "Authentication failed");
+        if (!response.ok || !result?.success) {
+          setRole(null);
+          setHasBooking(false);
+          setUnreadNotifications(0);
+          setUnreadMessages(0);
+          return;
         }
 
         const currentRole = result.data?.role;
@@ -93,7 +97,11 @@ export default function Navbar() {
           currentRole !== "operator" &&
           currentRole !== "user"
         ) {
-          throw new Error("Invalid user role");
+          setRole(null);
+          setHasBooking(false);
+          setUnreadNotifications(0);
+          setUnreadMessages(0);
+          return;
         }
 
         setRole(currentRole);
@@ -110,9 +118,9 @@ export default function Navbar() {
           if (!mounted) return;
 
           if (statusResponse.ok) {
-            const statusResult = await statusResponse.json();
+            const statusResult = await statusResponse.json().catch(() => null);
 
-            if (statusResult.success) {
+            if (statusResult?.success) {
               setHasBooking(
                 Boolean(statusResult.data?.hasBooking)
               );
@@ -131,9 +139,12 @@ export default function Navbar() {
           setUnreadNotifications(0);
           setUnreadMessages(0);
         }
-      } catch (error) {
+      } catch {
         if (!mounted) return;
-        console.error("Navbar authentication error:", error);
+        setRole(null);
+        setHasBooking(false);
+        setUnreadNotifications(0);
+        setUnreadMessages(0);
       }
     }
 

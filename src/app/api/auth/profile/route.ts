@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
@@ -22,7 +23,7 @@ function getUserIdFromToken(token: string): string {
   const userId =
     typeof rawUserId === "string" ? rawUserId : String(rawUserId || "");
 
-  if (!userId) {
+  if (!userId || !mongoose.isValidObjectId(userId)) {
     throw new Error("Invalid token payload");
   }
 
@@ -38,6 +39,8 @@ function isTokenVerificationError(error: unknown): boolean {
     error.name === "JsonWebTokenError" ||
     error.name === "TokenExpiredError" ||
     error.name === "NotBeforeError" ||
+    error.name === "CastError" ||
+    error.name === "BSONError" ||
     error.message === "Invalid token payload"
   );
 }
