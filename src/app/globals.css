@@ -195,6 +195,280 @@ button {
   margin-top: 36px;
 }
 
+/* Destinations & Experiences 2-row Horizontal Carousel */
+.destinations-header-row,
+.experiences-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.destinations-header-text,
+.experiences-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.destinations-nav-controls,
+.experiences-nav-controls,
+.destination-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+
+.destinations-nav-btn,
+.experiences-nav-btn,
+.destination-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #121a22;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.65, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  user-select: none;
+  outline: none;
+}
+
+.destinations-nav-btn:hover:not(:disabled),
+.experiences-nav-btn:hover:not(:disabled),
+.destination-nav-btn:hover:not(:disabled) {
+  background: #1a2530;
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #f59e0b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.15);
+}
+
+.destinations-nav-btn:active:not(:disabled),
+.experiences-nav-btn:active:not(:disabled),
+.destination-nav-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+.destinations-nav-btn:disabled,
+.experiences-nav-btn:disabled,
+.destination-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.destinations-nav-btn:focus-visible,
+.experiences-nav-btn:focus-visible,
+.destination-nav-btn:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.destinations-scroller,
+.experiences-scroller,
+.destination-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 12px 4px 22px 4px;
+  margin-top: 24px;
+  margin-bottom: -10px;
+  cursor: grab;
+  width: 100%;
+  outline: none;
+}
+
+.destinations-scroller:active,
+.experiences-scroller:active,
+.destination-scroller:active {
+  cursor: grabbing;
+}
+
+.destinations-scroller::-webkit-scrollbar,
+.experiences-scroller::-webkit-scrollbar,
+.destination-scroller::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Single row horizontal track for infinite smooth auto-scrolling */
+.destinations-track,
+.experiences-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: max-content;
+  align-items: stretch;
+}
+
+.destinations-group,
+.experiences-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 24px;
+  align-items: stretch;
+  flex-shrink: 0;
+  padding-right: 24px; /* maintain identical gap between end of group 1 and start of group 2 */
+}
+
+/* Card sizing: strictly single line, never wrap or shrink */
+.destinations-group .destination-card,
+.experiences-group .destination-card {
+  flex: 0 0 340px;
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  height: 400px;
+  min-height: 400px;
+}
+
+@media (min-width: 1400px) {
+  .destinations-group .destination-card,
+  .experiences-group .destination-card {
+    flex: 0 0 350px;
+    width: 350px;
+    min-width: 350px;
+    max-width: 350px;
+    height: 410px;
+    min-height: 410px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  .destinations-scroller,
+  .experiences-scroller,
+  .destination-scroller {
+    margin-top: 20px;
+    padding-bottom: 18px;
+  }
+
+  .destinations-group,
+  .experiences-group {
+    gap: 20px;
+    padding-right: 20px;
+  }
+
+  .destinations-group .destination-card,
+  .experiences-group .destination-card {
+    flex: 0 0 290px;
+    width: 290px;
+    min-width: 290px;
+    max-width: 290px;
+    height: 360px;
+    min-height: 360px;
+  }
+
+  .destinations-nav-btn,
+  .experiences-nav-btn,
+  .destination-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .destinations-header-row,
+  .experiences-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .destinations-nav-controls,
+  .experiences-nav-controls,
+  .destination-nav-controls {
+    align-self: flex-end;
+    margin-top: -6px;
+    margin-bottom: 0;
+  }
+
+  .destinations-scroller,
+  .experiences-scroller,
+  .destination-scroller {
+    margin-top: 16px;
+    padding-bottom: 14px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .destinations-group,
+  .experiences-group {
+    gap: 16px;
+    padding-right: 16px;
+  }
+
+  .destinations-group .destination-card,
+  .experiences-group .destination-card {
+    flex: 0 0 270px;
+    width: 270px;
+    min-width: 270px;
+    max-width: 270px;
+    height: 340px;
+    min-height: 340px;
+  }
+
+  .destinations-nav-btn,
+  .experiences-nav-btn,
+  .destination-nav-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .destinations-group,
+  .experiences-group {
+    gap: 14px;
+    padding-right: 14px;
+  }
+
+  .destinations-group .destination-card,
+  .experiences-group .destination-card {
+    flex: 0 0 250px;
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    height: 330px;
+    min-height: 330px;
+  }
+
+  .destinations-group .destination-info strong,
+  .experiences-group .destination-info strong {
+    font-size: 21px;
+  }
+
+  .destinations-group .destination-description,
+  .experiences-group .destination-description {
+    font-size: 11.5px;
+    min-height: 38px;
+    line-height: 1.6;
+  }
+}
+
 .destination-card {
   position: relative;
   display: block;
@@ -3010,6 +3284,22 @@ body {
 .destination-card {
   background: #121a22 !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.destinations-nav-btn,
+.experiences-nav-btn,
+.destination-nav-btn {
+  background: #121a22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+.destinations-nav-btn:hover:not(:disabled),
+.experiences-nav-btn:hover:not(:disabled),
+.destination-nav-btn:hover:not(:disabled) {
+  background: #1a2530 !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #f59e0b !important;
 }
 /* Prevent White/Teal Flash on Initial Load */
 html,
