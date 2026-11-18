@@ -54,6 +54,7 @@ ReviewSchema.index(
   { user: 1, booking: 1 },
   { unique: true }
 );
+ReviewSchema.index({ tour: 1, createdAt: -1 });
 
 const Review: Model<IReview> =
   mongoose.models.Review ||

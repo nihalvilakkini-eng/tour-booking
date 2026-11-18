@@ -29,6 +29,9 @@ export interface ITour extends Document {
   title: string;
   description: string;
   destination: string;
+  country?: string;
+  state?: string;
+  category?: string;
   activityType: string;
 
   duration: number;
@@ -184,6 +187,24 @@ const TourSchema = new Schema<ITour>(
       trim: true,
     },
 
+    country: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    state: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    category: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     activityType: {
       type: String,
       required: [true, "Activity type is required"],
@@ -307,6 +328,14 @@ const TourSchema = new Schema<ITour>(
     timestamps: true,
   }
 );
+
+TourSchema.index({ destination: 1, isActive: 1 });
+TourSchema.index({ operator: 1, isActive: 1 });
+TourSchema.index({ category: 1, isActive: 1 });
+TourSchema.index({ activityType: 1, isActive: 1 });
+TourSchema.index({ price: 1 });
+TourSchema.index({ rating: -1 });
+TourSchema.index({ createdAt: -1 });
 
 const Tour: Model<ITour> =
   mongoose.models.Tour ||

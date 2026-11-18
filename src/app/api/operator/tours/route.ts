@@ -76,25 +76,72 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const formData = await request.formData();
+    const contentType = request.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
 
-    const title = formData.get("title")?.toString().trim();
-    const description = formData.get("description")?.toString().trim();
-    const destination = formData.get("destination")?.toString().trim();
-    const activityType = formData.get("activityType")?.toString().trim();
+    let jsonBody: Record<string, unknown> | null = null;
+    let formData: FormData | null = null;
 
-    const duration = Number(formData.get("duration"));
-    const durationUnit =
-      formData.get("durationUnit")?.toString() || "hours";
+    if (isJson) {
+      try {
+        jsonBody = (await request.json()) as Record<string, unknown>;
+      } catch {
+        return NextResponse.json(
+          { success: false, message: "Invalid JSON request body" },
+          { status: 400 }
+        );
+      }
+    } else {
+      formData = await request.formData();
+    }
 
-    const price = Number(formData.get("price"));
+    const getString = (field: string) => {
+      if (jsonBody) {
+        const val = jsonBody[field];
+        return typeof val === "string" ? val.trim() : "";
+      }
+      const val = formData?.get(field);
+      return typeof val === "string" ? val.trim() : "";
+    };
 
-    const currency =
-      formData.get("currency")?.toString().trim() || "INR";
+    const getNumber = (field: string) => {
+      if (jsonBody) return Number(jsonBody[field]);
+      return Number(formData?.get(field));
+    };
 
-    const maxParticipants = Number(formData.get("maxParticipants"));
+    const getList = (field: string) => {
+      if (jsonBody) {
+        const val = jsonBody[field];
+        if (Array.isArray(val)) {
+          return val.map((s) => String(s).trim()).filter(Boolean);
+        }
+        if (typeof val === "string") {
+          return val.split(/\r?\n|,/).map((s) => s.trim()).filter(Boolean);
+        }
+        return [];
+      }
+      return (formData?.getAll(field) ?? [])
+        .map((value) => value.toString().trim())
+        .filter(Boolean);
+    };
 
-    const meetingPoint = formData.get("meetingPoint")?.toString().trim();
+    const title = getString("title");
+    const description = getString("description");
+    const destination = getString("destination");
+    const country = getString("country");
+    const state = getString("state");
+    const rawCategory = getString("category");
+    const rawActivityType = getString("activityType");
+
+    const activityType = (rawActivityType || rawCategory || "").trim();
+    const category = (rawCategory || rawActivityType || "").trim();
+
+    const duration = getNumber("duration");
+    const durationUnit = getString("durationUnit") === "days" ? "days" : "hours";
+    const price = getNumber("price");
+    const currency = getString("currency") || "INR";
+    const maxParticipants = getNumber("maxParticipants");
+    const meetingPoint = getString("meetingPoint");
 
     if (
       !title ||
@@ -107,7 +154,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message:
-            "Title, description, destination, activity type and meeting point are required",
+            "Title, description, destination, activity type/category, and meeting point are required",
         },
         { status: 400 }
       );
@@ -143,41 +190,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (durationUnit !== "hours" && durationUnit !== "days") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Duration unit must be hours or days",
-        },
-        { status: 400 }
-      );
-    }
+    const itinerary = getList("itinerary");
+    const highlights = getList("highlights");
+    const inclusions = getList("inclusions");
+    const exclusions = getList("exclusions");
 
-    const getArray = (field: string) => {
-      return formData
-        .getAll(field)
-        .map((value) => value.toString().trim())
-        .filter(Boolean);
-    };
+    const itineraryDaysRaw = jsonBody
+      ? jsonBody.itineraryDays
+      : formData?.get("itineraryDays");
 
-    const itinerary = getArray("itinerary");
-    const highlights = getArray("highlights");
-    const inclusions = getArray("inclusions");
-    const exclusions = getArray("exclusions");
-    const parsedItinerary = parseItineraryDays(formData.get("itineraryDays"));
+    const parsedItinerary = parseItineraryDays(itineraryDaysRaw);
     if ("error" in parsedItinerary) {
       return NextResponse.json(
         { success: false, message: parsedItinerary.error },
-        { status: 400 }
-      );
-    }
-    const itineraryImageUploads = readItineraryImageUploads(
-      formData,
-      parsedItinerary.itineraryDays
-    );
-    if ("error" in itineraryImageUploads) {
-      return NextResponse.json(
-        { success: false, message: itineraryImageUploads.error },
         { status: 400 }
       );
     }
@@ -186,16 +211,62 @@ export async function POST(request: NextRequest) {
       ...day,
       activities: [...day.activities],
     }));
-    for (const upload of itineraryImageUploads.uploads) {
-      itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
-        await uploadTourImage(upload.file);
+
+    if (formData) {
+      const itineraryImageUploads = readItineraryImageUploads(
+        formData,
+        parsedItinerary.itineraryDays
+      );
+      if ("error" in itineraryImageUploads) {
+        return NextResponse.json(
+          { success: false, message: itineraryImageUploads.error },
+          { status: 400 }
+        );
+      }
+      for (const upload of itineraryImageUploads.uploads) {
+        itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
+          await uploadTourImage(upload.file);
+      }
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageUrls: string[] = [];
+    const imageFiles: File[] = [];
 
-    if (imageFiles.length > 10) {
+    const rawImages = jsonBody
+      ? Array.isArray(jsonBody.images)
+        ? jsonBody.images
+        : typeof jsonBody.images === "string"
+        ? [jsonBody.images]
+        : []
+      : formData
+      ? formData.getAll("images")
+      : [];
+
+    for (const item of rawImages) {
+      if (typeof item === "string") {
+        const trimmed = item.trim();
+        if (!trimmed) continue;
+
+        if (trimmed.startsWith("data:") || trimmed.includes(";base64,")) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Base64 image data is not allowed. Upload images directly to Cloudinary and provide secure URLs.",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (/^https?:\/\//i.test(trimmed)) {
+          imageUrls.push(trimmed);
+        }
+      } else if (item instanceof File && item.size > 0) {
+        imageFiles.push(item);
+      }
+    }
+
+    if (imageUrls.length + imageFiles.length > 10) {
       return NextResponse.json(
         {
           success: false,
@@ -205,13 +276,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const imageUrls: string[] = [];
-
     for (const file of imageFiles) {
-      if (file.size === 0) {
-        continue;
-      }
-
       if (!file.type.startsWith("image/")) {
         return NextResponse.json(
           {
@@ -255,6 +320,9 @@ export async function POST(request: NextRequest) {
       title,
       description,
       destination,
+      country,
+      state,
+      category,
       activityType,
       duration,
       durationUnit,

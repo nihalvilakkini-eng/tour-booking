@@ -75,138 +75,197 @@ const createdById = userId;
     );
   }
 
-  if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
+  const contentType = request.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const isMultipart = contentType.includes("multipart/form-data");
+
+  if (!isJson && !isMultipart) {
     return NextResponse.json(
       {
         success: false,
-        message: "Tour details and images must be submitted as multipart form data",
+        message:
+          "Tour details must be submitted as JSON or multipart form data",
       },
       { status: 415 }
     );
   }
 
-  let formData: FormData;
+  let jsonBody: Record<string, unknown> | null = null;
+  let formData: FormData | null = null;
 
-  try {
-    formData = await request.formData();
-  } catch (error) {
-    console.error("POST /api/tours could not parse the request body:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "The tour request body is malformed",
-      },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const getText = (field: string) => {
-      const value = formData.get(field);
-      return typeof value === "string" ? value.trim() : "";
-    };
-    const selectedOperatorId = getText("operatorId");
-
-if (role === "admin") {
-  if (!selectedOperatorId) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Please select an operator",
-      },
-      { status: 400 }
-    );
-  }
-
-  if (!mongoose.isValidObjectId(selectedOperatorId)) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Invalid operator selection",
-      },
-      { status: 400 }
-    );
-  }
-
-  const selectedOperator = await User.findOne({
-    _id: selectedOperatorId,
-    role: "operator",
-    isActive: { $ne: false },
-  }).select("_id");
-
-  if (!selectedOperator) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Selected operator does not exist",
-      },
-      { status: 404 }
-    );
-  }
-
-  assignedOperatorId = selectedOperator._id.toString();
-}
-
-    const title = getText("title");
-    const description = getText("description");
-    const destination = getText("destination");
-    const activityType = getText("activityType");
-    const durationValue = getText("duration");
-    const durationUnit = getText("durationUnit");
-    const priceValue = getText("price");
-    const priceCurrency = getText("currency");
-    const maxParticipantsValue = getText("maxParticipants");
-    const meetingPoint = getText("meetingPoint");
-
-    const duration = Number(durationValue);
-    const price = Number(priceValue);
-    let maxParticipants = Number(maxParticipantsValue);
-    const currency = priceCurrency || "INR";
-
-    // Convert comma-separated values into arrays
-    const getTextList = (field: string): string[] | null => {
-      const items = formData.getAll(field);
-
-      if (!items.every((item): item is string => typeof item === "string")) {
-        return null;
-      }
-
-      return items.map((item) => item.trim()).filter(Boolean);
-    };
-
-    const itinerary = getTextList("itinerary");
-    const highlights = getTextList("highlights");
-    const inclusions = getTextList("inclusions");
-    const exclusions = getTextList("exclusions");
-    const parsedItinerary = parseItineraryDays(formData.get("itineraryDays"));
-
-    if (
-      itinerary === null ||
-      highlights === null ||
-      inclusions === null ||
-      exclusions === null ||
-      "error" in parsedItinerary
-    ) {
+  if (isJson) {
+    try {
+      jsonBody = (await request.json()) as Record<string, unknown>;
+    } catch {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "error" in parsedItinerary
-              ? parsedItinerary.error
-              : "Itinerary, highlights, inclusions and exclusions must be text values",
+          message: "Invalid JSON request body",
         },
         { status: 400 }
       );
     }
-    const itineraryImageUploads = readItineraryImageUploads(
-      formData,
-      parsedItinerary.itineraryDays
-    );
-    if ("error" in itineraryImageUploads) {
+  } else {
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      console.error("POST /api/tours could not parse the request body:", error);
       return NextResponse.json(
-        { success: false, message: itineraryImageUploads.error },
+        {
+          success: false,
+          message: "The tour request body is malformed",
+        },
         { status: 400 }
       );
+    }
+  }
+
+  try {
+    const getString = (field: string): string => {
+      if (jsonBody) {
+        const value = jsonBody[field];
+        return typeof value === "string" ? value.trim() : "";
+      }
+      const value = formData?.get(field);
+      return typeof value === "string" ? value.trim() : "";
+    };
+
+    const getNumber = (field: string): number => {
+      if (jsonBody) {
+        const value = jsonBody[field];
+        return Number(value);
+      }
+      return Number(formData?.get(field));
+    };
+
+    const getList = (field: string): string[] => {
+      if (jsonBody) {
+        const val = jsonBody[field];
+        if (Array.isArray(val)) {
+          return val.map((item) => String(item).trim()).filter(Boolean);
+        }
+        if (typeof val === "string") {
+          return val
+            .split(/\r?\n|,/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+        return [];
+      }
+      const items = formData?.getAll(field) ?? [];
+      const result: string[] = [];
+      for (const item of items) {
+        if (typeof item === "string") {
+          item
+            .split(/\r?\n|,/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .forEach((s) => result.push(s));
+        }
+      }
+      return result;
+    };
+
+    const selectedOperatorId = getString("operatorId");
+
+    if (role === "admin") {
+      if (!selectedOperatorId) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Please select an operator",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!mongoose.isValidObjectId(selectedOperatorId)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid operator selection",
+          },
+          { status: 400 }
+        );
+      }
+
+      await connectDB();
+      const selectedOperator = await User.findOne({
+        _id: selectedOperatorId,
+        role: "operator",
+        isActive: { $ne: false },
+      }).select("_id");
+
+      if (!selectedOperator) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Selected operator does not exist",
+          },
+          { status: 404 }
+        );
+      }
+
+      assignedOperatorId = selectedOperator._id.toString();
+    }
+
+    const title = getString("title");
+    const description = getString("description");
+    const destination = getString("destination");
+    let country = getString("country");
+    let state = getString("state");
+    let category = getString("category");
+    let activityType = getString("activityType");
+
+    // Harmonize category and activityType
+    activityType = (activityType || category || "").trim();
+    category = (category || activityType || "").trim();
+
+    const duration = getNumber("duration");
+    const durationUnit = getString("durationUnit") === "days" ? "days" : "hours";
+    const price = getNumber("price");
+    const currency = getString("currency") || "INR";
+    let maxParticipants = getNumber("maxParticipants");
+    const meetingPoint = getString("meetingPoint");
+
+    const itinerary = getList("itinerary");
+    const highlights = getList("highlights");
+    const inclusions = getList("inclusions");
+    const exclusions = getList("exclusions");
+
+    const itineraryDaysRaw = jsonBody
+      ? jsonBody.itineraryDays
+      : formData?.get("itineraryDays");
+
+    const parsedItinerary = parseItineraryDays(itineraryDaysRaw);
+
+    if ("error" in parsedItinerary) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: parsedItinerary.error,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Verify no Base64 in activity images
+    for (const day of parsedItinerary.itineraryDays) {
+      for (const act of day.activities) {
+        if (
+          act.image &&
+          (act.image.startsWith("data:") || act.image.includes(";base64,"))
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Base64 itinerary image is not allowed. Upload images to Cloudinary and provide secure URLs.",
+            },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     // Validation
@@ -244,7 +303,7 @@ if (role === "admin") {
       return NextResponse.json(
         {
           success: false,
-          message: "Activity type is required",
+          message: "Activity type / category is required",
         },
         { status: 400 }
       );
@@ -270,7 +329,7 @@ if (role === "admin") {
       );
     }
 
-    if (!priceValue || !Number.isFinite(price) || price <= 0) {
+    if (!Number.isFinite(price) || price <= 0) {
       return NextResponse.json(
         {
           success: false,
@@ -300,7 +359,11 @@ if (role === "admin") {
       );
     }
 
-    const availabilityInput = getText("availability");
+    // Availability validation
+    const availabilityRaw = jsonBody
+      ? jsonBody.availability
+      : formData?.get("availability");
+
     const availabilitySlots: Array<{
       date: Date;
       endDate: Date;
@@ -311,15 +374,17 @@ if (role === "admin") {
       isAvailable: boolean;
     }> = [];
 
-    if (availabilityInput) {
-      let parsedAvailability: unknown;
-      try {
-        parsedAvailability = JSON.parse(availabilityInput);
-      } catch {
-        return NextResponse.json(
-          { success: false, message: "Availability details must be valid JSON" },
-          { status: 400 }
-        );
+    if (availabilityRaw) {
+      let parsedAvailability: unknown = availabilityRaw;
+      if (typeof availabilityRaw === "string") {
+        try {
+          parsedAvailability = JSON.parse(availabilityRaw);
+        } catch {
+          return NextResponse.json(
+            { success: false, message: "Availability details must be valid JSON" },
+            { status: 400 }
+          );
+        }
       }
 
       if (!Array.isArray(parsedAvailability)) {
@@ -416,7 +481,6 @@ if (role === "admin") {
           );
         }
 
-        // Dynamically adjust tour maximum participants if slot capacity is larger
         if (slotTotalSeats > maxParticipants) {
           maxParticipants = slotTotalSeats;
         }
@@ -453,36 +517,57 @@ if (role === "admin") {
       }
     }
 
-    // Get uploaded images
-    const imageEntries = formData.getAll("images");
-    if (imageEntries.some((item) => typeof item === "string")) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Tour images must be uploaded as image files",
-        },
-        { status: 400 }
-      );
+    // Process images
+    const imageUrls: string[] = [];
+    const imageFilesToUpload: File[] = [];
+
+    const rawImages = jsonBody
+      ? Array.isArray(jsonBody.images)
+        ? jsonBody.images
+        : typeof jsonBody.images === "string"
+        ? [jsonBody.images]
+        : []
+      : formData
+      ? formData.getAll("images")
+      : [];
+
+    for (const item of rawImages) {
+      if (typeof item === "string") {
+        const trimmed = item.trim();
+        if (!trimmed) continue;
+
+        // Reject Base64 data strings inside tour creation payload
+        if (trimmed.startsWith("data:") || trimmed.includes(";base64,")) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Base64 image data is not allowed in tour creation. Upload images directly to Cloudinary and provide secure URLs.",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!/^https?:\/\//i.test(trimmed)) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Invalid image URL: "${trimmed.slice(0, 50)}". Tour images must be secure HTTP/HTTPS URLs.`,
+            },
+            { status: 400 }
+          );
+        }
+
+        imageUrls.push(trimmed);
+      } else if (item instanceof File) {
+        if (item.size > 0) {
+          imageFilesToUpload.push(item);
+        }
+      }
     }
 
-    const imageFiles = imageEntries.filter(
-      (item): item is File => item instanceof File
-    );
-
-    // Production keeps the existing image requirement; development can create
-    // tours without configuring an external image service.
-    if (process.env.NODE_ENV === "production" && imageFiles.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "At least one tour image is required",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Maximum 10 images
-    if (imageFiles.length > 10) {
+    // Total count validation
+    if (imageUrls.length + imageFilesToUpload.length > 10) {
       return NextResponse.json(
         {
           success: false,
@@ -492,18 +577,21 @@ if (role === "admin") {
       );
     }
 
-    // Validate images
-    for (const file of imageFiles) {
-      if (file.size === 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Tour image files cannot be empty",
-          },
-          { status: 400 }
-        );
-      }
+    if (
+      process.env.NODE_ENV === "production" &&
+      imageUrls.length + imageFilesToUpload.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "At least one tour image is required",
+        },
+        { status: 400 }
+      );
+    }
 
+    // Handle any legacy File uploads in multipart
+    for (const file of imageFilesToUpload) {
       if (!file.type.startsWith("image/")) {
         return NextResponse.json(
           {
@@ -523,79 +611,30 @@ if (role === "admin") {
           { status: 400 }
         );
       }
-    }
 
-    try {
-      await connectDB();
-    } catch (error) {
-      console.error("POST /api/tours MongoDB connection error:", error);
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Could not connect to MongoDB. Check the database URI and network access.",
-        },
-        { status: 503 }
-      );
-    }
-
-    // Upload images to Cloudinary
-    const imageUrls: string[] = [];
-
-    for (const file of imageFiles) {
       try {
-        const imageUrl = await uploadTourImage(file);
-        imageUrls.push(imageUrl);
-      } catch (error) {
-        if (error instanceof Error && error.message.startsWith("Cloudinary is not configured.")) {
-          console.error("POST /api/tours Cloudinary configuration error:", error.message);
-          const missingCredentials = getMissingCloudinaryCredentials();
-
+        const uploadedUrl = await uploadTourImage(file);
+        imageUrls.push(uploadedUrl);
+      } catch (uploadError) {
+        if (
+          uploadError instanceof Error &&
+          uploadError.message.startsWith("Cloudinary is not configured.")
+        ) {
+          const missing = getMissingCloudinaryCredentials();
           return NextResponse.json(
             {
               success: false,
-              message: `Image upload is unavailable because Cloudinary is not configured. Add valid ${missingCredentials.join(", ")} values to the server environment and restart the server, or remove the images and submit the tour without them during development.`,
+              message: `Image upload is unavailable because Cloudinary is not configured. Missing: ${missing.join(", ")}`,
             },
             { status: 503 }
           );
         }
-
-        const uploadError =
-          error !== null && typeof error === "object"
-            ? (error as {
-                message?: unknown;
-                name?: unknown;
-                http_code?: unknown;
-                request_id?: unknown;
-              })
-            : {};
-
-        const providerMessage =
-          typeof uploadError.message === "string"
-            ? uploadError.message
-            : "Unknown Cloudinary error";
-        const safeProviderMessage = providerMessage.slice(0, 250);
-
-        console.error("POST /api/tours Cloudinary upload error:", {
-          name: uploadError.name,
-          httpCode: uploadError.http_code,
-          requestId: uploadError.request_id,
-          message: safeProviderMessage,
-        });
-
-        const invalidCredentials =
-          uploadError.http_code === 401 ||
-          /invalid api[_ ]?key|api[_ ]?secret|invalid signature|must supply cloud_name|must supply api_key/i.test(
-            providerMessage
-          );
-
         return NextResponse.json(
           {
             success: false,
-            message: invalidCredentials
-              ? "Cloudinary rejected the configured credentials. Verify CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in the server environment, then restart the server."
-              : `Cloudinary image upload failed: ${safeProviderMessage}`,
+            message: "Cloudinary image upload failed. Please try again.",
           },
-          { status: invalidCredentials ? 503 : 502 }
+          { status: 502 }
         );
       }
     }
@@ -605,25 +644,62 @@ if (role === "admin") {
       activities: [...day.activities],
     }));
 
-    try {
-      for (const upload of itineraryImageUploads.uploads) {
-        itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
-          await uploadTourImage(upload.file);
+    // If multipart had itinerary images uploaded directly as files
+    if (formData) {
+      const itineraryImageUploads = readItineraryImageUploads(
+        formData,
+        parsedItinerary.itineraryDays
+      );
+      if ("error" in itineraryImageUploads) {
+        return NextResponse.json(
+          { success: false, message: itineraryImageUploads.error },
+          { status: 400 }
+        );
       }
+
+      for (const upload of itineraryImageUploads.uploads) {
+        try {
+          itineraryDays[upload.dayIndex].activities[upload.activityIndex].image =
+            await uploadTourImage(upload.file);
+        } catch (error) {
+          console.error("Itinerary image upload error:", error);
+        }
+      }
+    }
+
+    // Connect DB
+    try {
+      await connectDB();
     } catch (error) {
-      console.error("POST /api/tours itinerary image upload error:", error);
-      const unavailable =
-        error instanceof Error &&
-        error.message.startsWith("Cloudinary is not configured.");
+      console.error("POST /api/tours MongoDB connection error:", error);
       return NextResponse.json(
         {
           success: false,
-          message: unavailable
-            ? `Activity image uploads are unavailable because Cloudinary is not configured. Add valid ${getMissingCloudinaryCredentials().join(", ")} values to the server environment and restart the server.`
-            : "Cloudinary could not upload an itinerary activity image.",
+          message:
+            "Could not connect to MongoDB. Check the database URI and network access.",
         },
-        { status: unavailable ? 503 : 502 }
+        { status: 503 }
       );
+    }
+
+    // Auto-detect country/state from Destination if missing
+    if ((!country || !state) && destination) {
+      try {
+        const placeName = destination.split(",")[0].trim();
+        const destDoc = await Destination.findOne({
+          name: { $regex: new RegExp(`^${escapeRegExp(placeName)}$`, "i") },
+          isActive: true,
+        })
+          .select("country state")
+          .lean();
+
+        if (destDoc) {
+          if (!country && destDoc.country) country = destDoc.country;
+          if (!state && destDoc.state) state = destDoc.state;
+        }
+      } catch {
+        // Non-fatal
+      }
     }
 
     // Create tour
@@ -634,6 +710,9 @@ if (role === "admin") {
         title,
         description,
         destination,
+        country,
+        state,
+        category,
         activityType,
         duration,
         durationUnit,

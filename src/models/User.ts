@@ -143,6 +143,9 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
+UserSchema.index({ role: 1 });
+UserSchema.index({ "operatorApplication.status": 1 });
+
 const User: Model<IUser> =
   mongoose.models.User ||
   mongoose.model<IUser>("User", UserSchema);

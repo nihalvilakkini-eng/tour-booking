@@ -8,6 +8,8 @@ import TourItineraryBuilder, {
   toEditableItinerary,
   type EditableItineraryDay,
 } from "@/components/forms/TourItineraryBuilder";
+import { uploadItineraryActivityImages } from "@/lib/client-image-upload";
+import { parseApiResponse } from "@/lib/api-response";
 import type { IItineraryDay } from "@/models/Tour";
 
 type TourResponse = {
@@ -70,8 +72,10 @@ export default function EditTourItineraryPage() {
     setError("");
 
     try {
+      const updatedDays = await uploadItineraryActivityImages(days);
+
       const formData = new FormData();
-      appendItineraryToFormData(formData, days);
+      appendItineraryToFormData(formData, updatedDays);
       const response = await fetch(
         `/api/tours/${encodeURIComponent(id)}`,
         {
@@ -80,15 +84,18 @@ export default function EditTourItineraryPage() {
           body: formData,
         }
       );
-      const result = (await response.json()) as TourResponse;
-      if (!response.ok || result.success !== true) {
-        if (response.status === 401) {
+      const result = await parseApiResponse<TourResponse>(
+        response,
+        "Unable to save the itinerary."
+      );
+      if (!result.ok) {
+        if (result.status === 401) {
           throw new Error("Please sign in again to update this tour.");
         }
-        if (response.status === 403) {
+        if (result.status === 403) {
           throw new Error("You can only edit your own tours.");
         }
-        throw new Error(result.message || "Unable to save the itinerary.");
+        throw new Error(result.message);
       }
 
       router.push(`/operator/dashboard/tours/${encodeURIComponent(id)}`);

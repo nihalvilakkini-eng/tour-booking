@@ -16,6 +16,11 @@ import TourItineraryBuilder, {
   toEditableItinerary,
   type EditableItineraryDay,
 } from "@/components/forms/TourItineraryBuilder";
+import { parseApiResponse } from "@/lib/api-response";
+import {
+  uploadMultipleImagesToCloudinary,
+  uploadItineraryActivityImages,
+} from "@/lib/client-image-upload";
 
 type TourForm = {
   title: string;
@@ -503,21 +508,27 @@ export default function EditTourPage() {
     appendList(data, "inclusions", form.inclusions);
     appendList(data, "exclusions", form.exclusions);
 
-    // Preserve existing tour photos.
-    existingImages.forEach((url) => {
-      data.append("existingImages", url);
-    });
-
-    // Add newly selected tour photos.
-    newImages.forEach((file) => {
-      data.append("images", file);
-    });
-
-    // Preserve and update itinerary activities and activity images.
-    appendItineraryToFormData(data, itineraryDays);
-
     try {
       setSaving(true);
+
+      let uploadedNewUrls: string[] = [];
+      if (newImages.length > 0) {
+        uploadedNewUrls = await uploadMultipleImagesToCloudinary(newImages);
+      }
+
+      const updatedItinerary = await uploadItineraryActivityImages(itineraryDays);
+
+      // Preserve existing tour photos + newly uploaded Cloudinary photos
+      existingImages.forEach((url) => {
+        data.append("existingImages", url);
+      });
+
+      uploadedNewUrls.forEach((url) => {
+        data.append("existingImages", url);
+      });
+
+      // Preserve and update itinerary activities and activity images
+      appendItineraryToFormData(data, updatedItinerary);
 
       const response = await fetch(`/api/tours/${tourId}`, {
         method: "PATCH",
@@ -525,10 +536,10 @@ export default function EditTourPage() {
         body: data,
       });
 
-      const result = await response.json();
+      const result = await parseApiResponse(response, "Failed to update tour");
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to update tour");
+      if (!result.ok) {
+        throw new Error(result.message);
       }
 
       setSuccess("Tour updated successfully!");

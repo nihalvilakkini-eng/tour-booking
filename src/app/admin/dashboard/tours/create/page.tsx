@@ -7,9 +7,13 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import TourItineraryBuilder, {
-  appendItineraryToFormData,
   type EditableItineraryDay,
 } from "@/components/forms/TourItineraryBuilder";
+import {
+  uploadMultipleImagesToCloudinary,
+  uploadItineraryActivityImages,
+} from "@/lib/client-image-upload";
+import { parseApiResponse } from "@/lib/api-response";
 
 const inputClass =
   "w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
@@ -20,6 +24,9 @@ const initialForm = {
   title: "",
   description: "",
   destination: "",
+  country: "",
+  state: "",
+  category: "",
   activityType: "",
   duration: "1",
   durationUnit: "hours",
@@ -72,6 +79,13 @@ export default function AdminCreateTourPage() {
 
   const [form, setForm] = useState(initialForm);
   const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{
+    current: number;
+    total: number;
+    message: string;
+    percent: number;
+  } | null>(null);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [selectedOperator, setSelectedOperator] = useState("");
   const [itineraryDays, setItineraryDays] = useState<EditableItineraryDay[]>([]);
@@ -258,79 +272,127 @@ export default function AdminCreateTourPage() {
       seenSlots.add(key);
     }
 
-    const data = new FormData();
-
-    data.append("title", form.title.trim());
-    data.append("description", form.description.trim());
-    data.append("destination", form.destination.trim());
-    data.append("activityType", form.activityType.trim());
-    data.append("duration", String(duration));
-    data.append("durationUnit", form.durationUnit);
-    data.append("price", String(price));
-    data.append("currency", form.currency);
-    data.append("maxParticipants", String(effectiveMaxParticipants));
-    data.append("meetingPoint", form.meetingPoint.trim());
-
-    // Selected operator
-    data.append("operatorId", selectedOperator);
-
-    const listFields = [
-      "itinerary",
-      "highlights",
-      "inclusions",
-      "exclusions",
-    ] as const;
-
-    for (const field of listFields) {
-      for (const item of splitList(form[field])) {
-        data.append(field, item);
-      }
-    }
-
-    appendItineraryToFormData(data, itineraryDays);
-
-    if (validSlots.length > 0) {
-      data.append(
-        "availability",
-        JSON.stringify(
-          validSlots.map((slot) => ({
-            date: slot.date,
-            endDate: slot.endDate || slot.date,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            totalSeats: Number(slot.totalSeats),
-            availableSeats: Number(slot.availableSeats),
-            isAvailable: slot.isAvailable,
-          }))
-        )
-      );
-    }
-
-    for (const image of images) {
-      data.append("images", image);
-    }
-
+    if (loading) return; // Prevent duplicate submissions
     setLoading(true);
 
     try {
-      const response = await fetch("/api/tours", {
-        method: "POST",
-        credentials: "include",
-        body: data,
+      // Step 1: Upload compressed tour gallery images to Cloudinary
+      let uploadedImageUrls: string[] = [];
+      if (images.length > 0) {
+        setUploadProgress({
+          current: 0,
+          total: images.length,
+          message: `Compressing and uploading ${images.length} image${images.length > 1 ? "s" : ""} to Cloudinary...`,
+          percent: 5,
+        });
+
+        uploadedImageUrls = await uploadMultipleImagesToCloudinary(
+          images,
+          (current, total, message, percent) => {
+            setUploadProgress({ current, total, message, percent });
+          }
+        );
+      }
+
+      // Step 2: Upload itinerary activity photos
+      setUploadProgress({
+        current: images.length,
+        total: images.length,
+        message: "Processing itinerary and activity photos...",
+        percent: 90,
       });
 
-      const result = await response.json();
+      const updatedItineraryDays = await uploadItineraryActivityImages(
+        itineraryDays,
+        (statusMessage) => {
+          setUploadProgress({
+            current: images.length,
+            total: images.length,
+            message: statusMessage,
+            percent: 92,
+          });
+        }
+      );
 
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.message || "Could not create the tour."
-        );
+      // Step 3: Build JSON payload
+      setUploadProgress({
+        current: images.length,
+        total: images.length,
+        message: "Saving tour to database...",
+        percent: 96,
+      });
+
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        destination: form.destination.trim(),
+        country: form.country.trim(),
+        state: form.state.trim(),
+        category: (form.category || form.activityType).trim(),
+        activityType: (form.activityType || form.category).trim(),
+        duration,
+        durationUnit: form.durationUnit,
+        price,
+        currency: form.currency,
+        maxParticipants: effectiveMaxParticipants,
+        meetingPoint: form.meetingPoint.trim(),
+        operatorId: selectedOperator,
+        itinerary: splitList(form.itinerary),
+        highlights: splitList(form.highlights),
+        inclusions: splitList(form.inclusions),
+        exclusions: splitList(form.exclusions),
+        itineraryDays: updatedItineraryDays.map((day) => ({
+          dayNumber: day.dayNumber,
+          title: day.title,
+          activities: day.activities.map((activity) => ({
+            title: activity.title,
+            startTime: activity.startTime,
+            endTime: activity.endTime,
+            duration: activity.duration,
+            location: activity.location,
+            description: activity.description,
+            travelMode: activity.travelMode,
+            latitude: activity.latitude ? Number(activity.latitude) : undefined,
+            longitude: activity.longitude ? Number(activity.longitude) : undefined,
+            instructions: activity.instructions,
+            image: activity.image || "",
+          })),
+        })),
+        availability:
+          validSlots.length > 0
+            ? validSlots.map((slot) => ({
+                date: slot.date,
+                endDate: slot.endDate || slot.date,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                totalSeats: Number(slot.totalSeats),
+                availableSeats: Number(slot.availableSeats),
+                isAvailable: slot.isAvailable,
+              }))
+            : undefined,
+        images: uploadedImageUrls,
+      };
+
+      const response = await fetch("/api/tours", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      const parsed = await parseApiResponse(response, "Could not create the tour");
+
+      if (!parsed.ok) {
+        throw new Error(parsed.message);
       }
 
       setSuccess("Tour created successfully!");
 
       setForm(initialForm);
       setImages([]);
+      setPreviews([]);
       setSelectedOperator("");
       setItineraryDays([]);
       setAvailabilitySlots([{ ...emptyAvailabilitySlot }]);
@@ -347,6 +409,7 @@ export default function AdminCreateTourPage() {
       );
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -446,22 +509,23 @@ export default function AdminCreateTourPage() {
                   onChange={(e) =>
                     updateField("destination", e.target.value)
                   }
-                  placeholder="Munnar, Kerala"
+                  placeholder="Munnar"
                   required
                 />
               </div>
 
               <div>
                 <label className={labelClass} htmlFor="activityType">
-                  Activity Type *
+                  Activity Type / Category *
                 </label>
                 <select
                   id="activityType"
                   className={inputClass}
                   value={form.activityType}
-                  onChange={(e) =>
-                    updateField("activityType", e.target.value)
-                  }
+                  onChange={(e) => {
+                    updateField("activityType", e.target.value);
+                    updateField("category", e.target.value);
+                  }}
                   required
                 >
                   <option value="">Select activity</option>
@@ -476,6 +540,36 @@ export default function AdminCreateTourPage() {
                   <option value="City Tour">City Tour</option>
                   <option value="Other">Other</option>
                 </select>
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="country">
+                  Country
+                </label>
+                <input
+                  id="country"
+                  className={inputClass}
+                  value={form.country}
+                  onChange={(e) =>
+                    updateField("country", e.target.value)
+                  }
+                  placeholder="e.g. India"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="state">
+                  State / Region
+                </label>
+                <input
+                  id="state"
+                  className={inputClass}
+                  value={form.state}
+                  onChange={(e) =>
+                    updateField("state", e.target.value)
+                  }
+                  placeholder="e.g. Kerala"
+                />
               </div>
 
               {/* Operator Selection */}
@@ -836,37 +930,128 @@ export default function AdminCreateTourPage() {
           <hr className="border-slate-800" />
 
           <section>
-            <h2 className="mb-2 text-xl font-bold text-white">
-              4. Tour Images
-            </h2>
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="mb-2 text-xl font-bold text-white">
+                  4. Tour Images &amp; Gallery
+                </h2>
+                <p className="text-sm text-slate-400">
+                  Upload up to 10 photos. The first photo acts as the main cover image. Photos are automatically compressed and uploaded directly to Cloudinary.
+                </p>
+              </div>
+              <span className="w-fit rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+                ☁ Cloudinary Enabled
+              </span>
+            </div>
 
-            <p className="mb-5 text-sm text-slate-400">
-              Upload up to 10 images. Each image must be smaller
-              than 10 MB. Uploading images requires valid
-              Cloudinary configuration.
-            </p>
+            <div className="mt-5">
+              <label className={labelClass} htmlFor="images">
+                Select Images
+              </label>
 
-            <label className={labelClass} htmlFor="images">
-              Select Images
-            </label>
+              <input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                className={`${inputClass} file:mr-4 file:rounded-lg file:border-0 file:bg-amber-500/15 file:px-4 file:py-2 file:font-semibold file:text-amber-400 hover:file:bg-amber-500/25`}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.files ?? []);
+                  if (selected.length + images.length > 10) {
+                    setError("Maximum 10 images are allowed.");
+                    return;
+                  }
+                  const updated = [...images, ...selected];
+                  setImages(updated);
+                  setPreviews(updated.map((f) => URL.createObjectURL(f)));
+                  setError("");
+                }}
+              />
+            </div>
 
-            <input
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              className={`${inputClass} file:mr-4 file:rounded-lg file:border-0 file:bg-amber-500/15 file:px-4 file:py-2 file:font-semibold file:text-amber-400 hover:file:bg-amber-500/25`}
-              onChange={(e) => {
-                setImages(Array.from(e.target.files ?? []));
-                setError("");
-              }}
-            />
+            {previews.length > 0 && (
+              <div className="mt-5">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Gallery Preview ({images.length} / 10 photos)
+                </p>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                  {previews.map((preview, index) => (
+                    <div
+                      key={`${images[index]?.name}-${index}`}
+                      className={`relative overflow-hidden rounded-xl border transition ${
+                        index === 0
+                          ? "border-amber-500 ring-2 ring-amber-500/30"
+                          : "border-slate-800 bg-slate-900"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={preview}
+                        alt={`Tour photo ${index + 1}`}
+                        className="h-32 w-full object-cover"
+                      />
 
-            {images.length > 0 && (
-              <p className="mt-3 text-sm text-slate-400">
-                {images.length} image(s) selected:{" "}
-                {images.map((image) => image.name).join(", ")}
-              </p>
+                      {index === 0 ? (
+                        <span className="absolute top-2 left-2 rounded bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-slate-950 shadow">
+                          ★ Main Cover
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...images];
+                            const [selected] = updated.splice(index, 1);
+                            updated.unshift(selected);
+                            setImages(updated);
+                            setPreviews(updated.map((f) => URL.createObjectURL(f)));
+                          }}
+                          className="absolute top-2 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur hover:bg-black/80"
+                        >
+                          Make Cover
+                        </button>
+                      )}
+
+                      <div className="p-2.5 bg-slate-900">
+                        <p className="truncate text-xs font-medium text-slate-300">
+                          {images[index]?.name}
+                        </p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500">
+                            {images[index]?.size ? `${(images[index].size / 1024 / 1024).toFixed(1)} MB` : ""}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = images.filter((_, i) => i !== index);
+                              setImages(updated);
+                              setPreviews(updated.map((f) => URL.createObjectURL(f)));
+                            }}
+                            className="text-xs font-semibold text-rose-400 hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upload progress indicator */}
+            {uploadProgress && (
+              <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                <div className="flex items-center justify-between text-xs font-bold text-amber-300">
+                  <span>{uploadProgress.message}</span>
+                  <span>{uploadProgress.percent}%</span>
+                </div>
+                <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full bg-amber-500 transition-all duration-300"
+                    style={{ width: `${uploadProgress.percent}%` }}
+                  />
+                </div>
+              </div>
             )}
           </section>
 
@@ -889,7 +1074,11 @@ export default function AdminCreateTourPage() {
               }
               className="rounded-xl bg-amber-500 px-7 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Creating Tour..." : "Create Tour"}
+              {loading
+                ? uploadProgress
+                  ? `Uploading (${uploadProgress.percent}%)...`
+                  : "Creating Tour..."
+                : "Create Tour"}
             </button>
           </div>
         </form>

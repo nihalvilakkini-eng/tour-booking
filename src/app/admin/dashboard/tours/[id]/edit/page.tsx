@@ -8,6 +8,11 @@ import TourItineraryBuilder, {
   toEditableItinerary,
   type EditableItineraryDay,
 } from "@/components/forms/TourItineraryBuilder";
+import { parseApiResponse } from "@/lib/api-response";
+import {
+  uploadMultipleImagesToCloudinary,
+  uploadItineraryActivityImages,
+} from "@/lib/client-image-upload";
 
 type TourForm = {
   title: string;
@@ -288,20 +293,28 @@ export default function AdminEditTourPage() {
     appendList(data, "highlights", form.highlights);
     appendList(data, "inclusions", form.inclusions);
     appendList(data, "exclusions", form.exclusions);
-    existingImages.forEach((url) => data.append("existingImages", url));
-    newImages.forEach((file) => data.append("images", file));
-    appendItineraryToFormData(data, itineraryDays);
-
     try {
       setSaving(true);
+
+      let uploadedNewUrls: string[] = [];
+      if (newImages.length > 0) {
+        uploadedNewUrls = await uploadMultipleImagesToCloudinary(newImages);
+      }
+
+      const updatedItinerary = await uploadItineraryActivityImages(itineraryDays);
+
+      existingImages.forEach((url) => data.append("existingImages", url));
+      uploadedNewUrls.forEach((url) => data.append("existingImages", url));
+      appendItineraryToFormData(data, updatedItinerary);
+
       const response = await fetch(`/api/tours/${tourId}`, {
         method: "PATCH",
         credentials: "include",
         body: data,
       });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to update tour");
+      const result = await parseApiResponse(response, "Failed to update tour");
+      if (!result.ok) {
+        throw new Error(result.message);
       }
       setSuccess("Tour updated successfully!");
       router.push("/admin/dashboard/tours");

@@ -8,6 +8,7 @@ import TourItineraryBuilder, {
   appendItineraryToFormData,
   type EditableItineraryDay,
 } from "@/components/forms/TourItineraryBuilder";
+import { parseApiResponse } from "@/lib/api-response";
 
 export default function OperatorTourCreateForm() {
   const router = useRouter();
@@ -28,11 +29,10 @@ export default function OperatorTourCreateForm() {
         method: "POST",
         body: formData,
       });
-      const result: { success?: boolean; message?: string } =
-        await response.json();
+      const result = await parseApiResponse(response, "Failed to create tour");
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to create tour.");
+      if (!result.ok) {
+        throw new Error(result.message);
       }
 
       router.push("/operator/dashboard/tours");

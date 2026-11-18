@@ -171,6 +171,13 @@ const BookingSchema = new Schema<IBooking>(
   }
 );
 
+BookingSchema.index({ user: 1, createdAt: -1 });
+BookingSchema.index({ tour: 1, createdAt: -1 });
+BookingSchema.index({ availability: 1 });
+BookingSchema.index({ status: 1 });
+BookingSchema.index({ paymentStatus: 1 });
+BookingSchema.index({ razorpayOrderId: 1 });
+
 const Booking: Model<IBooking> =
   mongoose.models.Booking ||
   mongoose.model<IBooking>("Booking", BookingSchema);

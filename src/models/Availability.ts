@@ -63,6 +63,9 @@ const AvailabilitySchema = new Schema<IAvailability>(
   }
 );
 
+AvailabilitySchema.index({ tour: 1, date: 1 });
+AvailabilitySchema.index({ tour: 1, isAvailable: 1 });
+
 const Availability: Model<IAvailability> =
   mongoose.models.Availability ||
   mongoose.model<IAvailability>(

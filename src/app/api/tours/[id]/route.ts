@@ -210,7 +210,12 @@ export async function PATCH(
     const title = getText("title");
     const description = getText("description");
     const destination = getText("destination");
-    const activityType = getText("activityType");
+    const country = getText("country");
+    const state = getText("state");
+    let category = getText("category");
+    let activityType = getText("activityType");
+    activityType = (activityType || category || "").trim();
+    category = (category || activityType || "").trim();
     const duration = Number(getText("duration"));
     const durationUnit = getText("durationUnit");
     const priceValue = getText("price");
@@ -491,6 +496,9 @@ export async function PATCH(
         title,
         description,
         destination,
+        country: country || tour.country || "",
+        state: state || tour.state || "",
+        category: category || activityType || tour.category || "",
         activityType,
         duration,
         durationUnit,
